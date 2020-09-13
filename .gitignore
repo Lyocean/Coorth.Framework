@@ -11,6 +11,13 @@
 /[Mm]emoryCaptures/
 /[Oo]utput/
 /Coorth/Coorth.Core/[Oo]bj/
+/Coorth/Coorth.Core/[Bb]in/
+/Coorth/Coorth.Frame/[Oo]bj/
+/Coorth/Coorth.Frame/[Bb]in/
+/Coorth/Coorth.Tests/[Oo]bj/
+/Coorth/Coorth.Tests/[Bb]in/
+/Coorth/Coorth.Performance/[Oo]bj/
+/Coorth/Coorth.Performance/[Bb]in/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
 !/[Aa]ssets/**/*.meta
