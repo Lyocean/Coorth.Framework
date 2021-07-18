@@ -66,7 +66,7 @@ namespace Coorth {
 
         
         public void Setup(EventChannel<TEvent> eventChannel) {
-            this.channel = channel;
+            this.channel = eventChannel;
         }
 
         public void Execute(in TEvent e) {

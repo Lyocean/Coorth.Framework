@@ -21,14 +21,14 @@ namespace Coorth {
             var components = archetype.Components;
             if (includes != null) {
                 for (int i = 0, iMax = includes.Length; i < iMax; i++) {
-                    if (!components.ContainsKey(includes[i])) {
+                    if (!components.Contains(includes[i])) {
                         return false;
                     }
                 }
             }
             if (excludes != null) {
                 for (int i = 0, iMax = excludes.Length; i < iMax; i++) {
-                    if (components.ContainsKey(excludes[i])) {
+                    if (components.Contains(excludes[i])) {
                         return false;
                     }
                 }

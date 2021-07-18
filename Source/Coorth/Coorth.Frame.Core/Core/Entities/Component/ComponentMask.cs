@@ -6,7 +6,7 @@ namespace Coorth {
         
         private int[] array;
 
-        private int capacity => array.Length * 32;
+        private int Capacity => array.Length * 32;
         
         public ComponentMask(int length) {
             var arrayCapacity = (int) ((uint) (length - 1 + 32) >> 5);
@@ -22,7 +22,7 @@ namespace Coorth {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Get(int index) {
-            if ((uint) index >= capacity) {
+            if ((uint) index >= Capacity) {
                 return false;
             }
             return (uint) (this.array[index >> 5] & 1 << index) > 0U;
@@ -30,7 +30,7 @@ namespace Coorth {
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Set(int index, bool value) {
-            if (index >= capacity) {
+            if (index >= Capacity) {
                 var arrayCapacity = (int) ((uint) (index + 32) >> 5);
                 Array.Resize(ref this.array, arrayCapacity);
             }

@@ -113,58 +113,6 @@ namespace Coorth {
             Count++;
             return ref Values[index];
         }
-        
-        
-        
-        
-        
-
-        //
-        //
-        //
-        //
-        //
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // public ref T Alloc(int index) {
-        //     int capacity = Values.Length;
-        //     if (capacity <= index) {
-        //         do {
-        //             capacity *= 2;
-        //         } while (capacity <= index);
-        //         Array.Resize(ref Values, capacity);
-        //     }
-        //     return ref Values[index];
-        // }
-        //
-        //
-        //
-        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // public void Resize(int capacity) {
-        //     Array.Resize(ref Values, capacity);
-        // }
-        //
-
-
-        // public bool Equals(RawList<T> other) {
-        //     return Equals(Values, other.Values) && Count == other.Count;
-        // }
-        //
-        // public override bool Equals(object obj) {
-        //     return obj is RawList<T> other && Equals(other);
-        // }
-        //
-        // public override int GetHashCode() {
-        //     return Values.GetHashCode() * 397 + Count.GetHashCode();
-        //     // return HashCode.Combine(Values, Count);
-        // }
-        //
-        // public static bool operator ==(RawList<T> left, RawList<T> right) {
-        //     return left.Equals(right);
-        // }
-        //
-        // public static bool operator !=(RawList<T> left, RawList<T> right) {
-        //     return !left.Equals(right);
-        // }
     }
     
 }

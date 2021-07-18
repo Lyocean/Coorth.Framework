@@ -1,0 +1,208 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Coorth {
+    public readonly struct EntityCollection : IEnumerable<Entity> {
+        private readonly ArchetypeGroup archetypeGroup;
+
+        public EntityCollection(ArchetypeGroup value) {
+            this.archetypeGroup = value;
+        }
+
+        public void ForEach<T>(Action<T> action) where T: IComponent {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+            var componentGroup = sandbox.GetComponentGroup<T>();
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+                    ref var component = ref componentGroup.Ref(context.Get(componentGroup.Id));
+                    action(component);
+                }
+            }
+        }
+
+        public void ForEach<T>(Action<Entity, T> action) where T: IComponent {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+            var componentGroup = sandbox.GetComponentGroup<T>();
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+                    ref var component = ref componentGroup.Ref(context.Get(componentGroup.Id));
+                    action(context.GetEntity(sandbox), component);
+                }
+            }
+        }
+
+        public void ForEach<TState, T>(TState state, Action<TState, T> action) where T: IComponent {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+            var componentGroup = sandbox.GetComponentGroup<T>();
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+                    ref var component = ref componentGroup.Ref(context.Get(componentGroup.Id));
+                    action(state, component);
+                }
+            }
+        }
+
+        public void ForEach<TState, T>(TState state, Action<TState, Entity, T> action) where T: IComponent {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+            var componentGroup = sandbox.GetComponentGroup<T>();
+            for(var i=0; i<archetypeGroup.Archetypes.Length; i++) {
+                var archetype = archetypeGroup.Archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+                    ref var component = ref componentGroup.Ref(context.Get(componentGroup.Id));
+                    action(state, context.GetEntity(sandbox), component);
+                }
+            }
+        }
+<# const int COUNT = 5; #>
+<# 
+    for (var i = 2; i <= COUNT; i++) { 
+        var templates = "";
+        var constraints = "";
+        var components = "";
+        for (var j = 1; j <= i; j++) {
+            templates += j == i ? $"T{j}" : $"T{j}, ";
+            constraints += $" where T{j} : IComponent";
+            components += j == i ? $"component{j}" : $"component{j}, ";
+        }
+#>
+        public void ForEach<<#=templates#>>(Action<<#=templates#>> action)<#=constraints#> {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+<# for (var j = 1; j <= i; j++) { #>
+            var componentGroup<#=j#> = sandbox.GetComponentGroup<T<#=j#>>();
+<# } #>
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+<# for (var j = 1; j <= i; j++) { #>
+                    ref var component<#=j#> = ref componentGroup<#=j#>.Ref(context.Get(componentGroup<#=j#>.Id));
+<# } #>
+                    action(<#=components#>);
+                }
+            }
+        }
+
+        public void ForEach<<#=templates#>>(Action<Entity, <#=templates#>> action)<#=constraints#> {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+<# for (var j = 1; j <= i; j++) { #>
+            var componentGroup<#=j#> = sandbox.GetComponentGroup<T<#=j#>>();
+<# } #>
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+<# for (var j = 1; j <= i; j++) { #>
+                    ref var component<#=j#> = ref componentGroup<#=j#>.Ref(context.Get(componentGroup<#=j#>.Id));
+<# } #>
+                    action(context.GetEntity(sandbox), <#=components#>);
+                }
+            }
+        }
+
+        public void ForEach<TState, <#=templates#>>(TState state, Action<TState, <#=templates#>> action)<#=constraints#> {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+<# for (var j = 1; j <= i; j++) { #>
+            var componentGroup<#=j#> = sandbox.GetComponentGroup<T<#=j#>>();
+<# } #>
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+<# for (var j = 1; j <= i; j++) { #>
+                    ref var component<#=j#> = ref componentGroup<#=j#>.Ref(context.Get(componentGroup<#=j#>.Id));
+<# } #>
+                    action(state, <#=components#>);
+                }
+            }
+        }
+
+        public void ForEach<TState, <#=templates#>>(TState state, Action<TState, Entity, <#=templates#>> action)<#=constraints#> {
+            var sandbox = archetypeGroup.Sandbox;
+            var archetypes = archetypeGroup.Archetypes;
+<# for (var j = 1; j <= i; j++) { #>
+            var componentGroup<#=j#> = sandbox.GetComponentGroup<T<#=j#>>();
+<# } #>
+            for(var i=0; i<archetypes.Length; i++) {
+                var archetype = archetypes[i];
+                for(var j=0; j<archetype.EntityCount; j++) {
+                    ref var context = ref sandbox.GetContext(archetype.GetEntity(j));
+<# for (var j = 1; j <= i; j++) { #>
+                    ref var component<#=j#> = ref componentGroup<#=j#>.Ref(context.Get(componentGroup<#=j#>.Id));
+<# } #>
+                    action(state, context.GetEntity(sandbox), <#=components#>);
+                }
+            }
+        }
+<# 
+    } 
+#>
+        public struct Enumerator : IEnumerator<Entity> {
+            private readonly Archetype[] archetypes;
+            private int archetypeIndex;
+            private int index;
+            
+            public Enumerator(ArchetypeGroup archetypeGroup){
+                this.archetypes = archetypeGroup.Archetypes;
+                this.archetypeIndex = 0;
+                this.index = 0;
+                this.Current = Entity.Null;
+            }         
+
+            public bool MoveNext() {
+                if(archetypes.Length == 0){
+                    return false;
+                }
+                while(archetypeIndex < archetypes.Length) {
+                    var archetype = archetypes[archetypeIndex];
+                    if(index < archetype.EntityCount) {
+                        var entityIndex = archetype.GetEntity(index);
+                        Current = archetype.Sandbox.GetEntity(entityIndex);
+                        index ++;
+                        return true;
+                    }
+                    archetypeIndex++;
+                    index = 0;
+                }
+                return false;
+            }
+
+            public void Reset() {
+                this.archetypeIndex = 0;
+                this.index = 0;
+                this.Current = Entity.Null;
+            }
+
+            public Entity Current { get; private set; }
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() {
+                
+            }
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator();
+
+        IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+}

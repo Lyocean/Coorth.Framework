@@ -1,4 +1,6 @@
-﻿namespace Coorth {
+﻿using System;
+
+namespace Coorth {
     public interface IComponent {
     }
     
@@ -19,6 +21,15 @@
     
     public interface IRefComponent : IComponent {
         Entity Entity { get; set; }
+    }
+    
+    public interface IDependency<T> {
+        
+    }
+
+    [AttributeUsage(AttributeTargets.Class| AttributeTargets.Struct)]
+    public class ComponentAttribute : Attribute {
+        
     }
 
     public abstract class RefComponent : IRefComponent {
@@ -50,4 +61,6 @@
             this.index = index;
         }
     }
+
+
 }

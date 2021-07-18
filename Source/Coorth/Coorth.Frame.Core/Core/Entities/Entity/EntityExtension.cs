@@ -1,4 +1,6 @@
-﻿namespace Coorth {
+﻿using System.Runtime.CompilerServices;
+
+namespace Coorth {
 
     public static class EntityExtension {
 
@@ -78,6 +80,11 @@
 
         #region Get
 
+        // public static ref T Ref1<T>(this Entity entity) where T : IComponent {
+        //     var id = entity.Id;
+        //     return ref entity.Sandbox.RefComponent<T>(id);
+        // }
+        //
         public static (T1, T2) Get<T1, T2>(this Entity entity) where T1 : IComponent
                                                 where T2 : IComponent {
             return (entity.Get<T1>(), entity.Get<T2>());

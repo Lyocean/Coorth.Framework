@@ -13,7 +13,10 @@ namespace Coorth {
 
         private readonly Dictionary<EntityMatcher, ArchetypeGroup> matcherToGroups = new Dictionary<EntityMatcher, ArchetypeGroup>();
 
-        private void InitArchetypes() {
+        internal (int Index, int Chunk) ArchetypeCapacity;
+        
+        private void InitArchetypes(int indexCapacity, int chunkCapacity) {
+            ArchetypeCapacity = (indexCapacity, chunkCapacity);
             emptyArchetype = new Archetype(this);
         }
 

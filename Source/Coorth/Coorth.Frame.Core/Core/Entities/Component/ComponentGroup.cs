@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -36,6 +38,7 @@ namespace Coorth {
         void OnRemoveComponent(in EntityId id, int componentIndex);
 
         int CloneComponent(Entity entity, int componentIndex);
+        // void ReadComponent();
     }
     
     internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
@@ -44,6 +47,8 @@ namespace Coorth {
 
         public static readonly Type ComponentType;
 
+        public static readonly ComponentAttribute Attribute;
+        
         public static readonly int TypeId;
         
         public static readonly bool IsValueType;
@@ -60,6 +65,7 @@ namespace Coorth {
 
         static ComponentGroup() {
             ComponentType = typeof(T);
+            Attribute = ComponentType.GetCustomAttribute<ComponentAttribute>();
             TypeId = Interlocked.Increment(ref Sandbox.ComponentTypeCount);
             Sandbox.ComponentTypeIds[ComponentType] = TypeId;
             IsValueType = typeof(T).IsValueType;
@@ -111,20 +117,20 @@ namespace Coorth {
             if (dependency.Values == null) {
                 dependency = new RawList<IComponentGroup>(1);
             }
-            dependency.Add(componentGroup);
+            if (!dependency.Values.Contains(componentGroup)) {
+                dependency.Add(componentGroup);
+            }
         }
         
         public bool HasDependency(Type otherType) {
-            if (dependency.Values == null) {
-                dependency = new RawList<IComponentGroup>(1);
+            if (dependency.IsNull) {
+                return false;
             }
-
-            foreach (var depGroup in dependency.Values) {
-                if (depGroup.Type == otherType) {
+            for (var i = 0; i < dependency.Count; i++) {
+                if (dependency[i].Type == otherType) {
                     return true;
-                }                
+                } 
             }
-
             return false;
         }
 
@@ -232,6 +238,25 @@ namespace Coorth {
         }
 
         #endregion
+
+        #region Asset
+
+        public ComponentAsset GetAsset(Entity entity, int index) {
+            ref var component = ref components[index];
+            if (Cloner != null) {
+                return new ComponentAsset<T>(Cloner.Invoke(entity, ref component));
+            } else if (IsValueType) {
+                return new ComponentAsset<T>(component);
+            }
+            else {
+                return new ComponentAsset<T>(Activator.CreateInstance<T>());
+            }
+        }
+
+        public ComponentAsset GetAssets() {
+            return new ComponentsAsset<T>();
+        }
         
+        #endregion
     }
 }

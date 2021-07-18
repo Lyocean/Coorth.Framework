@@ -4,7 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public abstract partial class SystemBase {
+    
+    [AttributeUsage(AttributeTargets.Class)]
+    public class WorldSystemAttribute : Attribute {
+        
+    }
+
+    public abstract class SystemBase {
 
         #region Fields
         

@@ -48,7 +48,7 @@ namespace Coorth {
 
             this.services = services ?? new ServiceFactory();
             this.Dispatcher = dispatcher ?? new EventDispatcher();
-            this.InitArchetypes();
+            this.InitArchetypes(this.config.ArchetypeCapacity.Index, this.config.ArchetypeCapacity.Chunk);
             this.InitEntities(this.config.EntityCapacity.Index, this.config.EntityCapacity.Chunk);
             this.InitComponents(this.config.ComponentGroupCapacity, this.config.ComponentDataCapacity.Index, this.config.ComponentDataCapacity.Chunk);
             this.InitSystems();
@@ -67,7 +67,7 @@ namespace Coorth {
         #region Lifecycle
         
         protected override void Dispose(bool dispose) {
-            _Execute(new EventDestroy());
+            _Execute(new EventSandboxDestroy());
             ClearEntities();
         }
 

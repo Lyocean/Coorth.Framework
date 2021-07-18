@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 
 namespace Coorth {
-    public readonly struct Entity : IEquatable<Entity>, ICloneable {
+    public readonly struct Entity : IEquatable<Entity>, ICloneable, IDisposable {
         public readonly EntityId Id;
 
         public readonly Sandbox Sandbox;
@@ -20,6 +20,8 @@ namespace Coorth {
 
         public IEnumerable<Type> ComponentTypes() => Sandbox.ComponentTypes(Id);
 
+        internal ref EntityContext GetContext() => ref Sandbox.GetContext(Id.Index);
+        
         public bool IsNull => Id.IsNull || Sandbox == null || !Sandbox.HasEntity(Id);
 
         public T Add<T>() where T : IComponent, new() => Sandbox.AddComponent<T>(Id);
@@ -45,15 +47,11 @@ namespace Coorth {
 
         public T Get<T>() where T : IComponent => Sandbox.GetComponent<T>(Id);
 
-        public T Get<T>(T defaultValue) where T : IComponent =>
-            Sandbox.TryGetComponent<T>(Id, out var component) ? component : defaultValue;
+        public T Get<T>(T defaultValue) where T : IComponent => Sandbox.TryGetComponent<T>(Id, out var component) ? component : defaultValue;
 
         public bool TryGet<T>(out T component) where T : IComponent => Sandbox.TryGetComponent<T>(Id, out component);
 
-        public unsafe ref T Ref<T>() where T : IComponent {
-            ref var component = ref Sandbox.RefComponent<T>(Id);
-            return ref Unsafe.AsRef<T>(Unsafe.AsPointer(ref component));
-        }
+        public ref T Ref<T>() where T : IComponent => ref Sandbox.RefComponent<T>(Id);
 
         public ComponentWrap<T> Wrap<T>() where T : IComponent => Sandbox.WrapComponent<T>(Id);
 
@@ -79,7 +77,9 @@ namespace Coorth {
         public void Clear() => Sandbox.ClearComponent(Id);
 
         public void Destroy() => Sandbox.DestroyEntity(Id);
-
+        
+        public void Dispose() => Destroy();
+        
         public Entity Clone() => Sandbox.CloneEntity(this);
 
         object ICloneable.Clone() => Sandbox.CloneEntity(this);
@@ -106,6 +106,8 @@ namespace Coorth {
         }
 
         public override string ToString() => $"Entity(Id:{Id.Index}-{Id.Version} Sandbox:{Sandbox.Id})";
+
+
     }
 
     public readonly struct EntityId : IEquatable<EntityId> {

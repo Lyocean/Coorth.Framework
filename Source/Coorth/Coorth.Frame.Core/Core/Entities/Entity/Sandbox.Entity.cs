@@ -79,8 +79,22 @@ namespace Coorth {
             return CreateEntity(emptyArchetype);
         }
 
-        public Entity CreateEntity(ArchetypeCompiled archetypeCompiled) {
-            return CreateEntity(archetypeCompiled.archetype);
+        internal void CreateEntities(Span<Entity> span, Archetype archetype, int count) {
+            for (var i = 0; i < count; i++) {
+                span[i] = CreateEntity(archetype);
+            }
+        }
+
+        public void CreateEntities(Span<Entity> span, int count) {
+            for (var i = 0; i < count; i++) {
+                span[i] = CreateEntity();
+            }
+        }
+        
+        public Entity[] CreateEntities(int count) {
+            var array = new Entity[count];
+            CreateEntities(array.AsSpan(), count);
+            return array;
         }
         
         public Entity Singleton() {
@@ -100,7 +114,7 @@ namespace Coorth {
         #region Has & Get Entity
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ref EntityContext GetContext(in int index) {
+        internal ref EntityContext GetContext(int index) {
             return ref contexts.Ref(index);
         }
         
@@ -126,6 +140,11 @@ namespace Coorth {
         public Entity GetEntity(in int index) {
             ref var context = ref contexts.Ref(index);
             return context.GetEntity(this);
+        }
+
+        public EntityCollection GetEntities(EntityMatcher matcher) {
+            var archetypeGroup = GetArchetypeGroup(matcher);
+            return new EntityCollection(archetypeGroup);
         }
 
         #endregion

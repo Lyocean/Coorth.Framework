@@ -45,20 +45,18 @@ namespace Coorth {
             return (EventChannel<T>)channel;
         }
 
-        public void Subscribe<T>(Action<T> action)  where T: IEvent {
-            OfferChannel<T>().Subscribe(action);
+        public IEventReaction<T> Subscribe<T>(Action<T> action)  where T: IEvent {
+            return OfferChannel<T>().Subscribe(action);
         }
         
-        public void Subscribe<T>(IEventReaction<T> reaction) where T: IEvent {
-            OfferChannel<T>().Subscribe(reaction);
+        public IEventReaction<T> Subscribe<T>(IEventReaction<T> reaction) where T: IEvent {
+            return OfferChannel<T>().Subscribe(reaction);
         }
-        
 
         public void Execute<T>(in T e) where T: IEvent {
             if (channels.TryGetValue(typeof(T), out var channel)) {
                 ((EventChannel<T>)channel).Execute(e);
             }
-            
             foreach (EventNode node in children.List) {
                 node.Execute<T>(e);
             }

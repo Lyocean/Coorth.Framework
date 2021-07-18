@@ -51,7 +51,7 @@ namespace Coorth {
         }
 
         public ComponentCollection<T> GetComponents<T>()  where T : IComponent {
-            return new ComponentCollection<T>();
+            return new ComponentCollection<T>(this);
         }
         
         public ComponentBinding<T> BindComponent<T>() where T : IComponent {
@@ -164,7 +164,7 @@ namespace Coorth {
             return ref group.Ref(context[typeId]);
         }
         
-        public ref T RefComponent<T>(in EntityId id) where T : IComponent {
+        public ref T RefComponent<T>(EntityId id) where T : IComponent {
             var typeId = ComponentGroup<T>.TypeId;
             ref var context = ref GetContext(id.Index);
             var group = GetComponentGroup<T>();

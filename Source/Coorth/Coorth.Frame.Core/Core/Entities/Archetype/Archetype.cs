@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+
 
 namespace Coorth {
     internal class Archetype {
@@ -9,19 +9,19 @@ namespace Coorth {
 
         public readonly Sandbox Sandbox;
 
-        public readonly Dictionary<int, Archetype> links = new Dictionary<int, Archetype>();
-
         private ChunkList<int> entities = new ChunkList<int>();
 
         public int EntityCount = 0;
+
+        private readonly Dictionary<int, Archetype> links = new Dictionary<int, Archetype>();
 
         private readonly Stack<int> resumeIds = new Stack<int>();
         
         public readonly int Flag;
 
-        public readonly IReadOnlyDictionary<int, int> Components;
+        public readonly HashSet<int> Components;
 
-        public int[] Types;
+        public readonly int[] Types;
         
         public readonly ComponentMask Mask;
 
@@ -31,15 +31,15 @@ namespace Coorth {
 
         public Archetype(Sandbox sandbox) {
             this.Sandbox = sandbox;
-            this.Components = new Dictionary<int, int>(0);
+            this.Components = new HashSet<int>();
             this.Mask = new ComponentMask(0);
             this.ComponentCapacity = 2;
             this.Flag = 0;
-            this.entities = new ChunkList<int>(64, 64);
+            this.entities = new ChunkList<int>(sandbox.ArchetypeCapacity.Index, sandbox.ArchetypeCapacity.Chunk);
             this.Types = Array.Empty<int>();
         }
         
-        public Archetype(Sandbox sandbox, int flag, Dictionary<int, int> components, ComponentMask mask) {
+        public Archetype(Sandbox sandbox, int flag, HashSet<int> components, ComponentMask mask) {
             var capacity = (int) ((uint) (components.Count - 1 + 2) >> 1) << 1;
 
             this.Sandbox = sandbox;
@@ -47,8 +47,8 @@ namespace Coorth {
 
             this.Types = new int[components.Count];
             int position = 0;
-            foreach (var pair in components) {
-                this.Types[position] = pair.Key;
+            foreach (var typeId in components) {
+                this.Types[position] = typeId;
                 position++;
             }
             Array.Sort(this.Types, (a, b) => a - b);
@@ -57,9 +57,10 @@ namespace Coorth {
             this.ComponentCapacity = capacity;
             this.Flag = flag;
             
-            this.entities = new ChunkList<int>(64, 64);
+            this.entities = new ChunkList<int>(sandbox.ArchetypeCapacity.Index, sandbox.ArchetypeCapacity.Chunk);
+
         }
-        
+
         #endregion
 
         #region Entity
@@ -99,11 +100,11 @@ namespace Coorth {
             }
             var capacity = (int) ((uint) (Components.Count + 2) >> 1) << 1;
 
-            var components = new Dictionary<int, int>(capacity);
-            foreach (var kv in Components) {
-                components.Add(kv.Key, kv.Value);
+            var components = new HashSet<int>();
+            foreach (var typeId in Components) {
+                components.Add(typeId);
             }
-            components.Add(type, Components.Count);
+            components.Add(type);
 
             var mask = new ComponentMask(Mask, capacity);
             mask.Set(type, true);
@@ -113,7 +114,7 @@ namespace Coorth {
             archetype = new Archetype(Sandbox, flag, components, mask);
             
             links[type] = archetype;
-            archetype.links[-type] = this;
+            archetype.links[type] = this;
             
             Sandbox.OnAddArchetype(archetype);
 
@@ -131,18 +132,18 @@ namespace Coorth {
         }
         
         public bool HasComponent(int type) {
-            return Components.ContainsKey(type);
+            return Components.Contains(type);
         }
         
         public Archetype RemoveComponent(int type) {
-            if (links.TryGetValue(-type, out var archetype)) {
+            if (links.TryGetValue(type, out var archetype)) {
                 return archetype;
             }
             var capacity = (int) ((uint) Components.Count >> 1) << 1;
-            var components = new Dictionary<int, int>(capacity);
-            foreach (var kv in Components) {
-                if (kv.Key != type) {
-                    components.Add(kv.Key, kv.Value);
+            var components = new HashSet<int>();
+            foreach (var typeId in Components) {
+                if (typeId != type) {
+                    components.Add(typeId);
                 }
             }
             
@@ -153,7 +154,7 @@ namespace Coorth {
 
             archetype = new Archetype(Sandbox, flag, components, mask);
 
-            links[-type] = archetype;
+            links[type] = archetype;
             archetype.links[type] = this;
 
             Sandbox.OnAddArchetype(archetype);
@@ -164,17 +165,14 @@ namespace Coorth {
             if (ComponentCount != other.ComponentCount) {
                 return false;
             }
-            foreach (var kv in other.Components) {
-                if (!Components.ContainsKey(kv.Key)) {
+            foreach (var typeId in other.Components) {
+                if (!Components.Contains(typeId)) {
                     return false;
                 }
             }
             return true;
         }
-        
         #endregion
-
-
     }
     
     
@@ -236,7 +234,11 @@ namespace Coorth {
         public Entity CreateEntity() {
             return sandbox.CreateEntity(archetype);
         }
-
+        
+        public void CreateEntities(Span<Entity> span, int count) {
+            sandbox.CreateEntities(span, count);
+        }
+        
         public void CreateEntities(IList<Entity> list, int count) {
             for (var i = 0; i < count; i++) {
                 list[i] = CreateEntity();
@@ -245,7 +247,7 @@ namespace Coorth {
         
         public Entity[] CreateEntities(int count) {
             var array = new Entity[count];
-            CreateEntities(array, count);
+            CreateEntities(array.AsSpan(), count);
             return array;
         }
     }

@@ -1,0 +1,255 @@
+<#@ template language="C#" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Coorth {
+    public readonly struct ComponentCollection<T> : IEnumerable<T> where T : IComponent {
+        
+        private readonly ComponentGroup<T> group;
+
+        internal ComponentCollection(Sandbox sandbox) {
+            this.group = sandbox.GetComponentGroup<T>();
+        }
+
+        internal ComponentCollection(ComponentGroup<T> group) {
+            this.group = group;
+        }
+
+        public void ForEach(Action<T> action) {
+            for(var i = 0; i< group.Count; i++) {
+                action(group.components[i]);
+            }
+        }
+
+        public void ForEach(Action<Entity, T> action) {
+            var sandbox = group.Sandbox;
+            for(var i = 0; i< group.Count; i++) {
+                ref var context = ref sandbox.GetContext(group.mapping[i]);
+                action(context.GetEntity(sandbox), group.components[i]);
+            }
+        }
+
+        public void ForEach<TState>(TState state, Action<TState, T> action) {
+            for(var i = 0; i< group.Count; i++) {
+                action(state, group.components[i]);
+            }
+        }
+
+        public void ForEach<TState>(TState state, Action<TState, Entity, T> action) {
+            var sandbox = group.Sandbox;
+            for(var i = 0; i< group.Count; i++) {
+                ref var context = ref sandbox.GetContext(group.mapping[i]);
+                action(state, context.GetEntity(sandbox), group.components[i]);
+            }
+        }
+
+        public struct Enumerator : IEnumerator<T> {
+            private readonly ComponentGroup<T> group;
+
+            private int index;
+
+            private T current;
+
+            internal Enumerator(ComponentGroup<T> value) {
+                this.group = value;
+                index = 0;
+                current = default;
+            }
+
+            public bool MoveNext() {
+                ComponentGroup<T> localGroup = group;
+                if (index < localGroup.Count) {
+                    current = localGroup.components[index];
+                    index++;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public void Reset() {
+                index = 0;
+                current = default;
+            }
+
+            public T Current => current;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() {
+            }
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator(this.group);
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() => new Enumerator(this.group);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+    }
+
+<#
+    const int COUNT = 5;
+#>
+<#
+    for (var i = 2; i <= COUNT; i++) {
+        var templates = "";
+        var constraints = "";
+        var parameters = "";
+        var arguments = "";
+        var components = "";
+        for (var j = 1; j <= i; j++) {
+            templates += j == i ? $"T{j}" : $"T{j}, ";
+            constraints += $" where T{j} : IComponent";
+            parameters += j == i ? $"ComponentGroup<T{j}> group{j}" : $"ComponentGroup<T{j}> group{j}, ";            
+            arguments += j == i ? $"group{j}" : $"group{j}, ";
+            components += j == i ? $"component{j}" : $"component{j}, ";
+        }
+#>
+
+    public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(<#=templates#>)><#=constraints#> {
+<# for (var j = 1; j <= i; j++) { #>
+        private readonly ComponentGroup<T<#=j#>> group<#=j#>;
+<# } #>
+
+        internal ComponentCollection(Sandbox sandbox) {
+<# for (var j = 1; j <= i; j++) { #>
+            this.group<#=j#> = sandbox.GetComponentGroup<T<#=j#>>();
+<# } #>
+        }
+
+        internal ComponentCollection(<#=parameters#>) {
+<# for (var j = 1; j <= i; j++) { #>
+            this.group<#=j#> = group<#=j#>;
+<# } #>
+        }
+
+        public void ForEach(Action<<#=templates#>> action) {
+            var sandbox = group1.Sandbox;
+            for(var i = 0; i< group1.Count; i++) {
+                var component1 = group1.components[i];
+                ref var context = ref sandbox.GetContext(group1.mapping[i]);
+<# for (var j = 2; j <= i; j++) { #>
+                var compIndex<#=j#> = context.Components[group<#=j#>.Id];
+                var component<#=j#> = group<#=j#>.components[compIndex<#=j#>];
+<# } #>
+                action(<#=components#>);
+            }
+        }
+
+        public void ForEach(Action<Entity, <#=templates#>> action) {
+            var sandbox = group1.Sandbox;
+            for(var i = 0; i< group1.Count; i++) {
+                var component1 = group1.components[i];
+                ref var context = ref sandbox.GetContext(group1.mapping[i]);
+<# for (var j = 2; j <= i; j++) { #>
+                var compIndex<#=j#> = context.Components[group<#=j#>.Id];
+                var component<#=j#> = group<#=j#>.components[compIndex<#=j#>];
+<# } #>
+                action(context.GetEntity(sandbox), <#=components#>);
+            }
+        }
+
+        public void ForEach<TState>(TState state, Action<TState, <#=templates#>> action) {
+            var sandbox = group1.Sandbox;
+            for(var i = 0; i< group1.Count; i++) {
+                var component1 = group1.components[i];
+                ref var context = ref sandbox.GetContext(group1.mapping[i]);
+<# for (var j = 2; j <= i; j++) { #>
+                var compIndex<#=j#> = context.Components[group<#=j#>.Id];
+                var component<#=j#> = group<#=j#>.components[compIndex<#=j#>];
+<# } #>
+                action(state, <#=components#>);
+            }
+        }
+
+        public void ForEach<TState>(TState state, Action<TState, Entity, <#=templates#>> action) {
+            var sandbox = group1.Sandbox;
+            for(var i = 0; i< group1.Count; i++) {
+                var component1 = group1.components[i];
+                ref var context = ref sandbox.GetContext(group1.mapping[i]);
+<# for (var j = 2; j <= i; j++) { #>
+                var compIndex<#=j#> = context.Components[group<#=j#>.Id];
+                var component<#=j#> = group<#=j#>.components[compIndex<#=j#>];
+<# } #>
+                action(state, context.GetEntity(sandbox), <#=components#>);
+            }
+        }
+
+        public Enumerator GetEnumerator() => new Enumerator(<#=arguments#>);
+
+        IEnumerator<(<#=templates#>)> IEnumerable<(<#=templates#>)>.GetEnumerator() => new Enumerator(<#=arguments#>);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        
+        public struct Enumerator : IEnumerator<(<#=templates#>)> {
+<# for (var j = 1; j <= i; j++) { #>
+            private readonly ComponentGroup<T<#=j#>> group<#=j#>;
+<# } #>
+            private int index;
+
+            private (<#=templates#>) current;
+
+            internal Enumerator(<#=parameters#>) {
+<# for (var j = 1; j <= i; j++) { #>
+                this.group<#=j#> = group<#=j#>;
+<# } #>
+                index = 0;
+                current = default;
+            }
+
+            public bool MoveNext() {
+<# for (var j = 1; j <= i; j++) { #>
+                ComponentGroup<T<#=j#>> localGroup<#=j#> = this.group<#=j#>;
+<# } #>
+                if (index < localGroup1.Count) {
+                    var component1 = localGroup1.components[index];
+                    ref var context = ref localGroup1.Sandbox.GetContext(localGroup1.mapping[index]);
+<# for (var j = 2; j <= i; j++) { #>
+                    var compIndex<#=j#> = context.Components[localGroup<#=j#>.Id];
+                    var component<#=j#> = localGroup<#=j#>.components[compIndex<#=j#>];
+<# } #>
+                    current = (<#=components#>);
+                    index++;
+                    return true;
+                }
+
+                return false;
+            }
+
+            public void Reset() {
+                index = 0;
+                current = default;
+            }
+
+            public (<#=templates#>) Current => current;
+
+            object IEnumerator.Current => Current;
+
+            public void Dispose() {
+            }
+        }
+    }
+<#     
+    }
+#>
+
+    public static class ComponentCollectionExtension {
+<# for (var i = 2; i <= COUNT; i++) { 
+        var templates = "";
+        var constraints = "";
+        for (var j = 1; j <= i; j++) {
+            templates += j == i ? $"T{j}" : $"T{j}, ";
+            constraints += $" where T{j} : IComponent";
+        }
+#>
+
+        public static ComponentCollection<<#=templates#>> GetComponents<<#=templates#>>(this Sandbox sandbox) <#=constraints#> {
+            return new ComponentCollection<<#=templates#>>(sandbox);
+        }   
+<# } #>
+    }
+}

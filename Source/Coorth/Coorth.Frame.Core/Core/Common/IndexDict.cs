@@ -16,13 +16,15 @@ namespace Coorth {
 
         private int bit;
 
+        private int mask;
+
         public IndexDict(int capacity = 4) {
             this.count = 0;
             this.bit = 1;
-            while(capacity > 2) {
-                capacity >>= 1;
-                this.bit++;
+            while ((1 << bit) < capacity) {
+                bit++;
             }
+            this.mask = (1 << bit) - 1;
             this.values = new Entry[1 << bit];
         }
 
@@ -40,7 +42,7 @@ namespace Coorth {
 
         public ref T Ref(int key) {
             //var position = key  % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
 
             do {
                 ref var entry = ref values[position];
@@ -57,7 +59,7 @@ namespace Coorth {
                 Resize();
             }
             //var position = key % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
             var start = position;
             var last = -1;
             var number = 0;
@@ -77,7 +79,7 @@ namespace Coorth {
                 }
                 last = position;
                 //position = (position + 1) % values.Length;
-                position = (position + 1) & ((1 << bit) - 1);
+                position = (position + 1) & mask;
                 number++;
                 if(number > values.Length) {
                     throw new ArgumentException();
@@ -88,7 +90,7 @@ namespace Coorth {
 
         private void Set(int key, T value) {
             //var position = key % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
 
             var start = position;
             var last = -1;
@@ -116,7 +118,7 @@ namespace Coorth {
                     position = entry.Next - 1;
                 } else {
                     //position = (position + 1) % values.Length;
-                    position = (position + 1) & ((1 << bit) - 1);
+                    position = (position + 1) & mask;
                 }
             } while (position != start);
             throw new ArgumentException();
@@ -124,7 +126,7 @@ namespace Coorth {
 
         public bool ContainsKey(int key) {
             //var position = key % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
 
             do {
                 ref var entry = ref values[position];
@@ -138,7 +140,7 @@ namespace Coorth {
 
         public bool TryGetValue(int key, out T value) {
             //var position = key % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
 
             do {
                 ref var entry = ref values[position];
@@ -155,7 +157,7 @@ namespace Coorth {
 
         public bool Remove(int key) {
             //var position = key % values.Length;
-            var position = key & ((1 << bit) - 1);
+            var position = key & mask;
 
             do {
                 ref var entry = ref values[position];
@@ -181,6 +183,7 @@ namespace Coorth {
             var origin = values;
             values = new Entry[length << 1];
             bit++;
+            this.mask = (1 << bit) - 1;
             count = 0;
             for (var i = 0; i < length; i++) {
                 Add((ushort)(origin[i].Key - 1), origin[i].Value);
