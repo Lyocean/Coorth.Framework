@@ -77,7 +77,7 @@ namespace Coorth {
             reaction.Include<TComponent1>();
             reaction.Include<TComponent2>();
 
-            if (sandbox.BindComponent<TComponent1>().HasDependency<TComponent2>()) {
+            if (sandbox.GetBinding<TComponent1>().HasDependency<TComponent2>()) {
                 reaction.OnEvent(e => {
                     ComponentCollection<TComponent1, TComponent2> components = sandbox.GetComponents<TComponent1, TComponent2>();
                     components.ForEach(e, action);
@@ -99,7 +99,7 @@ namespace Coorth {
             reaction.Include<TComponent1>();
             reaction.Include<TComponent2>();
             
-            if (sandbox.BindComponent<TComponent1>().HasDependency<TComponent2>()) {
+            if (sandbox.GetBinding<TComponent1>().HasDependency<TComponent2>()) {
                 reaction.OnEvent(e => {
                     ComponentCollection<TComponent1, TComponent2> components = sandbox.GetComponents<TComponent1, TComponent2>();
                     components.ForEach(e, action);
@@ -126,7 +126,7 @@ namespace Coorth {
             reaction.Include<TComponent2>();
             reaction.Include<TComponent3>();
 
-            if (sandbox.BindComponent<TComponent1>().HasDependency<TComponent2>() && sandbox.BindComponent<TComponent1>().HasDependency<TComponent3>()) {
+            if (sandbox.GetBinding<TComponent1>().HasDependency<TComponent2>() && sandbox.GetBinding<TComponent1>().HasDependency<TComponent3>()) {
                 reaction.OnEvent(e => {
                     ComponentCollection<TComponent1, TComponent2, TComponent3> components = sandbox.GetComponents<TComponent1, TComponent2, TComponent3>();
                     components.ForEach(e, action);
@@ -149,7 +149,7 @@ namespace Coorth {
             reaction.Include<TComponent2>();
             reaction.Include<TComponent3>();
             
-            if (sandbox.BindComponent<TComponent1>().HasDependency<TComponent2>() && sandbox.BindComponent<TComponent1>().HasDependency<TComponent3>()) {
+            if (sandbox.GetBinding<TComponent1>().HasDependency<TComponent2>() && sandbox.GetBinding<TComponent1>().HasDependency<TComponent3>()) {
                 reaction.OnEvent(e => {
                     ComponentCollection<TComponent1, TComponent2, TComponent3> components = sandbox.GetComponents<TComponent1, TComponent2, TComponent3>();
                     components.ForEach(e, action);

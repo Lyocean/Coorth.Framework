@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace Coorth {
-    public partial class Sandbox : Disposable, IServiceFactory {
+    public partial class Sandbox : Disposable {
 
         #region Static
 
@@ -35,36 +34,46 @@ namespace Coorth {
         private readonly IServiceFactory services;
 
         public IServiceFactory Services => services;
-        
-        public Sandbox(string name = null, SandboxConfig config = null, IServiceFactory services = null, EventDispatcher dispatcher = null) {
+
+        public World World { get; }
+
+        public Sandbox( SandboxConfig config = null, 
+                        World world = null, 
+                        IServiceFactory services = null, 
+                        EventDispatcher dispatcher = null) {
+            
             lock (locking) {
                 this.Id = currentId;
                 sandboxes.Add(this);
                 currentId++;
             }
-
-            this.Name = name ?? $"Sandbox_{this.Id.ToString()}"; ;
             this.config = config ?? SandboxConfig.Default;
-
-            this.services = services ?? new ServiceFactory();
+            this.Name = this.config.Name ?? $"Sandbox_{this.Id.ToString()}"; ;
+            this.World = world;
+            this.services = services ?? new ServiceContainer();
             this.Dispatcher = dispatcher ?? new EventDispatcher();
+
             this.InitArchetypes(this.config.ArchetypeCapacity.Index, this.config.ArchetypeCapacity.Chunk);
             this.InitEntities(this.config.EntityCapacity.Index, this.config.EntityCapacity.Chunk);
             this.InitComponents(this.config.ComponentGroupCapacity, this.config.ComponentDataCapacity.Index, this.config.ComponentDataCapacity.Chunk);
             this.InitSystems();
+
+            singleton = CreateEntity();
         }
         
         public object GetService(Type serviceType) {
             return services.GetService(serviceType);
         }
 
-        public T GetService<T>() {
+        public T GetService<T>() where T : class {
             return services.GetService<T>();
         }
 
         #endregion
         
         #region Lifecycle
+        
+        
         
         protected override void Dispose(bool dispose) {
             _Execute(new EventSandboxDestroy());
@@ -81,6 +90,6 @@ namespace Coorth {
         }
         
         #endregion        
-
     }
+    
 }

@@ -24,15 +24,7 @@ namespace Coorth {
         
         internal IEventReaction<T> Subscribe(IEventReaction<T> reaction) {
             reactions.Add(reaction);
-            // int position = reactions.Count - 1;
-            // for (var i = reactions.Count - 1; i >= 0; i--) {
-            //     if (reaction.Priority > reactions[i].Priority) {
-            //         continue;
-            //     }
-            //     position = i;
-            //     break;
-            // }
-            // reactions.Insert(position, reaction);
+            reaction.Setup(this);
             return reaction;
         }
         

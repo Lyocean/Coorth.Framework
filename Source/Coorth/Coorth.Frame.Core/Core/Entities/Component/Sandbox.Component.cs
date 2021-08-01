@@ -37,6 +37,12 @@ namespace Coorth {
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal IComponentGroup GetComponentGroup(Type type) {
+            var typeId = ComponentTypeIds[type];
+            return GetComponentGroup(typeId);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ComponentGroup<T> GetComponentGroup<T>(int typeId) where T : IComponent {
             ref var componentGroup = ref componentGroups.Alloc(typeId);
             if (componentGroup == null) {
@@ -54,7 +60,18 @@ namespace Coorth {
             return new ComponentCollection<T>(this);
         }
         
-        public ComponentBinding<T> BindComponent<T>() where T : IComponent {
+        public ComponentBinding<T> BindComponent<T>() where T : IComponent, new() {
+            var group = GetComponentGroup<T>();
+            return new ComponentBinding<T>(this, group);
+        }
+        
+        public ComponentBinding<T> BindComponent<T>(ComponentCreator<T> creator) where T : IComponent {
+            var group = GetComponentGroup<T>();
+            group.Creator = creator;
+            return new ComponentBinding<T>(this, group);
+        }
+
+        public ComponentBinding<T> GetBinding<T>() where T : IComponent {
             var group = GetComponentGroup<T>();
             return new ComponentBinding<T>(this, group);
         }
@@ -96,11 +113,45 @@ namespace Coorth {
             return ref component;
         }
 
+        public void ReadComponent(Entity entity, Type type, IComponentSerializer serializer) {
+            ref var context = ref GetContext(entity.Id.Index);
+            var componentGroup = GetComponentGroup(type);
+            var componentIndex = componentGroup.AddComponent(entity);
+            componentGroup.ReadComponent(serializer, componentIndex);
+            OnEntityAddComponent(ref context, componentGroup.Id, componentIndex);
+            componentGroup.OnComponentAdd(entity.Id, componentIndex);
+        }
+        
+        public void ReadComponent(EntityId id, Type type, ISerializer serializer, ReadOnlySpan<byte> data) { 
+            ref var context = ref contexts[id.Index];
+            var componentGroup = GetComponentGroup(type);
+            
+            var componentIndex = componentGroup.AddComponent(context.GetEntity(this));
+            // componentGroup.ReadComponent(serializer, componentIndex);
+
+             // serializer.ReadUInt32();
+        }
+        
+        public void WriteComponent(int typeId, int componentIndex, IComponentSerializer serializer) {
+            var componentGroup = GetComponentGroup(typeId);
+            componentGroup.WriteComponent(serializer, componentIndex);
+        }
+
+
         
         public T AddComponent<T>(in EntityId id) where T : IComponent {
             ref var component = ref _AddComponent<T>(id.Index, out var componentGroup, out var componentIndex);
             componentGroup.OnComponentAdd(id, componentIndex);
             return component;
+        }
+        
+        public void AddComponent(in EntityId id, Type type) {
+            ref var context = ref GetContext(id.Index);
+            var componentGroup = GetComponentGroup(type);
+            var componentType = componentGroup.Id;
+            var componentIndex = componentGroup.AddComponent(context.GetEntity(this));
+            OnEntityAddComponent(ref context, componentType, componentIndex);
+            componentGroup.OnComponentAdd(id, componentIndex);
         }
 
         public T AddComponent<T>(in EntityId id, T componentValue) where T : IComponent {
@@ -270,6 +321,24 @@ namespace Coorth {
             if (context.TryGet(typeId, out var index)) {
                 var group = GetComponentGroup<T>();
                 
+                //Remove Event
+                group.OnRemoveComponent(id, index);
+                
+                //Remove Data
+                group.RemoveComponent(context.GetEntity(this), index);
+                OnEntityRemoveComponent(ref context, typeId);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        
+        public bool RemoveComponent(in EntityId id, Type type) {
+            var group = GetComponentGroup(type);
+            var typeId = group.Id;
+            ref var context = ref GetContext(id.Index);
+            if (context.TryGet(typeId, out var index)) {
                 //Remove Event
                 group.OnRemoveComponent(id, index);
                 

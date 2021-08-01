@@ -3,11 +3,8 @@
 namespace Coorth {
 
     public interface IEventReaction : IDisposable {
-
         EventId ProcessId { get; }
-
         float Priority { get; }
-
         Type EventType { get; }
     }
 

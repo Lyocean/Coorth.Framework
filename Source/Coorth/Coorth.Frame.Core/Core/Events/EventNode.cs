@@ -1,37 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 
 namespace Coorth {
+    public interface IEventNode : IDisposable {
+        EventId ProcessId { get; }
+        IEventNode Parent { get; set; }
+        void Execute<T>(in T e) where T : IEvent;
+    }
     
-    public abstract class EventNode : Disposable {
-
-        private static int currentNodeIndex = 0;
-        
-        public readonly int NodeIndex = currentNodeIndex++;
+    public abstract class EventNode : Disposable, IEventNode {
 
         public EventId ProcessId { get; } = EventId.New();
 
-        private EventNode parent;
+        public IEventNode Parent { get; set; }
 
-        private readonly DictList<EventId, EventNode> children = new DictList<EventId, EventNode>(4);
+        private readonly DictList<EventId, IEventNode> children = new DictList<EventId, IEventNode>(4);
 
         private readonly Dictionary<Type, EventChannel> channels = new Dictionary<Type, EventChannel>();
         
         protected override void Dispose(bool dispose) {
-            foreach (EventNode node in children.List) {
+            foreach (var node in children.List) {
                 node.Dispose();
             }            
             children.Clear();
         }
         
-        public void AddChild(EventNode node) {
-            node.parent = this;
+        public void AddChild(IEventNode node) {
+            node.Parent = this;
             children.Add(node.ProcessId, node);
         }
 
-        public void RemoveChild(EventNode node) {
-            node.parent = null;
+        public void RemoveChild(IEventNode node) {
+            node.Parent = null;
             children.Remove(node.ProcessId);
         }
 
@@ -53,13 +54,19 @@ namespace Coorth {
             return OfferChannel<T>().Subscribe(reaction);
         }
 
+#if NET5_0_OR_GREATER
+         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+#else
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public void Execute<T>(in T e) where T: IEvent {
             if (channels.TryGetValue(typeof(T), out var channel)) {
                 ((EventChannel<T>)channel).Execute(e);
             }
-            foreach (EventNode node in children.List) {
+            foreach (var node in children.List) {
                 node.Execute<T>(e);
             }
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Coorth {
     public interface IComponent {
@@ -23,13 +24,26 @@ namespace Coorth {
         Entity Entity { get; set; }
     }
     
-    public interface IDependency<T> {
-        
+
+
+    public interface IHierarchyComponent : IComponent {
+        IEnumerable<Entity> GetChildrenEntity();
     }
 
+    public interface IHierarchyComponent<out TRefComponent> : IHierarchyComponent where TRefComponent: IRefComponent {
+        IEnumerable<TRefComponent> GetChildrenComponent();
+    }
+
+    public enum ComponentScale {
+        Singleton,
+        Small,
+        Large,
+    }
+    
     [AttributeUsage(AttributeTargets.Class| AttributeTargets.Struct)]
     public class ComponentAttribute : Attribute {
-        
+        public ComponentScale Scale = ComponentScale.Large;
+        public int Capacity = 0;
     }
 
     public abstract class RefComponent : IRefComponent {

@@ -38,7 +38,13 @@ namespace Coorth {
         void OnRemoveComponent(in EntityId id, int componentIndex);
 
         int CloneComponent(Entity entity, int componentIndex);
-        // void ReadComponent();
+
+        void ReadComponent(IComponentSerializer serializer, int componentIndex);
+
+        void WriteComponent(IComponentSerializer serializer, int componentIndex);
+
+        ComponentAsset PackComponent(Entity entity, int componentIndex);
+
     }
     
     internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
@@ -105,8 +111,29 @@ namespace Coorth {
 
         public ComponentGroup(Sandbox sandbox, int indexCapacity, int chunkCapacity) {
             this.sandbox = sandbox;
-            this.components = new ChunkList<T>(indexCapacity, chunkCapacity);
-            this.mapping = new ChunkList<int>(indexCapacity, chunkCapacity); 
+            if (Attribute != null) {
+                switch (Attribute.Scale) {
+                    case ComponentScale.Singleton:
+                        this.components = new ChunkList<T>(1, 1);
+                        this.mapping = new ChunkList<int>(1, 1); 
+                        break;
+                    case ComponentScale.Small:
+                        this.components = new ChunkList<T>(1, Attribute.Capacity);
+                        this.mapping = new ChunkList<int>(1, Attribute.Capacity); 
+                        break;
+                    case ComponentScale.Large:
+                        this.components = new ChunkList<T>(indexCapacity, chunkCapacity);
+                        this.mapping = new ChunkList<int>(indexCapacity, chunkCapacity); 
+                        break;
+                    default:
+                        this.components = new ChunkList<T>(indexCapacity, chunkCapacity);
+                        this.mapping = new ChunkList<int>(indexCapacity, chunkCapacity); 
+                        break;
+                }
+            } else {
+                this.components = new ChunkList<T>(indexCapacity, chunkCapacity);
+                this.mapping = new ChunkList<int>(indexCapacity, chunkCapacity);  
+            }
         }
 
         #endregion
@@ -141,7 +168,7 @@ namespace Coorth {
         public int AddComponent(Entity entity) {
             var componentIndex = components.Count;
             ref var component = ref components.Add();
-            mapping.Add(componentIndex);
+            mapping.Add(entity.Id.Index);
             
             if (Creator != null) {
                 Creator.Invoke(entity, ref component);
@@ -155,7 +182,7 @@ namespace Coorth {
         public int AddComponent(Entity entity, ref T componentValue) {
             var componentIndex = components.Count;
             ref var component = ref components.Add();
-            mapping.Add(componentIndex);
+            mapping.Add(entity.Id.Index);
             
             component = componentValue;
             
@@ -221,42 +248,39 @@ namespace Coorth {
 
         public int CloneComponent(Entity entity, int componentIndex) {
             ref var sourceComponent = ref components.Ref(componentIndex);
-            T targetComponent;
-            if (Cloner != null) {
-                targetComponent =  Cloner.Invoke(entity, ref sourceComponent);
-            }
-            else if (IsValueType) {
-                targetComponent = components[componentIndex];
-            }
-            else if(sourceComponent is ICloneable cloneable) {
-                targetComponent = (T)cloneable.Clone();
-            }
-            else {
-                targetComponent = Activator.CreateInstance<T>();
-            }
+            _Clone(entity, ref sourceComponent, out T targetComponent);
             return AddComponent(entity, ref targetComponent);
         }
 
-        #endregion
+        public void ReadComponent(IComponentSerializer serializer, int componentIndex) {
+            ref var component = ref components[componentIndex];
+            serializer.ReadComponent(out component);
+        }
 
-        #region Asset
+        public void WriteComponent(IComponentSerializer serializer, int componentIndex) {
+            ref var component = ref components[componentIndex];
+            serializer.WriteComponent(ref component);
+        }
 
-        public ComponentAsset GetAsset(Entity entity, int index) {
-            ref var component = ref components[index];
+        internal void _Clone(Entity entity, ref T sourceComponent, out T targetComponent) {
             if (Cloner != null) {
-                return new ComponentAsset<T>(Cloner.Invoke(entity, ref component));
+                targetComponent =  Cloner.Invoke(entity, ref sourceComponent);
             } else if (IsValueType) {
-                return new ComponentAsset<T>(component);
-            }
-            else {
-                return new ComponentAsset<T>(Activator.CreateInstance<T>());
+                targetComponent = sourceComponent;
+            } else if(sourceComponent is ICloneable cloneable) {
+                targetComponent = (T)cloneable.Clone();
+            } else {
+                targetComponent = Activator.CreateInstance<T>();
             }
         }
 
-        public ComponentAsset GetAssets() {
-            return new ComponentsAsset<T>();
+        public ComponentAsset PackComponent(Entity entity, int componentIndex) {
+            ref var component = ref components[componentIndex];
+            var asset = new ComponentAsset<T>();
+            asset.Pack(sandbox, entity, ref component);
+            return asset;
         }
-        
+
         #endregion
     }
 }

@@ -6,22 +6,24 @@ using System.Threading.Tasks;
 namespace Coorth {
     
     [AttributeUsage(AttributeTargets.Class)]
-    public class WorldSystemAttribute : Attribute {
+    public class SystemAttribute : Attribute {
         
     }
 
-    public abstract class SystemBase {
+    public abstract class SystemBase : Disposable {
 
         #region Fields
-        
-        public EventId ProcessId { get; } = EventId.New();
 
         public Sandbox Sandbox { get; private set; }
+
+        protected World World => Sandbox.World;
         
         public Type Key { get; private set; }
         
         protected Disposables Managed;
-        
+
+        protected SystemBinding Binding { get; private set; }
+
         protected EventDispatcher Dispatcher => Sandbox.Dispatcher;
 
         public SystemBase Parent { get; private set; }
@@ -33,7 +35,11 @@ namespace Coorth {
         private readonly List<ISystemReaction> reactions = new List<ISystemReaction>();
 
         public IReadOnlyList<ISystemReaction> Reactions => reactions;
-        
+
+        public int ChildCount => children.Count;
+
+        public bool IsActive { get; private set; }
+
         #endregion
 
         #region Hierarchy
@@ -49,8 +55,18 @@ namespace Coorth {
         }
         
         public T AddSystem<T>(T system) where T : SystemBase {
-            Sandbox.OnSystemAdd<T>(typeof(T), system, this);
+            var type = typeof(T);
+            var binding = Sandbox.GetSystemBinding(type, false);
+            Sandbox.OnSystemAdd<T>(type, system, this, binding);
             return system;
+        }
+
+        public SystemBase AddSystem(Type type, bool reflection = false) {
+            var binding = Sandbox.GetSystemBinding(type, reflection);
+            if (binding == null) {
+                throw new NotBindException(type);
+            }
+            return binding.AddSystem(Sandbox, this);
         }
         
         public T AddSystem<T>() where T : SystemBase, new() {
@@ -74,7 +90,22 @@ namespace Coorth {
             var childKey = typeof(T);
             return Sandbox.OnSystemRemove<T>(childKey);
         }
+        
+        public bool RemoveSystem(Type type) {
+            var binding = Sandbox.GetSystemBinding(type, false);
+            if (binding == null) {
+                return false;
+            }
+            return binding.RemoveSystem(Sandbox);
+        }
 
+        public void ClearSystems() {
+            var keys = children.Keys.ToList();
+            foreach (var key in keys) {
+                RemoveSystem(key);
+            }
+        }
+        
         #endregion
 
         #region Lifecycle
@@ -82,26 +113,49 @@ namespace Coorth {
         protected T Singleton<T>() where T : IComponent, new() => Sandbox.Singleton<T>();
         
         protected T Singleton<T>(Func<EntityId, Entity, T> provider) where T : IComponent, new() => Sandbox.Singleton().Offer<T>(provider);
-        
-        public void SystemAdd(Sandbox sandbox, Type key, SystemBase parent) {
+
+        public void Setup(Sandbox sandbox, Type key, SystemBinding binding) {
             this.Sandbox = sandbox;
             this.Key = key;
+            this.Binding = binding;
+        }
+        
+        public void SystemAdd(SystemBase parent) {
+
             this.Parent = parent;
             this.OnAdd();
         }
 
         public void SystemActive() {
-            
+            if (IsActive) {
+                return;
+            }
+            IsActive = true;
+            foreach (var pair in children) {
+                pair.Value.SystemActive();
+            }
+            OnActive();
         }
 
         public void SystemDeActive() {
-            
+            if (!IsActive) {
+                return;
+            }
+            IsActive = false;
+            foreach (var pair in children) {
+                pair.Value.SystemDeActive();
+            }
+            OnDeActive();
         }
 
         public void SystemRemove() {
             this.OnRemove();
+            ClearSystems();
+            foreach (var reaction in reactions) {
+                reaction.Dispose();
+            }
             reactions.Clear();
-            this.Managed.Clear();
+            this.Managed.Dispose();
             this.Sandbox = null;
         }
 
@@ -112,7 +166,11 @@ namespace Coorth {
         protected virtual void OnRemove() { }
         
         protected virtual void OnDeActive() { }
-        
+
+        protected override void Dispose(bool dispose) {
+            Sandbox.RemoveSystem(this);
+        }
+
         #endregion
 
         #region Subscribe
@@ -163,7 +221,30 @@ namespace Coorth {
         protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, Entity, TComponent1, TComponent2, TComponent3> action) where TEvent: IEvent where TComponent1 : class, IComponent where TComponent2: class, IComponent where TComponent3: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
+        
+        protected void OnMatch(Action<Entity> onAdd, Action<Entity> onRemove) {
+            if (onAdd != null) {
+                var entities = Sandbox.GetEntities();
+                foreach (var entity in entities) {
+                    onAdd(entity);
+                }
+                Subscribe<EventEntityAdd>(e => onAdd(e.Entity));
+            }
 
+            if (onRemove != null) {
+                Subscribe<EventEntityRemove>(e => onAdd(e.Entity));
+            }       
+        }
+        
+        protected void OnMatch(Action<Entity, bool> action) {
+            var entities = Sandbox.GetEntities();
+            foreach (var entity in entities) {
+                action(entity, true);
+            }
+            Subscribe<EventEntityAdd>(e => action(e.Entity, true));
+            Subscribe<EventEntityRemove>(e => action(e.Entity, true));
+        }
+        
         #endregion
     }
     
@@ -172,13 +253,22 @@ namespace Coorth {
     }
     
     public class ActionsSystem : SystemBase {
+
+        private readonly Dictionary<EventId, ISystemReaction> id2Reactions = new Dictionary<EventId, ISystemReaction>();
         
-        public void Add<T>(Action<T> action) {
-                    
+        public EventId Add<TEvent>(Action<TEvent> action) where TEvent: IEvent {
+            var reaction = CreateReaction<TEvent>();
+            reaction.OnEvent(action);
+            id2Reactions.Add(reaction.ProcessId, reaction);
+            return reaction.ProcessId;
         }
                 
-        public void Remove<T>(Action<T> action) {
-                    
+        public bool Remove(EventId id) {
+            if (id2Reactions.TryGetValue(id, out var reaction)) {
+                reaction.Dispose();
+                return true;
+            }
+            return false;
         }
     }
     

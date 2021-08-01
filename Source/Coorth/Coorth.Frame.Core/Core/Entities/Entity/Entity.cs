@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
 
 namespace Coorth {
     public readonly struct Entity : IEquatable<Entity>, ICloneable, IDisposable {
@@ -24,6 +22,8 @@ namespace Coorth {
         
         public bool IsNull => Id.IsNull || Sandbox == null || !Sandbox.HasEntity(Id);
 
+        public void Add(Type type) => Sandbox.AddComponent(Id, type);
+        
         public T Add<T>() where T : IComponent, new() => Sandbox.AddComponent<T>(Id);
 
         public T Add<T>(T component) where T : IComponent => Sandbox.AddComponent<T>(Id, component);
@@ -74,6 +74,8 @@ namespace Coorth {
 
         public bool Remove<T>() where T : IComponent => Sandbox.RemoveComponent<T>(Id);
 
+        public bool Remove(Type type) => Sandbox.RemoveComponent(Id, type);
+
         public void Clear() => Sandbox.ClearComponent(Id);
 
         public void Destroy() => Sandbox.DestroyEntity(Id);
@@ -101,13 +103,16 @@ namespace Coorth {
         }
 
         public override int GetHashCode() {
-            return Sandbox.GetHashCode() ^ Id.GetHashCode();
-            // return HashCode.Combine(Id, Sandbox);
+#if NET5_0_OR_GREATER
+            return HashCode.Combine(Id, Sandbox);
+#else
+            return (Sandbox.GetHashCode() * 397) ^ Id.GetHashCode();
+#endif
         }
 
         public override string ToString() => $"Entity(Id:{Id.Index}-{Id.Version} Sandbox:{Sandbox.Id})";
 
-
+        public string ToShortString() => $"Entity(Id:{Id.Index}-{Id.Version})";
     }
 
     public readonly struct EntityId : IEquatable<EntityId> {

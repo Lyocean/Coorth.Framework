@@ -1,6 +1,8 @@
 ﻿namespace Coorth {
     public class SandboxConfig {
 
+        public string Name;
+
         public (int Index, int Chunk) EntityCapacity = (64, 64);
         
         public (int Index, int Chunk) ArchetypeCapacity = (64, 64);

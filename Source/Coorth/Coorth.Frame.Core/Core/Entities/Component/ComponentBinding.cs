@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 
 namespace Coorth {
     public readonly struct ComponentBinding<T> where T: IComponent {

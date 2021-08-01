@@ -99,12 +99,7 @@ namespace Coorth {
         
         public Entity Singleton() {
             if (singleton.IsNull) {
-                ref var context = ref contexts.Ref(0);
-                context.Archetype = emptyArchetype;
-                context.Index = 0;
-                context.Version = 1;
-                singleton = context.GetEntity(this);
-                _Execute(new EventEntityAdd(singleton));
+                singleton = CreateEntity();
             }
             return singleton;
         }
@@ -145,6 +140,16 @@ namespace Coorth {
         public EntityCollection GetEntities(EntityMatcher matcher) {
             var archetypeGroup = GetArchetypeGroup(matcher);
             return new EntityCollection(archetypeGroup);
+        }
+        
+        public IEnumerable<Entity> GetEntities() {
+            var count = contexts.Count;
+            for (var i = 0; i < contexts.Count; i++) {
+                var entity = contexts[i].GetEntity(this);
+                if (!entity.IsNull) {
+                    yield return entity;
+                }
+            }
         }
 
         #endregion

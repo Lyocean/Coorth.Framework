@@ -38,7 +38,8 @@ namespace Coorth {
         public void ForEach<TState>(TState state, Action<TState, Entity, T> action) {
             var sandbox = group.Sandbox;
             for(var i = 0; i< group.Count; i++) {
-                ref var context = ref sandbox.GetContext(group.mapping[i]);
+                var index = group.mapping[i];
+                ref var context = ref sandbox.GetContext(index);
                 action(state, context.GetEntity(sandbox), group.components[i]);
             }
         }
