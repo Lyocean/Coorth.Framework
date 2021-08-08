@@ -60,67 +60,75 @@ namespace Coorth {
             }
             //var position = key % values.Length;
             var position = key & mask;
+            ref var entry = ref values[position];
+            if (entry.Key == 0) {
+                entry.Key = key + 1;
+                entry.Value = value;
+                count++;
+                return;
+            }
+            if (entry.Key == key + 1) {
+                throw new ArgumentException($"Value with key: {key} has existed.");
+            }
+            while (values[position].Next!=0) {
+                position = values[position].Next-1;
+            }
             var start = position;
-            var last = -1;
-            var number = 0;
             do {
-                ref var entry = ref values[position];
+                position = (position + 1) & mask;
+                entry = ref values[position];
                 if (entry.Key == 0) {
                     entry.Key = key + 1;
                     entry.Value = value;
-                    if (last >= 0) {
-                        values[last].Next = position + 1;
-                    }
                     count++;
+                    values[start].Next = position + 1;
                     return;
-                }
-                if (entry.Key == key + 1) {
-                    throw new ArgumentException($"Value with key: {key} has existed.");
-                }
-                last = position;
-                //position = (position + 1) % values.Length;
-                position = (position + 1) & mask;
-                number++;
-                if(number > values.Length) {
-                    throw new ArgumentException();
                 }
             } while (position != start);
             throw new ArgumentException();
         }
 
         private void Set(int key, T value) {
+            
             //var position = key % values.Length;
             var position = key & mask;
-
-            var start = position;
-            var last = -1;
-            do {
-                ref var entry = ref values[position];
-                if (entry.Key == 0) {
-                    entry.Key = (ushort)(key + 1);
-                    entry.Value = value;
-                    if (last >= 0) {
-                        values[last].Next = (ushort)(position + 1);
-                    }
-                    count++;
-                    return;
-                }
+            ref var entry = ref values[position];
+            if (entry.Key == 0) {
+                entry.Key = key + 1;
+                entry.Value = value;
+                count++;
+                return;
+            }
+            if (entry.Key == key + 1) {
+                entry.Value = value;
+                return;
+            }
+            while (entry.Next != 0) {
+                position = entry.Next - 1;
+                entry = ref values[position];
                 if (entry.Key == key + 1) {
                     entry.Value = value;
                     return;
                 }
-                if (count >= values.Length) {
-                    Resize();
-                    entry = ref values[position];
-                }
-                last = position;
-                if (entry.Next != 0) {
-                    position = entry.Next - 1;
-                } else {
-                    //position = (position + 1) % values.Length;
+            }
+            if (count < values.Length) {
+                var start = position;
+                do {
                     position = (position + 1) & mask;
-                }
-            } while (position != start);
+                    entry = ref values[position];
+                    if (entry.Key == 0) {
+                        entry.Key = key + 1;
+                        entry.Value = value;
+                        count++;
+                        values[start].Next = position + 1;
+                        return;
+                    }
+                } while (position != start);
+            }
+            else {
+                Add(key, value); 
+                return;
+            }
             throw new ArgumentException();
         }
 
