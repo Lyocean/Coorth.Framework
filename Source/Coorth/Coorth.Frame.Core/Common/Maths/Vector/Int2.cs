@@ -48,5 +48,9 @@ namespace Coorth.Maths {
                 return (X * 397) ^ Y;
             }
         }
+
+        public override string ToString() {
+            return $"Int2({X}, {Y})";
+        }
     }
 }

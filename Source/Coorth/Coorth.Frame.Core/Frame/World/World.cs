@@ -8,7 +8,7 @@ namespace Coorth {
 
         #region Static
 
-        public static World Runtime;
+        public static World Current;
 
         private static RawList<World> worlds = new RawList<World>(1);
 
@@ -51,12 +51,16 @@ namespace Coorth {
             this.Services = new ServiceContainer(this.Dispatcher);
             this.App = app;
             
-            this.App.Dispatcher.AddChild(this.Dispatcher);
             this.App.Services.AddChild(this.Services);
 
             this.ActorDomain = this.Actors.CreateDomain<WorldDomain>(Services);
 
             this.Active = CreateSandbox(config.Sandbox);
+        }
+
+        public World AsMain() {
+            Current = this;
+            return this;
         }
 
         public Sandbox CreateSandbox(SandboxConfig config) {

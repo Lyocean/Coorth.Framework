@@ -1,18 +1,18 @@
 ﻿using System;
 
 namespace Coorth {
-    public sealed class EntityAsset {
+    public sealed class EntityPack {
         
-        public readonly ComponentAsset[] Components;
+        public readonly ComponentPack[] Components;
 
-        private EntityAsset(int capacity) {
-            Components = new ComponentAsset[capacity];
+        private EntityPack(int capacity) {
+            Components = new ComponentPack[capacity];
         }
         
-        public static EntityAsset Pack(Entity entity) {
+        public static EntityPack Pack(Entity entity) {
             var sandbox = entity.Sandbox;
             ref var context = ref entity.GetContext();
-            var entityAsset = new EntityAsset(context.Count);
+            var entityAsset = new EntityPack(context.Count);
             var index = 0;
             foreach (var pair in context.Components) {
                 var componentGroup = sandbox.GetComponentGroup(pair.Key);
@@ -32,13 +32,13 @@ namespace Coorth {
         }
     }
             
-    public abstract class ComponentAsset {
+    public abstract class ComponentPack {
         public abstract Type Type { get; }
 
         public abstract void UnPack(Sandbox sandbox,Entity entity);
     }
 
-    public class ComponentAsset<T> : ComponentAsset where T: IComponent {
+    public class ComponentPack<T> : ComponentPack where T: IComponent {
         
         public override Type Type => typeof(T);
 

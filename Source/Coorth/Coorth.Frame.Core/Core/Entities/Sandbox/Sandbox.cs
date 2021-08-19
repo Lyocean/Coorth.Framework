@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Coorth {
@@ -89,7 +90,28 @@ namespace Coorth {
             _Execute<T>(e);
         }
         
-        #endregion        
+        #endregion
+
+        #region Read & Write
+
+        public void ReadSandbox<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+            var archetypeCount = serializer.Read<int>();
+            for (var i = 0; i < archetypeCount; i++) {
+                ReadArchetypeWithEntities<TSerializer>(serializer, null);
+            }
+        }
+
+        public void WriteSandbox<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+            var archetypeCount = archetypes.Sum(pair => pair.Value.Count);
+            serializer.Write<int>(archetypeCount);
+            foreach (var pair in archetypes) {
+                for (int i = 0; i < pair.Value.Count; i++) {
+                    var archetype = pair.Value[i];
+                    WriteArchetypeWithEntities<TSerializer>(serializer, archetype);
+                }
+            }
+        }
+
+        #endregion
     }
-    
 }

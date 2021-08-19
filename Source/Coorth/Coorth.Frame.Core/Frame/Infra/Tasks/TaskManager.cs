@@ -13,7 +13,7 @@ namespace Coorth {
         public IEventNode Parent { get; set; }
 
         public void Execute<T>(in T e) where T : IEvent {
-            throw new NotImplementedException();
+            
         }
     }
 
@@ -64,7 +64,6 @@ namespace Coorth {
         public TaskPoolAwaitable ToTaskPool() => new TaskPoolAwaitable();
 
         public SynchronizationContextAwaitable ToSynchronizationContext(SynchronizationContext context, CancellationToken cancellation = default) => new SynchronizationContextAwaitable(context, cancellation);
-
 
     }
 

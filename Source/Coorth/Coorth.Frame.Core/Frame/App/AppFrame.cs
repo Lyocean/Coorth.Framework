@@ -2,9 +2,29 @@
 using System.Threading;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace Coorth {
     public abstract class AppFrame : Disposable, ISupportInitialize {
+
+        #region Static
+
+        private static readonly List<AppFrame> apps = new List<AppFrame>();
+
+        public static AppFrame Main { get => apps.Count > 0 ? apps[0] : default; set => ChangeMainApp(apps.IndexOf(value)); }
+
+        private static void ChangeMainApp(int index) {
+            if (index <= 0 || index >= apps.Count) {
+                return;
+            }
+            var temp = apps[0];
+            apps[0] = apps[index];
+            apps[index] = temp;
+            apps[0].IsMain = true;
+            apps[index].IsMain = false;
+        }
+        
+        #endregion
         
         #region Fields
 
@@ -13,23 +33,24 @@ namespace Coorth {
         private bool isRunning = false;
 
         public bool IsRunning => isRunning;
-        
+
+        public bool IsMain { get; private set; }
+
         public int MainThreadId { get; private set; }
 
-        public readonly EventDispatcher Dispatcher = new EventDispatcher();
+        protected readonly EventDispatcher Dispatcher = new EventDispatcher();
 
         public readonly ActorContainer Actors;
         
         public Infra Infra => Infra.Instance;
         public ServiceContainer Services => Infra.Services;
         
-
-        public World World { get; private set; }
+        public World CurrentWorld {get=> World.Current; private set=>World.Current = value; }
 
         private readonly List<World> worlds = new List<World>();
         public IReadOnlyList<World> Worlds => worlds;
 
-        public RootModule Module { get; private set; } = new RootModule();
+        public RootModule Module { get; private set; }
 
         #endregion
 
@@ -39,10 +60,17 @@ namespace Coorth {
             this.Config = config ?? AppConfig.Default;
             this.Actors = new ActorContainer(this.Dispatcher, this.Config);
 
-            var moduleServices = new ServiceContainer();
-            Services.AddChild(moduleServices);
-            Dispatcher.AddChild(moduleServices.Dispatcher);
-            this.Module.ServiceAdd(moduleServices);
+            this.Module = new RootModule(Services);
+
+            if (apps.Count == 0) {
+                this.IsMain = true;
+            }
+            apps.Add(this);
+        }
+
+        public AppFrame AsMain() {
+            Main = this;
+            return this;
         }
         
         public virtual void Setup() {
@@ -56,6 +84,8 @@ namespace Coorth {
 
         protected virtual void OnSetup() { }
 
+        public virtual System.Threading.Tasks.Task Load() { return Task.CompletedTask; }
+        
         public virtual void BeginInit() {
             Execute(new EventAppBeginInit());
         }
@@ -78,12 +108,36 @@ namespace Coorth {
         protected virtual void OnStartup() { }
         
         public void Execute<T>(in T e) where T: IEvent {
-            if (!IsDisposed) {
+            if (IsDisposed) {
                 return;
             }
-
+            //AppFrame Events
             try {
                 Dispatcher.Execute(e);
+            }
+            catch (Exception ex) {
+                LogUtil.Exception(ex);
+            }
+            //Infrastructure Events
+            if (IsMain) {
+                try {
+                    Infra.Dispatcher.Execute(e);
+                }
+                catch (Exception ex) {
+                    LogUtil.Exception(ex);
+                }
+            }
+            //World Events
+            foreach (World world in worlds) {
+                try {
+                    world.Dispatcher.Execute(e);
+                } catch (Exception ex) {
+                    LogUtil.Exception(ex);
+                }
+            }
+            //Module Events
+            try {
+                Module.Dispatcher.Execute(e);
             } catch (Exception ex) {
                 LogUtil.Exception(ex);
             }
@@ -120,11 +174,11 @@ namespace Coorth {
         public World CreateWorld(WorldConfig config) {
             var world = new World(this, config);
             worlds.Add(world);
-            if(this.World == null) {
-                this.World = world;
+            if (CurrentWorld == null) {
+                CurrentWorld = world;
             }
             if (IsRunning) {
-                this.World.Execute(new EventAppStartup(MainThreadId));
+                CurrentWorld.Execute(new EventAppStartup(MainThreadId));
             }
             return world;
         }
@@ -150,6 +204,5 @@ namespace Coorth {
         #endregion
 
     }
-
 
 }

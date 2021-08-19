@@ -3,8 +3,10 @@
 namespace Coorth {
     [Serializable, StoreContract("408d7b8f-f157-4a55-af8d-9c61d08a5b9d")]
     public abstract class NodeBase {
+
+        private static int currentId = 0;
         
-        public int Id;
+        public int Id = currentId++;
         
         public int Index => Id;
         
@@ -14,6 +16,7 @@ namespace Coorth {
 
         public void Bind(INodeAction action) {
             this.Action = action;
+            this.Action.Awake(this);
         }
         
         public virtual void OnAttach(NodeGraph graph) {

@@ -29,26 +29,20 @@ namespace Coorth {
         }
         
         public IEventReaction<T> Subscribe(Action<T> action) {
-            var reaction = new EventReaction<T>();
-            reaction.Setup(this);
-            reaction.Action = action;
-            Subscribe(reaction);
-            return reaction;
+            var reaction = new EventReaction<T> { Action = action };
+            return Subscribe(reaction);
         }
         
         public IEventReaction<T> Subscribe(Func<T, ValueTask> action) {
-            var reaction = new EventReaction<T>();
-            reaction.Setup(this);
-            reaction.Action = e => action(e).ConfigureAwait(true);
-            Subscribe(reaction);
-            return reaction;
+            var reaction = new EventReaction<T> { Action = e => action(e).ConfigureAwait(true) };
+            return Subscribe(reaction);
         }
 
         public bool Remove(EventId id) {
             for (var i = 0; i < reactions.Count; i++) {
                 if (reactions[i].ProcessId == id) {
                     reactions.RemoveAt(i);
-                    break;
+                    return true;
                 }
             }
             return false;

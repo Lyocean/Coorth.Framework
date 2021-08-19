@@ -6,7 +6,6 @@ namespace Coorth {
     public abstract class Disposable : IDisposable {
         
         private volatile int disposed = 0;
-
         public bool IsDisposed => disposed != 0;
         
         public void Dispose() {
@@ -23,10 +22,10 @@ namespace Coorth {
         }
         
         protected virtual void Dispose(bool dispose) {
-            
         }
     }
 
+    
     public struct Disposables<T> : IDisposable where T: IDisposable {
         
         private List<T> disposables;
@@ -52,6 +51,7 @@ namespace Coorth {
             Clear();
         }
     }
+    
     
     public struct Disposables: IDisposable {
         

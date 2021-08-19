@@ -25,18 +25,18 @@ namespace Coorth.Maths {
             this.A = alpha;
         }
         
-        public Color(float r, float g, float b, float alpha = 1f) {
+        public Color(float r, float g, float b, float a = 1f) {
             this.R = r;
             this.G = g;
             this.B = b;
-            this.A = alpha;
+            this.A = a;
         }
         
-        public Color(int r, int g, int b, int alpha = 255) {
+        public Color(int r, int g, int b, int a = 255) {
             this.R = r / 255.0f;
             this.G = g / 255.0f;
             this.B = b / 255.0f;
-            this.A = alpha / 255.0f;
+            this.A = a / 255.0f;
         }
         
         public Color(byte r, byte g, byte b, byte alpha = 255) {

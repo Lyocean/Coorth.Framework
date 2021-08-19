@@ -20,9 +20,17 @@ namespace Coorth {
             emptyArchetype = new Archetype(this);
         }
 
+        #region Create & Add & Remove & Get
+
+        
         public ArchetypeBuilder CreateArchetype() {
             var archetype = new ArchetypeBuilder(this, emptyArchetype);
             return archetype;
+        }
+
+        public ArchetypeCompiled GetArchetype(in EntityId entityId) {
+            ref var context = ref GetContext(entityId.Index);
+            return new ArchetypeCompiled(this, context.Archetype);
         }
         
         public ArchetypeGroup GetArchetypeGroup(EntityMatcher matcher) {
@@ -92,5 +100,77 @@ namespace Coorth {
             context.Group = archetype.AddEntity(context.Index);
             context.Components.Remove(componentType);
         }
+
+
+        #endregion
+
+
+        #region Read & Write
+        
+        private Archetype _ReadArchetype<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+            var componentCount = serializer.Read<ushort>();
+            var archetype = emptyArchetype;
+            for (var i = 0; i < componentCount; i++) {
+                var componentType = serializer.Read<Type>();
+                archetype = archetype.AddComponent(componentType);
+            }
+            return archetype;
+        }
+        
+        public ArchetypeCompiled ReadArchetype<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+            var archetype = _ReadArchetype<TSerializer>(serializer);
+            return new ArchetypeCompiled(this, archetype);
+        }
+        
+        private IList<Entity> ReadArchetypeWithEntities<TSerializer>(TSerializer serializer, IList<Entity> entities) where TSerializer : ISerializer {
+            var archetype = _ReadArchetype<TSerializer>(serializer);
+            var count = serializer.Read<int>();
+            if (entities == null) {
+                entities = new List<Entity>(count);
+            }
+            for (var i = 0; i < count; i++) {
+                entities[i] = CreateEntity(archetype);
+            }
+            foreach (var componentId in archetype.Components) {
+                var componentGroup = GetComponentGroup(componentId);
+                for (var i = 0; i < count; i++) {
+                    var entity = entities[i];
+                    ReadComponent<TSerializer>(serializer, entity.Id, componentGroup.Type);
+                }
+            }
+            return entities;
+        }
+        
+        private void _WriteArchetype<TSerializer>(TSerializer serializer, Archetype archetype) where TSerializer : ISerializer {
+            serializer.Write<ushort>((ushort)archetype.ComponentCount);
+            foreach (int componentId in archetype.Components) {
+                var componentGroup = GetComponentGroup(componentId);
+                serializer.Write<Type>(componentGroup.Type);
+            }
+        }
+        
+        public void WriteArchetype<TSerializer>(TSerializer serializer, ArchetypeCompiled archetype) where TSerializer : ISerializer {
+            _WriteArchetype<TSerializer>(serializer, archetype.archetype);
+        }
+        
+        private void WriteArchetypeWithEntities<TSerializer>(TSerializer serializer, Archetype archetype) where TSerializer : ISerializer {
+            _WriteArchetype<TSerializer>(serializer, archetype);
+            serializer.Write<int>(archetype.EntityCount);
+            var entities = archetype.GetEntities();
+            foreach (var componentId in archetype.Components) {
+                var componentGroup = GetComponentGroup(componentId);
+                for (var i = 0; i < entities.Count; i++) {
+                    var entityIndex = entities[i];
+                    if (entityIndex <= 0) {
+                        continue;
+                    }
+                    ref var context = ref GetContext(entityIndex);
+                    var componentIndex = context[componentId];
+                    componentGroup.WriteComponent<TSerializer>(serializer, componentIndex);
+                }
+            }
+        }
+
+        #endregion
     }
 }

@@ -56,7 +56,26 @@ namespace Coorth {
         void WriteValue<T>(T value);
     }
 
-    public interface ISerializer : ISerializeReader, ISerializeWriter {
+    public interface ISerializer {
         
+        T Read<T>();
+
+        void Read<T>(ref T value);
+
+        
+        void Write<T>(in T value);
+
+        void WriteObjectBegin();
+
+        void WriteObjectEnd();
+        
+        void WriteFieldHead(string name, int index);
+    }
+
+    public interface ISerializer<T> {
+
+        void Read(ref T value);
+
+        void Write(in T value);
     }
 }

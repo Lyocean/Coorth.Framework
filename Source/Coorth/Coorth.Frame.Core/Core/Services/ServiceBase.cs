@@ -5,7 +5,7 @@ namespace Coorth {
 
         protected ServiceContainer Services { get; private set; }
 
-        protected EventDispatcher Dispatcher => Services.Dispatcher;
+        public EventDispatcher Dispatcher => Services.Dispatcher;
         
         protected Disposables Managed;
 

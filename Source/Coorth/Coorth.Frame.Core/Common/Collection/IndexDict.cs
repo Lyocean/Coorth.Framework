@@ -89,7 +89,7 @@ namespace Coorth {
         }
 
         private void Set(int key, T value) {
-            
+          
             //var position = key % values.Length;
             var position = key & mask;
             ref var entry = ref values[position];
@@ -194,7 +194,10 @@ namespace Coorth {
             this.mask = (1 << bit) - 1;
             count = 0;
             for (var i = 0; i < length; i++) {
-                Add((ushort)(origin[i].Key - 1), origin[i].Value);
+                ref var entry = ref origin[i];
+                if (entry.Key != 0) {
+                    Add(entry.Key - 1, entry.Value);
+                }
             }
         }
 

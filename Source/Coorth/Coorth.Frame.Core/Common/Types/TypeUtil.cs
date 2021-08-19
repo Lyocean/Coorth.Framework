@@ -153,5 +153,11 @@ namespace Coorth {
         }
 
         #endregion
+
+        #region Serialzie
+
+        
+
+        #endregion
     }
 }

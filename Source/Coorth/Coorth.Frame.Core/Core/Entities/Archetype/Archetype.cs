@@ -90,6 +90,10 @@ namespace Coorth {
             return entities[position] - 1;
         }
 
+        internal ChunkList<int> GetEntities() {
+            return entities;
+        }
+
         #endregion
         
         #region Component

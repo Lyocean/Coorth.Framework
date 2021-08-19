@@ -2,7 +2,6 @@
 using System.Buffers;
 using System.Collections.Generic;
 
-
 namespace Coorth {
     public ref struct TempList<T>  {
         
@@ -90,5 +89,4 @@ namespace Coorth {
 
         public void Dispose() => Clear();
     }
-
 }

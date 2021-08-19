@@ -5,7 +5,9 @@ using System.Runtime.InteropServices;
 namespace Coorth.Maths {
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Ray: IEquatable<Ray> {
+        
         public Vector3 Position;
+        
         public Vector3 Direction;
 
         public Ray(Vector3 position, Vector3 direction) {

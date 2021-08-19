@@ -37,13 +37,15 @@ namespace Coorth {
         void RemoveComponent(Entity entity, int componentIndex);
         void OnRemoveComponent(in EntityId id, int componentIndex);
 
+        void OnComponentModify(in EntityId id, int componentIndex);
+        
         int CloneComponent(Entity entity, int componentIndex);
 
-        void ReadComponent(IComponentSerializer serializer, int componentIndex);
+        void ReadComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer;
 
-        void WriteComponent(IComponentSerializer serializer, int componentIndex);
+        void WriteComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer;
 
-        ComponentAsset PackComponent(Entity entity, int componentIndex);
+        ComponentPack PackComponent(Entity entity, int componentIndex);
 
     }
     
@@ -252,14 +254,14 @@ namespace Coorth {
             return AddComponent(entity, ref targetComponent);
         }
 
-        public void ReadComponent(IComponentSerializer serializer, int componentIndex) {
+        public void ReadComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer {
             ref var component = ref components[componentIndex];
-            serializer.ReadComponent(out component);
+            serializer.Read(ref component);
         }
 
-        public void WriteComponent(IComponentSerializer serializer, int componentIndex) {
+        public void WriteComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer {
             ref var component = ref components[componentIndex];
-            serializer.WriteComponent(ref component);
+            serializer.Write(component);
         }
 
         internal void _Clone(Entity entity, ref T sourceComponent, out T targetComponent) {
@@ -274,9 +276,9 @@ namespace Coorth {
             }
         }
 
-        public ComponentAsset PackComponent(Entity entity, int componentIndex) {
+        public ComponentPack PackComponent(Entity entity, int componentIndex) {
             ref var component = ref components[componentIndex];
-            var asset = new ComponentAsset<T>();
+            var asset = new ComponentPack<T>();
             asset.Pack(sandbox, entity, ref component);
             return asset;
         }

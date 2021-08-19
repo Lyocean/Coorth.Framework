@@ -112,32 +112,6 @@ namespace Coorth {
             ref var component = ref componentGroup.Ref(componentIndex);
             return ref component;
         }
-
-        public void ReadComponent(Entity entity, Type type, IComponentSerializer serializer) {
-            ref var context = ref GetContext(entity.Id.Index);
-            var componentGroup = GetComponentGroup(type);
-            var componentIndex = componentGroup.AddComponent(entity);
-            componentGroup.ReadComponent(serializer, componentIndex);
-            OnEntityAddComponent(ref context, componentGroup.Id, componentIndex);
-            componentGroup.OnComponentAdd(entity.Id, componentIndex);
-        }
-        
-        public void ReadComponent(EntityId id, Type type, ISerializer serializer, ReadOnlySpan<byte> data) { 
-            ref var context = ref contexts[id.Index];
-            var componentGroup = GetComponentGroup(type);
-            
-            var componentIndex = componentGroup.AddComponent(context.GetEntity(this));
-            // componentGroup.ReadComponent(serializer, componentIndex);
-
-             // serializer.ReadUInt32();
-        }
-        
-        public void WriteComponent(int typeId, int componentIndex, IComponentSerializer serializer) {
-            var componentGroup = GetComponentGroup(typeId);
-            componentGroup.WriteComponent(serializer, componentIndex);
-        }
-
-
         
         public T AddComponent<T>(in EntityId id) where T : IComponent {
             ref var component = ref _AddComponent<T>(id.Index, out var componentGroup, out var componentIndex);
@@ -373,6 +347,30 @@ namespace Coorth {
             var group = GetComponentGroup<T>(typeId);
             var index = context.Components[typeId];
             return new ComponentWrap<T>(id, group, index);
+        }
+
+        #endregion
+
+        #region Read & Write
+        
+        public void ReadComponent<TSerializer>(TSerializer serializer, in EntityId entityId, Type type) where TSerializer : ISerializer {
+            ref var context = ref GetContext(entityId.Index);
+            var componentGroup = GetComponentGroup(type);
+            if(context.TryGet(componentGroup.Id, out var componentIndex)) {
+                componentGroup.ReadComponent(serializer, componentIndex);
+                componentGroup.OnComponentModify(entityId, componentIndex);
+            } else {
+                componentIndex = componentGroup.AddComponent(context.GetEntity(this));
+                componentGroup.ReadComponent(serializer, componentIndex);
+                OnEntityAddComponent(ref context, componentGroup.Id, componentIndex);
+                componentGroup.OnComponentAdd(entityId, componentIndex);
+            }
+        }
+        
+        public void WriteComponent<TSerializer>(TSerializer serializer, in EntityId entityId, Type type) where TSerializer : ISerializer {
+            ref var context = ref GetContext(entityId.Index);
+            var componentGroup = GetComponentGroup(type);
+            componentGroup.WriteComponent(serializer, context[componentGroup.Id]);
         }
 
         #endregion

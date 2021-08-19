@@ -113,5 +113,4 @@ namespace Coorth {
             return ref Values[index];
         }
     }
-    
 }

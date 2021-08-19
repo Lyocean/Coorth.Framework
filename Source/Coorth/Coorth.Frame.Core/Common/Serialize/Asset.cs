@@ -30,4 +30,8 @@
         //     return default;
         // }
     }
+
+    public interface IAssetPart {
+        
+    }
 }

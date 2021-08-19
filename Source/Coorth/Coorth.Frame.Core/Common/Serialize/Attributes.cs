@@ -26,7 +26,7 @@ namespace Coorth {
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class StoreMemberAttribute : Attribute {
+    public class StoreMemberAttribute : Attribute, IComparable<StoreMemberAttribute> {
         public readonly int Index;
         
         public readonly bool Polymorphic;
@@ -34,6 +34,13 @@ namespace Coorth {
         public StoreMemberAttribute(int index, bool polymorphic = false) {
             this.Index = index;
             this.Polymorphic = polymorphic;
+        }
+
+        public int CompareTo(StoreMemberAttribute other) {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            int indexComparison = Index.CompareTo(other.Index);
+            return indexComparison;
         }
     }
 

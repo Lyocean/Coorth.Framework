@@ -14,6 +14,7 @@ namespace Coorth.Maths {
         }
         
         #endregion
+
         
         #region Vector3
 

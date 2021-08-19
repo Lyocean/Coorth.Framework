@@ -63,9 +63,13 @@ namespace Coorth {
             if (channels.TryGetValue(typeof(T), out var channel)) {
                 ((EventChannel<T>)channel).Execute(e);
             }
-            foreach (var node in children.List) {
+
+            var list = children.List;
+            for (var i = 0; i < list.Count; i++) {
+                var node = list[i];
                 node.Execute<T>(e);
             }
+
         }
 
     }

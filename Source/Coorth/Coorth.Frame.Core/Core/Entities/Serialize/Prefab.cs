@@ -7,7 +7,7 @@ namespace Coorth {
 
 
 
-    public class PrefabAsset2 {
+    // public class PrefabAsset2 {
         
         // private EntityAsset[] enities;
         // public EntityAsset Main => enities.Length > 0? enities[0] : default;
@@ -36,21 +36,21 @@ namespace Coorth {
         //     }
         //     return new PrefabAsset();
         // }
-    }
+    // }
 
-    public class ASerializer {
-        
-    }
-    
-    public class PrefabSerializer {
+    // public class ASerializer {
+    //     
+    // }
+    //
+    // public class PrefabSerializer {
 
-        public void ReadEntity() {
+        // public void ReadEntity() {
             
-        }
+        // }
 
-        public void ReadComponent() {
+        // public void ReadComponent() {
             
-        }
+        // }
 
         // public Entity[] ReadEntities(Sandbox sandbox, SerializeReader reader) {
         //     var count = reader.ReadInt32();
@@ -69,15 +69,15 @@ namespace Coorth {
         // }
 
 
-        public void WriteEntity(ref Entity entity) {
-            
-        }
-        
-        public void WriteComponent<T>(Type type, ref T component) {
-            
-        }
-    }
-    
+    //     public void WriteEntity(ref Entity entity) {
+    //         
+    //     }
+    //     
+    //     public void WriteComponent<T>(Type type, ref T component) {
+    //         
+    //     }
+    // }
+    //
     
     public readonly struct PrefabCompiled {
 

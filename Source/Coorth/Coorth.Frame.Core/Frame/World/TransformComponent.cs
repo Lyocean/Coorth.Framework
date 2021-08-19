@@ -80,7 +80,7 @@ namespace Coorth {
             parent = value;
         }
 
-        public void SetParent(TransformComponent transform, bool worldSta) {
+        public void SetParent(TransformComponent transform, bool worldStay) {
             OnParentChange(transform);
         }
 

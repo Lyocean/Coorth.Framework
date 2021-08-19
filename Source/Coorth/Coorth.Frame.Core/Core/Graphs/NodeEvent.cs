@@ -2,7 +2,7 @@
 
 namespace Coorth {
     
-    public readonly struct EventNodeTick {
+    public readonly struct EventNodeTick : IEvent {
 
         public readonly TimeSpan DeltaTime;
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
@@ -26,7 +26,7 @@ namespace Coorth {
         }
     }
     
-    public readonly struct EventNodeExit {
+    public readonly struct EventNodeExit : IEvent {
         
     }
     

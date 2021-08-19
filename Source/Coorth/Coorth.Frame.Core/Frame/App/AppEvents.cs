@@ -14,6 +14,10 @@ namespace Coorth {
         
     }
 
+    public readonly struct EventAppQuit : IAppEvent {
+        
+    }
+    
     public readonly struct EventAppBeginInit : IAppEvent {
         
     }

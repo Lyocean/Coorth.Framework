@@ -2,7 +2,9 @@
 
 namespace Coorth {
     public readonly struct Result {
+        
         public readonly bool IsSuccess;
+        
         public readonly string Error;
         
         private Result(bool isSuccess) {
@@ -32,10 +34,15 @@ namespace Coorth {
         }
     }
     
+    
     public readonly struct Result<T> {
+        
         public readonly T Value;
+        
         public readonly bool IsSuccess;
+        
         public readonly string Error;
+        
         public readonly Exception Exception;
         
         private Result(bool isSuccess, T value) {
