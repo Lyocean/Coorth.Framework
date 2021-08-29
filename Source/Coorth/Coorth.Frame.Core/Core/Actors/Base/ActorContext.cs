@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public class ActorContext : Disposable {
+    internal class ActorContext : Disposable {
 
         #region Actor
         
@@ -119,7 +119,7 @@ namespace Coorth {
             }
         }
         
-        public ActorContext CreateChild(IActor actor, string name = null) {
+        public ActorContext CreateChild(Actor actor, string name = null) {
             var mailbox = new ActorMailbox(Container.Config);
             var context = Container.CreateContext(Domain, this, actor, name, mailbox);
             context.Actor = actor;
@@ -146,13 +146,13 @@ namespace Coorth {
             }
         }
         
-        public T CreateActor<T>(string name = null) where T : class, IActor {
+        public T CreateActor<T>(string name = null) where T : Actor {
             var actor = Domain.Services.Create<T>() ?? Activator.CreateInstance<T>();
             var context = CreateChild(actor, name);
             return (T)context.Actor;
         }
 
-        public ActorRef CreateRef<T>(string name = null) where T : class, IActor {
+        public ActorRef CreateRef<T>(string name = null) where T : Actor {
             var actor = Domain.Services.Create<T>() ?? Activator.CreateInstance<T>();
             var context = CreateChild(actor, name);
             return context.Ref;
@@ -168,17 +168,17 @@ namespace Coorth {
         
     }
 
-    public interface IActorCollection {
-        void AddChild<T>(ActorContext parent, ActorContext context, T actor) where T : IActor; 
+    internal interface IActorCollection {
+        void AddChild<T>(ActorContext parent, ActorContext context, T actor) where T : Actor; 
         
         bool RemoveChild(ActorContext parent, ActorContext child); 
     }
 
-    public class ActorCollection : IActorCollection {
+    internal class ActorCollection : IActorCollection {
 
         private readonly ConcurrentDictionary<ActorId, ActorRef> children = new ConcurrentDictionary<ActorId, ActorRef>();
 
-        public void AddChild<T>(ActorContext parent, ActorContext context, T actor) where T : IActor {
+        public void AddChild<T>(ActorContext parent, ActorContext context, T actor) where T : Actor {
             children.TryAdd(context.Id, context.Ref);
         }
 

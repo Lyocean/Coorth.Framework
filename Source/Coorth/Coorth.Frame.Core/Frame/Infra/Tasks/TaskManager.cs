@@ -15,6 +15,10 @@ namespace Coorth {
         public void Execute<T>(in T e) where T : IEvent {
             
         }
+
+        public Task ExecuteAsync<T>(T e) where T : IEvent {
+            return Task.CompletedTask;
+        }
     }
 
     public sealed class TaskManager : ManagerBase {

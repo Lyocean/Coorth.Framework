@@ -8,7 +8,7 @@ namespace Coorth {
 
         private Func<ActorMail, Task> action;
 
-        private Func<IActor> provider;
+        private Func<Actor> provider;
 
         public static ActorProps None => new ActorProps();
 
@@ -17,12 +17,12 @@ namespace Coorth {
             return props;
         }
 
-        public static ActorProps From(Func<IActor> func) {
+        public static ActorProps From(Func<Actor> func) {
             var props = new ActorProps {provider = func};
             return props;
         }
         
-        internal IActor CreateActor() {
+        internal Actor CreateActor() {
             if (provider != null) {
                 return provider();
             }else if (action != null) {

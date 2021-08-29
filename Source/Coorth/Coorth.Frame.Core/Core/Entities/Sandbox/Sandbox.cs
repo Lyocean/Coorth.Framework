@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Coorth {
     public partial class Sandbox : Disposable {
@@ -24,13 +25,9 @@ namespace Coorth {
         
         public readonly int Id;
         
-        internal readonly SandboxConfig config;
+        internal readonly SandboxConfig Config;
 
         public readonly EventDispatcher Dispatcher;
-
-        // private readonly EventScheduler scheduler;
-
-        private const int DEFAULT_COMPONENT_GROUP_CAPACITY = 32;
 
         private readonly IServiceFactory services;
 
@@ -48,15 +45,15 @@ namespace Coorth {
                 sandboxes.Add(this);
                 currentId++;
             }
-            this.config = config ?? SandboxConfig.Default;
-            this.Name = this.config.Name ?? $"Sandbox_{this.Id.ToString()}"; ;
+            this.Config = config ?? SandboxConfig.Default;
+            this.Name = this.Config.Name ?? $"Sandbox_{this.Id.ToString()}"; ;
             this.World = world;
             this.services = services ?? new ServiceContainer();
             this.Dispatcher = dispatcher ?? new EventDispatcher();
 
-            this.InitArchetypes(this.config.ArchetypeCapacity.Index, this.config.ArchetypeCapacity.Chunk);
-            this.InitEntities(this.config.EntityCapacity.Index, this.config.EntityCapacity.Chunk);
-            this.InitComponents(this.config.ComponentGroupCapacity, this.config.ComponentDataCapacity.Index, this.config.ComponentDataCapacity.Chunk);
+            this.InitArchetypes(this.Config.ArchetypeCapacity.Index, this.Config.ArchetypeCapacity.Chunk);
+            this.InitEntities(this.Config.EntityCapacity.Index, this.Config.EntityCapacity.Chunk);
+            this.InitComponents(this.Config.ComponentGroupCapacity, this.Config.ComponentDataCapacity.Index, this.Config.ComponentDataCapacity.Chunk);
             this.InitSystems();
 
             singleton = CreateEntity();
@@ -82,12 +79,16 @@ namespace Coorth {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void _Execute<T>(T e = default) where T : IEvent {
+        internal void _Execute<T>(in T e = default) where T : IEvent {
             Dispatcher.Execute(e);
         }
         
-        public void Execute<T>(T e = default) where T : IEvent {
+        public void Execute<T>(in T e = default) where T : IEvent {
             _Execute<T>(e);
+        }
+        
+        public Task ExecuteAsync<T>(in T e = default) where T : IEvent {
+            return Dispatcher.ExecuteAsync(e);
         }
         
         #endregion
@@ -103,7 +104,7 @@ namespace Coorth {
 
         public void WriteSandbox<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
             var archetypeCount = archetypes.Sum(pair => pair.Value.Count);
-            serializer.Write<int>(archetypeCount);
+            serializer.WriteValue<int>(archetypeCount);
             foreach (var pair in archetypes) {
                 for (int i = 0; i < pair.Value.Count; i++) {
                     var archetype = pair.Value[i];

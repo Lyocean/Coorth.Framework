@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public interface IMailbox {
+   public interface IMailbox {
         void Post<T>(ActorRef target, ActorRef sender, T message);
         void Request<T>(ActorRef target, ActorRef sender, T message, ActorFuture future);
         void Execute(ActorScheduler scheduler);
@@ -74,31 +74,6 @@ namespace Coorth {
         }
     }
     
-    public abstract class ActorFuture {
-    }
-    
-    public class ActorFuture<T> : ActorFuture {
-        public readonly Task<T> Task;
-        public object Result;
-        private readonly CancellationTokenSource cts;
-        private readonly TaskCompletionSource<T> tcs;
-
-        public ActorFuture(CancellationTokenSource cts) {
-            this.tcs = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
-            this.cts = cts;
-            this.cts?.Token.Register(() => {
-                if (this.tcs.Task.IsCompleted) {
-                    return;
-                }
-                this.tcs.TrySetCanceled();
-            });
-            this.Task = this.tcs.Task;
-        }
-        
-        public void Response(T message) {
-            tcs.TrySetResult(message);
-        }
-    }
     
     public readonly struct ActorMail {
         public readonly object message;
@@ -134,7 +109,7 @@ namespace Coorth {
                 (future as ActorFuture<T>)?.Response(msg);
                 return true;
             }
-            else if(Sender != null) {
+            else if(!Sender.IsNull) {
                 Sender.Send(msg, Target);
                 return true;
             }

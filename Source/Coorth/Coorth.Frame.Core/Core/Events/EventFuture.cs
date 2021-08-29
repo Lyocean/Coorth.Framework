@@ -33,7 +33,16 @@ namespace Coorth {
                 this.Dispose();
             }
         }
-        
+
+        public Task ExecuteAsync(in T e) {
+            count--;
+            if (count <= 0) {
+                taskCompletionSource.SetResult(e);
+                this.Dispose();
+            }
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
+
         protected override void Dispose(bool dispose) {
             channel.Remove(this.ProcessId);
         }

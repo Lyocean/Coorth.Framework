@@ -242,23 +242,37 @@ namespace Coorth {
         }
 
         public void WriteEntity<TSerializer>(TSerializer serializer, in EntityId entityId) where TSerializer : ISerializer {
-            serializer.WriteObjectBegin();
-            ref var context = ref GetContext(entityId.Index);
-            serializer.WriteFieldHead(nameof(Entity.Count), 0);
-            serializer.Write<ushort>((ushort)context.Count);
-            foreach (var pair in context.Components) {
-                var componentGroup = GetComponentGroup(pair.Key);
-                serializer.Write<Type>(componentGroup.Type);
-                componentGroup.WriteComponent<TSerializer>(serializer, pair.Value);
+            serializer.WriteDictBegin(true, typeof(Entity));
+            try {
+                ref var context = ref GetContext(entityId.Index);
+                
+                serializer.WriteTag(nameof(Entity.Count), 0);
+                serializer.WriteValue<ushort>((ushort)context.Count);
+
+                serializer.WriteTag(nameof(EntityContext.Components), 1);
+                serializer.WriteDictBegin(false, default);
+                try {
+                    foreach (var pair in context.Components) {
+                        var componentGroup = GetComponentGroup(pair.Key);
+                        serializer.WriteKey<Type>(componentGroup.Type);
+                        componentGroup.WriteComponent<TSerializer>(serializer, pair.Value);
+                    }
+                }
+                finally {
+                    serializer.WriteDictEnd();
+                }
             }
-            serializer.WriteObjectEnd();
+            finally {
+                serializer.WriteDictEnd();
+            }
         }
         
         public void WriteEntities<TSerializer>(TSerializer serializer, ArchetypeCompiled archetypeCompiled, IList<Entity> entities, int startIndex = 0, int length = -1) where TSerializer : ISerializer {
+            
             var archetype = archetypeCompiled.archetype;
             _WriteArchetype<TSerializer>(serializer, archetype);
             var entitiesCount = length > 0 ? length : entities.Count - startIndex;
-            serializer.Write<int>(entitiesCount);
+            serializer.WriteValue<int>(entitiesCount);
             foreach (var componentId in archetype.Components) {
                 var componentGroup = GetComponentGroup(componentId);
                 for (var i = 0; i < entitiesCount; i++) {

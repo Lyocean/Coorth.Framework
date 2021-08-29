@@ -1,40 +1,69 @@
-﻿namespace Coorth {
-    public abstract class ActorDomain {
+﻿using System.Threading.Tasks;
+
+namespace Coorth {
+    public abstract class ActorDomain : Disposable, IAwake {
 
         public ActorContainer Container { get; private set; }
 
-        public ServiceContainer Services { get; private set; }
-
-        public void Setup(ActorContainer container, ServiceContainer services) {
+        public ServiceContainer Services => Container.Services;
+        
+        internal void Setup(ActorContainer container) {
             this.Container = container;
-            this.Services = services;
         }
+
+        void IAwake.OnAwake() {
+            
+        }
+        
+        protected override void Dispose(bool dispose) {
+            Container._RemoveDomain(this);
+        }
+
+        private ActorContext CreateContext() {
+            //Container.CreateContext(this, )
+            return default;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         public abstract ActorRef GetRef();
-    }
-
-    public class LocalDomain : ActorDomain {
-        public override ActorRef GetRef() {
-
-            return default;
-        } 
-    }
-
-    public class WorldDomain : LocalDomain {
         
-    }
-
-    public class RemoteDomain : ActorDomain {
-        public override ActorRef GetRef() {
-            
+        
+        public T CreateProxy<T>() {
             return default;
         }
+
+
+        internal virtual Task InvokeAsync<TReq>() {
+        
+            return Task.CompletedTask;
+        }
+
+        internal virtual Task<TResp> InvokeAsync<TReq, TResp>() {
+
+            return default;
+        }
+
+
     }
 
-    public class ActorProxy {
-        public ActorRef Ref;
-    }
 
+
+    // public class RemoteDomain_
+
+
+    
+    
+    
+    
+    
     // public interface IServerLogin {
     //     
     // }

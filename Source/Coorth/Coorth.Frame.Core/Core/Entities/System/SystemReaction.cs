@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 
 namespace Coorth {
@@ -71,6 +72,11 @@ namespace Coorth {
 
         public void Execute(in TEvent e) {
             Action?.Invoke(e);
+        }
+
+        public Task ExecuteAsync(in TEvent e) {
+            Action?.Invoke(e);
+            return Task.CompletedTask;
         }
 
         protected override void Dispose(bool dispose) {

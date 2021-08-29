@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace Coorth {
     public interface IEventNode : IDisposable {
         EventId ProcessId { get; }
         IEventNode Parent { get; set; }
         void Execute<T>(in T e) where T : IEvent;
+        Task ExecuteAsync<T>(T e) where T : IEvent;
     }
     
     public abstract class EventNode : Disposable, IEventNode {
@@ -50,6 +52,11 @@ namespace Coorth {
             return OfferChannel<T>().Subscribe(action);
         }
         
+        public IEventReaction<T> Subscribe<T>(Func<T, Task> action)  where T: IEvent {
+            return OfferChannel<T>().Subscribe(action);
+        }
+
+        
         public IEventReaction<T> Subscribe<T>(IEventReaction<T> reaction) where T: IEvent {
             return OfferChannel<T>().Subscribe(reaction);
         }
@@ -70,6 +77,18 @@ namespace Coorth {
                 node.Execute<T>(e);
             }
 
+        }
+        
+        public async Task ExecuteAsync<T>(T e) where T: IEvent {
+            if (channels.TryGetValue(typeof(T), out var channel)) {
+                await ((EventChannel<T>)channel).ExecuteAsync(e);
+            }
+
+            var list = children.List;
+            for (var i = 0; i < list.Count; i++) {
+                var node = list[i];
+                await node.ExecuteAsync<T>(e);
+            }
         }
 
     }

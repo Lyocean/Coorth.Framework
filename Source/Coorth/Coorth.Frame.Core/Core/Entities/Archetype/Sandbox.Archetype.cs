@@ -142,10 +142,25 @@ namespace Coorth {
         }
         
         private void _WriteArchetype<TSerializer>(TSerializer serializer, Archetype archetype) where TSerializer : ISerializer {
-            serializer.Write<ushort>((ushort)archetype.ComponentCount);
-            foreach (int componentId in archetype.Components) {
-                var componentGroup = GetComponentGroup(componentId);
-                serializer.Write<Type>(componentGroup.Type);
+            serializer.WriteDictBegin(true, typeof(Entity));
+            try {
+                serializer.WriteTag(nameof(archetype.ComponentCount), 0);
+                serializer.WriteValue<ushort>((ushort)archetype.ComponentCount);
+                
+                serializer.WriteTag(nameof(archetype.Components), 1);
+                serializer.WriteListBegin(typeof(Type));
+                try {
+                    foreach (int componentId in archetype.Components) {
+                        var componentGroup = GetComponentGroup(componentId);
+                        serializer.WriteValue<Type>(componentGroup.Type);
+                    }
+                }
+                finally {
+                    serializer.WriteListEnd();
+                }
+            }
+            finally {
+                serializer.WriteDictEnd();
             }
         }
         
@@ -154,20 +169,37 @@ namespace Coorth {
         }
         
         private void WriteArchetypeWithEntities<TSerializer>(TSerializer serializer, Archetype archetype) where TSerializer : ISerializer {
-            _WriteArchetype<TSerializer>(serializer, archetype);
-            serializer.Write<int>(archetype.EntityCount);
-            var entities = archetype.GetEntities();
-            foreach (var componentId in archetype.Components) {
-                var componentGroup = GetComponentGroup(componentId);
-                for (var i = 0; i < entities.Count; i++) {
-                    var entityIndex = entities[i];
-                    if (entityIndex <= 0) {
-                        continue;
+            serializer.WriteDictBegin(true, default);
+            try {
+                serializer.WriteTag(nameof(Archetype), 0);
+                _WriteArchetype<TSerializer>(serializer, archetype);
+                serializer.WriteTag(nameof(EntityCount), 1);
+                serializer.WriteValue<int>(archetype.EntityCount);
+                
+                var entities = archetype.GetEntities();
+
+                serializer.WriteTag(nameof(archetype.Components), 2);
+                serializer.WriteListBegin(default);
+                try {
+                    foreach (var componentId in archetype.Components) {
+                        var componentGroup = GetComponentGroup(componentId);
+                        for (var i = 0; i < entities.Count; i++) {
+                            var entityIndex = entities[i];
+                            if (entityIndex <= 0) {
+                                continue;
+                            }
+                            ref var context = ref GetContext(entityIndex);
+                            var componentIndex = context[componentId];
+                            componentGroup.WriteComponent<TSerializer>(serializer, componentIndex);
+                        }
                     }
-                    ref var context = ref GetContext(entityIndex);
-                    var componentIndex = context[componentId];
-                    componentGroup.WriteComponent<TSerializer>(serializer, componentIndex);
                 }
+                finally {
+                    serializer.WriteListEnd();
+                }
+            }
+            finally {
+                serializer.WriteDictEnd();
             }
         }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
     public interface IAgentMessage : IMessage {
@@ -7,22 +9,6 @@ namespace Coorth {
         void Setup(long agentId);
     }
 
-    public interface IActorMessage : IMessage {
-        ActorId ActorId { get; }
-        void Setup(ActorId actorId);
-    }
-    
-    public abstract class ActorMessage : IActorMessage {
-        public ActorId ActorId { get; private set; }
-
-        public void Setup(ActorId actorId) {
-            this.ActorId = actorId;
-        }
-        
-        public virtual bool ValidateMessage() {
-            return !ActorId.IsNull;
-        }
-    }
 
     public abstract class AgentMessage : ActorMessage, IAgentMessage {
         public long AgentId { get; private set; }
@@ -36,7 +22,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
+    [Message, DataContract, Guid("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
     public class MessageCreateEntity : ActorMessage {
         public readonly long AgentId;
         
@@ -49,7 +35,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
+    [Message, DataContract, Guid("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
     public class MessageDestroyEntity : ActorMessage {
         public readonly long AgentId;
 
@@ -62,7 +48,7 @@ namespace Coorth {
         }
     }
 
-    [Message, StoreContract("BF941AEC-CD7F-499B-AC33-7A269D931FFC")]
+    [Message, DataContract, Guid("BF941AEC-CD7F-499B-AC33-7A269D931FFC")]
     public class MessageAddComponent : AgentMessage {
         public readonly Type ComponentType;
         
@@ -75,7 +61,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("832D4F79-78ED-455A-9039-16658514D071")]
+    [Message, DataContract, Guid("832D4F79-78ED-455A-9039-16658514D071")]
     public class MessageRemoveComponent : AgentMessage {
         public readonly Type ComponentType;
         
@@ -88,7 +74,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("C1E7F0FC-CBE1-4AFC-9EF5-DE7C9B031B0D")]
+    [Message, DataContract, Guid("C1E7F0FC-CBE1-4AFC-9EF5-DE7C9B031B0D")]
     public class MessageModifyComponent : AgentMessage {
         public readonly Type ComponentType;
         
@@ -101,7 +87,7 @@ namespace Coorth {
         }
     }
 
-    [Message, StoreContract("A71CF508-C3F1-403D-9636-0FFC9A993FE2")]
+    [Message, DataContract, Guid("A71CF508-C3F1-403D-9636-0FFC9A993FE2")]
     public class MessageAddSystem : ActorMessage {
         public readonly Type ParentType;
         public readonly Type SystemType;
@@ -116,7 +102,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("1B594CBC-B17A-484D-BB98-4580936EC240")]
+    [Message, DataContract, Guid("1B594CBC-B17A-484D-BB98-4580936EC240")]
     public class MessageRemoveSystem : ActorMessage {
         public readonly Type SystemType;
 
@@ -129,7 +115,7 @@ namespace Coorth {
         }
     }
     
-    [Message, StoreContract("AD68BF37-CAB7-4665-BE30-CF1D13AAE75C")]
+    [Message, DataContract, Guid("AD68BF37-CAB7-4665-BE30-CF1D13AAE75C")]
     public class MessageActiveSystem : ActorMessage {
         public readonly Type SystemType;
         public readonly bool IsActive;

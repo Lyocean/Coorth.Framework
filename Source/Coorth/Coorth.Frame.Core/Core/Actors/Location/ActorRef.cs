@@ -1,10 +1,14 @@
 ﻿using System.Threading.Tasks;
 
 namespace Coorth {
-    public sealed class ActorRef {
+    public readonly struct ActorRef {
         
-        public readonly ActorContext Context;
+        internal readonly ActorContext Context;
 
+        public static ActorRef Null => default;
+
+        public bool IsNull => Context == null;
+        
         public IActor Actor => Context.Actor;
 
         public ActorContainer Container => Context.Container;
@@ -15,14 +19,13 @@ namespace Coorth {
             this.Context = context;
         }
         
-        public void Send<T>(T message) => this.Send(message, null);
+        public void Send<T>(T message) => Context.Send(message, this);
 
-        public async Task<TResp> Request<TReq, TResp>(TReq message) => await this.Request<TReq, TResp>(message, null);
+        public async Task<TResp> Request<TReq, TResp>(TReq message) => await this.Request<TReq, TResp>(message, default);
 
         public void Send<T>(T message, ActorRef sender) => Context.Send(message, sender);
 
         public Task<TResp> Request<TReq, TResp>(TReq message, ActorRef sender) => Context.Request<TReq, TResp>(message, sender);
 
-                
     }
 }

@@ -60,7 +60,7 @@ namespace Coorth {
             this.Config = config ?? AppConfig.Default;
             this.Actors = new ActorContainer(this.Dispatcher, this.Config);
 
-            this.Module = new RootModule(Services);
+            this.Module = new RootModule(Services, this.Actors, this);
 
             if (apps.Count == 0) {
                 this.IsMain = true;

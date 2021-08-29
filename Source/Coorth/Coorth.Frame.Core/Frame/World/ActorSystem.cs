@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
     public abstract class MessageSystem : SystemBase {
@@ -21,7 +23,7 @@ namespace Coorth {
         }
     }
     
-    [System, StoreContract("D4144E18-DF68-43E6-8CDE-F601AF95FCB0")]
+    [System, DataContract, Guid("D4144E18-DF68-43E6-8CDE-F601AF95FCB0")]
     public class ActorSystem : MessageSystem {
 
         #region Common

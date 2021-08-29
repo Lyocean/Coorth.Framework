@@ -30,7 +30,7 @@ namespace Coorth {
         public float TimeScale;
         
 
-        public void Setup(SettingBase setting) {
+        public void Setup(ITickSetting setting) {
             //Step
             this.MaxStepPerFrame = setting.MaxStepPerFrame;
             this.StepFrameRate = setting.StepFrameRate;

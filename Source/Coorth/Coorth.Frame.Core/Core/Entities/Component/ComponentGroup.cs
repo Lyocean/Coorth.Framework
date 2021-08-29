@@ -261,7 +261,7 @@ namespace Coorth {
 
         public void WriteComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer {
             ref var component = ref components[componentIndex];
-            serializer.Write(component);
+            serializer.WriteValue(component);
         }
 
         internal void _Clone(Entity entity, ref T sourceComponent, out T targetComponent) {

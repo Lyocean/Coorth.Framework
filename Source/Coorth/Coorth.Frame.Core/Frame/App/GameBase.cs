@@ -12,7 +12,7 @@ namespace Coorth {
 
         protected abstract TApp CreateApp();
     
-        public void Setup(SettingBase setting) {
+        public void Setup(ITickSetting setting) {
             App.Setup();
             Ticker.Setup(setting);
         }
