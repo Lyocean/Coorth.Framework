@@ -1,5 +1,8 @@
-﻿namespace Coorth {
-    [System, StoreContract("A46F1768-A306-4670-88AD-DEB2F0663BBB")]
+﻿using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+
+namespace Coorth {
+    [System, DataContract, Guid("A46F1768-A306-4670-88AD-DEB2F0663BBB")]
     public class CoreSystems : SystemBase {
         protected override void OnAdd() {
             Sandbox.BindComponent<TransformComponent>();

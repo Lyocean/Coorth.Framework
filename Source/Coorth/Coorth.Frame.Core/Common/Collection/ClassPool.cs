@@ -5,22 +5,22 @@ namespace Coorth {
         
         private static readonly ConcurrentQueue<T> items = new ConcurrentQueue<T>();
 
-        public static T Get() => items.TryDequeue(out var item) ? item : default;
+        public static T Create() => items.TryDequeue(out var item) ? item : default;
 
-        public static void Put(T item)  => items.Enqueue(item);
+        public static void Return(T item)  => items.Enqueue(item);
         
-        public static void Get(ref T value) {
+        public static void Create(ref T value) {
             if (value != null) {
                 return;
             }
-            value = Get();
+            value = Create();
         }
         
-        public static void Put(ref T value) {
+        public static void Return(ref T value) {
             if (value == null) {
                 return;
             }
-            Put(value);
+            Return(value);
             value = null;
         }
     }}

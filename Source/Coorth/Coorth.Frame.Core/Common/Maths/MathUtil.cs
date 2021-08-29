@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
@@ -232,6 +233,12 @@ namespace Coorth.Maths {
         public static int Random(int min, int max) {
             return random.Next(min, max);
         }
+        
+        public static T Random<T>(IList<T> list) {
+            var index = random.Next(0, list.Count);
+            return list[index];
+        }
+        
 
 
         public static int RandomRange(int min, int max) {
@@ -239,5 +246,6 @@ namespace Coorth.Maths {
         }
 
         #endregion
+
     }
 }

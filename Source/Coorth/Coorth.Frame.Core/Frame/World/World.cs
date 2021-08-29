@@ -53,7 +53,7 @@ namespace Coorth {
             
             this.App.Services.AddChild(this.Services);
 
-            this.ActorDomain = this.Actors.CreateDomain<WorldDomain>(Services);
+            this.ActorDomain = this.Actors.CreateDomain<WorldDomain>();
 
             this.Active = CreateSandbox(config.Sandbox);
         }

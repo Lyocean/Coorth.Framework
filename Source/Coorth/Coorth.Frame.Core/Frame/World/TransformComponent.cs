@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 
 namespace Coorth {
     using Coorth.Maths;
-    [Component, StoreContract("482164B6-9432-4AB8-B217-A843BEB96CB8")]
+    [Component, DataContract, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
     public class TransformComponent : RefComponent, ICloneable {
 
         #region Fields
@@ -196,17 +198,17 @@ namespace Coorth {
         }
     }
     
-    [Component, StoreContract("B8F4D0DE-0035-4734-A2E9-DFF6481A1195")]
+    [Component, DataContract, Guid("B8F4D0DE-0035-4734-A2E9-DFF6481A1195")]
     public struct PositionComponent : IComponent {
         public Vector3 Value;
     }
 
-    [Component, StoreContract("1D86EFC8-611E-498D-8DCC-66729215FEC9")]
+    [Component, DataContract, Guid("1D86EFC8-611E-498D-8DCC-66729215FEC9")]
     public struct RotationComponent : IComponent {
         public Vector3 Value;
     }
 
-    [Component, StoreContract("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
+    [Component, DataContract, Guid("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
     public struct WorldMatrixComponent : IComponent {
         public Matrix4x4 Value;
     }

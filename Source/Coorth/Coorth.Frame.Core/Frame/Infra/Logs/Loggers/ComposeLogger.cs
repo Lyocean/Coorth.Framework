@@ -6,7 +6,7 @@ namespace Coorth.Logs {
 
         private readonly List<ILogger> loggers = new List<ILogger>();
 
-        public void AddLogger(ILogger logger) {
+        protected void AddLogger(ILogger logger) {
             this.loggers.Add(logger);
         }
         

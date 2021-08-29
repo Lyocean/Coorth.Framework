@@ -84,5 +84,10 @@ namespace Coorth {
             }
             return this.Exception?.ToString() ?? "unknown";
         }
+
+        public void Deconstruct(out bool isSuccess, out T value) {
+            isSuccess = this.IsSuccess;
+            value = this.Value;
+        }
     }
 }

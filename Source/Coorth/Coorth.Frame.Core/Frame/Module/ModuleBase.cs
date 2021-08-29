@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Coorth {
 
@@ -16,7 +17,7 @@ namespace Coorth {
 
         public void AddChild(TKey key, TValue child) {
             child.Parent = (TValue)this;
-            children = children ?? new Dictionary<TKey, TValue>();
+            children = children ??= new Dictionary<TKey, TValue>();
             children.Add(key, child);
             child.Key = key;
             OnChildAdd(key, child);
@@ -51,7 +52,7 @@ namespace Coorth {
         }
     }
     
-    public abstract class Module : TreeObject<Type, Module, RootModule> {
+    public abstract class ModuleBase : TreeObject<Type, ModuleBase, RootModule> {
 
         protected Disposables Managed;
 
@@ -59,13 +60,19 @@ namespace Coorth {
         
         public virtual EventDispatcher Dispatcher => Root.Dispatcher;
         
-        protected override void OnChildAdd(Type key, Module value) {
+        public virtual ActorContainer Actors => Root.Actors;
+
+        public World World => Root.App.CurrentWorld;
+
+        public Sandbox Sandbox => World.Active;
+        
+        protected override void OnChildAdd(Type key, ModuleBase value) {
             value.OnAdd();
             Root.Dispatcher.Execute(new EventModuleAdd(this, key, value));
             // Root._OnAddModule(this, key, value);
         }
 
-        protected override void OnChildRemove(Type key, Module value) {
+        protected override void OnChildRemove(Type key, ModuleBase value) {
             value.OnRemove();
             Managed.Clear();
             Root.Dispatcher.Execute(new EventModuleRemove(this, key, value));
@@ -83,9 +90,24 @@ namespace Coorth {
             Managed.Add(reaction);
         }
         
-        public TModule AddModule<TModule>(TModule module = default) where TModule : Module, new() {
+        public void Subscribe<T>(Func<T, Task> action) where T : IEvent {
+            var reaction = Dispatcher.Subscribe(action);
+            Managed.Add(reaction);
+        }
+        
+        public void Subscribe<T>(EventDispatcher dispatcher, Action<T> action) where T : IEvent {
+            var reaction = dispatcher.Subscribe(action);
+            Managed.Add(reaction);
+        }
+        
+        public void Subscribe<T>(EventDispatcher dispatcher, Func<T, Task> action) where T : IEvent {
+            var reaction = dispatcher.Subscribe(action);
+            Managed.Add(reaction);
+        }
+        
+        public TModule AddModule<TModule>(TModule module = default) where TModule : ModuleBase, new() {
             var type = module != null ? module.GetType() : typeof(TModule);
-            module  = module ?? Activator.CreateInstance<TModule>();
+            module ??= Activator.CreateInstance<TModule>();
             AddChild(type, module);
             return module;
         }
@@ -98,7 +120,7 @@ namespace Coorth {
             return default;
         }
 
-        public Module GetModule(Type type) {
+        public ModuleBase GetModule(Type type) {
             return Children.TryGetValue(type, out var module) ? module : default;
         }
         
@@ -106,23 +128,36 @@ namespace Coorth {
             return Children.ContainsKey(type);
         }
         
-        public bool HasModule<TModule>() where TModule : Module {
+        public bool HasModule<TModule>() where TModule : ModuleBase {
             return Children.ContainsKey(typeof(TModule));
         }
 
-        public TModule OfferModule<TModule>()  where TModule : Module, new() {
+        public TModule OfferModule<TModule>()  where TModule : ModuleBase, new() {
             return HasModule<TModule>() ? GetModule<TModule>() : AddModule<TModule>();
         }
     }
 
-    public sealed class RootModule : Module {
+    public sealed class RootModule : ModuleBase {
         public override ServiceContainer Services { get; } = new ServiceContainer();
 
         public override EventDispatcher Dispatcher { get; } = new EventDispatcher();
 
-        
-        public RootModule(ServiceContainer parent) {
+        private readonly ActorContainer actors;
+        public override ActorContainer Actors => actors;
+
+        private readonly AppFrame app;
+        public AppFrame App => app;
+
+        public RootModule(ServiceContainer parent, ActorContainer actors, AppFrame app) {
             parent.AddChild(Services);
+            this.actors = actors;
+            this.app = app;
         }
+    }
+
+    public abstract class ModuleBase<TParent> : ModuleBase where TParent : ModuleBase {
+        public new TParent Parent => base.Parent as TParent;
+        
+        
     }
 }

@@ -1,14 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    [Component, StoreContract("857C72EF-0954-4F3E-99ED-E5EC0738B25B")]
+    public class RemoteActor<TContext> : Actor {
+
+        private TContext context;
+        
+        private MessageDispatcher<TContext> dispatcher;
+        
+        public void Setup(TContext ctx, MessageDispatcher<TContext> value) {
+            this.context = ctx;
+            this.dispatcher = value;
+        }
+
+        public override void Execute(in ActorMail e) {
+            dispatcher.Execute(context, e.message);
+        }
+    }
+
+    public readonly struct ActorSession<TActor, TRemote> {
+        public readonly TActor Local;
+        public readonly TRemote Remote;
+        public ActorSession(TActor local, TRemote remote) {
+            Local = local;
+            Remote = remote;
+        }
+    }
+    
+    [Component, DataContract, Guid("857C72EF-0954-4F3E-99ED-E5EC0738B25B")]
     public class ActorComponent : RefComponent {
 
         #region Fields
-
+        
         private readonly MessageDispatcher<ActorComponent> dispatcher = new MessageDispatcher<ActorComponent>();
 
         private readonly Dictionary<long, AgentComponent> agents = new Dictionary<long, AgentComponent>();
@@ -17,6 +44,10 @@ namespace Coorth {
 
         private int currentId = 0;
 
+        public void Setup() {
+            
+        }
+        
         #endregion
 
         #region Agents
@@ -79,7 +110,7 @@ namespace Coorth {
         #region Send
 
         private void _Send<T>(T message) where T : IMessage {
-            
+            // session.Remote.Send(message, session.Local.Context.Ref);
         }
 
         public void Send<T>(T message) where T : IMessage {
@@ -123,7 +154,7 @@ namespace Coorth {
         #endregion
     }
 
-    [Component, StoreContract("E3863A56-B271-4B67-BB8F-9DCD6CEAC2F1")]
+    [Component, DataContract, Guid("E3863A56-B271-4B67-BB8F-9DCD6CEAC2F1")]
     public class AgentComponent : RefComponent {
         public long AgentId { get; private set; }
         public bool IsProxy { get; private set; }

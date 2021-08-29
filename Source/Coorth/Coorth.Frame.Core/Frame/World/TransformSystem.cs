@@ -1,7 +1,9 @@
 ﻿using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
-    [System, StoreContract("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
+    [System, DataContract, Guid("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
     public class TransformSystem : SystemBase {
         protected override void OnAdd() {
             Subscribe<EventComponentAdd<TransformComponent>>(Execute);
