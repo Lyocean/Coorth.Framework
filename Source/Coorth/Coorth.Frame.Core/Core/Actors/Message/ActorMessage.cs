@@ -1,37 +1,61 @@
-﻿namespace Coorth {
+﻿using System;
+using System.Runtime.Serialization;
 
-    public interface IActorMessage : IMessage {
-        ActorId ActorId { get; }
-        void Setup(ActorId actorId);
-    }
-    
-    public abstract class ActorMessage : IActorMessage {
-        public ActorId ActorId { get; private set; }
+namespace Coorth {
+    [Serializable, DataContract]
+    public class ActorMessage : IMessage {
 
-        public void Setup(ActorId actorId) {
-            this.ActorId = actorId;
-        }
+        [DataMember(Order = 0)]
+        public readonly ActorId Sender;
         
-        public virtual bool ValidateMessage() {
-            return !ActorId.IsNull;
+        [DataMember(Order = 1)]
+        public readonly ActorId Target;
+        
+        [DataMember(Order = 2)]
+        public readonly IMessage Message;
+
+        public ActorMessage(ActorId target, ActorId sender, IMessage message) {
+            Sender = sender;
+            Target = target;
+            Message = message;
+        }
+
+        public bool ValidateMessage() {
+            return Message != null;
         }
     }
     
-    public class MessageRpcRequest : ActorMessage {
-        public byte[] Arguments { get; private set; }
-
-        public MessageRpcRequest(ActorId actorId, byte[] arguments) {
-            this.Setup(actorId);
-            this.Arguments = arguments;
+    [Serializable, DataContract]
+    public class ActorRequest : IRequest {
+        
+        [DataMember(Order = 0)]
+        public readonly ActorId Sender;
+        
+        [DataMember(Order = 1)]
+        public readonly ActorId Target;
+        
+        [DataMember(Order = 2)]
+        public readonly IRequest Request;
+        
+        public ActorRequest(ActorId target, ActorId sender, IRequest request) {
+            this.Request = request;
         }
     }
-
-    public class MessageRpcResponse : ActorMessage {
-        public byte[] Arguments { get; private set; }
-
-        public MessageRpcResponse(ActorId actorId, byte[] arguments) {
-            this.Setup(actorId);
-            this.Arguments = arguments;
+    
+    [Serializable, DataContract]
+    public class ActorResponse : IResponse {
+        
+        [DataMember(Order = 0)]
+        public readonly ActorId Sender;
+        
+        [DataMember(Order = 1)]
+        public readonly ActorId Target;
+        
+        [DataMember(Order = 2)]
+        public readonly IResponse Response;
+        
+        public ActorResponse(ActorId target, ActorId sender, IResponse response) {
+            this.Response = response;
         }
     }
 }

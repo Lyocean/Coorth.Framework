@@ -67,7 +67,7 @@ namespace Coorth.Tests.Entities {
         [Test]
         public void DestroyEntity() {
             var entity = sandbox.CreateEntity();
-            entity.Destroy();
+            entity.Dispose();
             Assert.IsFalse(sandbox.HasEntity(entity));
         }
 

@@ -1,106 +1,41 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace Coorth {
-    public abstract class ActorDomain : Disposable, IAwake {
+    
+    public abstract class ActorDomain : Disposable, IActor {
+
+        public string Name { get; private set; }
 
         public ActorContainer Container { get; private set; }
 
         public ServiceContainer Services => Container.Services;
-        
-        internal void Setup(ActorContainer container) {
-            this.Container = container;
-        }
 
-        void IAwake.OnAwake() {
-            
+        public EventDispatcher Dispatcher => Container.Dispatcher;
+
+        public ActorPath Path;
+
+        internal void Setup(ActorContainer container, string name) {
+            this.Name = name;
+            this.Container = container;
+            this.Path = new ActorPath(name);
         }
         
         protected override void Dispose(bool dispose) {
             Container._RemoveDomain(this);
         }
 
-        private ActorContext CreateContext() {
-            //Container.CreateContext(this, )
-            return default;
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        public abstract ActorRef GetRef();
-        
-        
-        public T CreateProxy<T>() {
-            return default;
-        }
-
-
-        internal virtual Task InvokeAsync<TReq>() {
-        
-            return Task.CompletedTask;
-        }
-
-        internal virtual Task<TResp> InvokeAsync<TReq, TResp>() {
-
-            return default;
-        }
-
-
+        public virtual Task ReceiveAsync(in ActorMail mail) => Task.CompletedTask;
     }
 
+    public abstract class ActorDomain<TContext> : ActorDomain where TContext : ActorContext {
+        
+        protected RootContext<TContext> Context { get; private set; }
 
+        private readonly ConcurrentDictionary<ActorId, TContext> contexts = new ConcurrentDictionary<ActorId, TContext>();
 
-    // public class RemoteDomain_
-
-
-    
-    
-    
-    
-    
-    // public interface IServerLogin {
-    //     
-    // }
-    //
-    // public class MessageRpcInvoke : ActorMessage, IRequest {
-    //     
-    //     
-    //     public int MsgId { get; }
-    //
-    //     public bool ValidateMessage() {
-    //         throw new System.NotImplementedException();
-    //     }
-    //
-    //     public void Setup(int msgId) {
-    //         throw new System.NotImplementedException();
-    //     }
-    //     
-    //     public void Encode<T>(ISerializer serializer, ref T value) {
-    //         
-    //     }
-    // }
-    //
-    // public class MessageRpcReturn : IResponse {
-    //     
-    // }
-    //
-    // public class ServerLogin : ActorProxy, IServerLogin {
-    //     
-    //     public Task<long> Login(string account, string password) {
-    //         var request = new MessageRpcInvoke();
-    //         var response = await Ref.Request<MessageRpcReturn>(request);
-    //         request.Encode<string>(account).Encode<string>(password);
-    //         return request.Decode<long>();
-    //     }
-    //
-    //     public void Logout(long a) {
-    //         Ref.Send();
-    //     }
-    // }
+        protected ActorDomain(){
+            this.Context = new RootContext<TContext>(this);
+        }
+    }
 }

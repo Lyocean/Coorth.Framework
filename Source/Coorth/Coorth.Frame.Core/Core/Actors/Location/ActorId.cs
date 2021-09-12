@@ -2,18 +2,19 @@
 using System.Runtime.Serialization;
 
 namespace Coorth {
-    [DataContract]
+    [Serializable, DataContract]
     public readonly struct ActorId : IEquatable<ActorId> {
-        [DataMember(Order = 0)]
-        private readonly Guid id;
-
-        public bool IsNull => id == Guid.Empty;
         
-        private ActorId(Guid key) { id = key; }
+        [DataMember(Order = 0)]
+        public readonly Guid Id;
+
+        public bool IsNull => Id == Guid.Empty;
+        
+        public ActorId(Guid key) { Id = key; }
 
         public static ActorId New() { return new ActorId(Guid.NewGuid()); }
         
-        public bool Equals(ActorId other) { return this.id == other.id; }
+        public bool Equals(ActorId other) { return this.Id == other.Id; }
 
         public static bool operator ==(ActorId a, ActorId b) { return a.Equals(b); }
 
@@ -21,10 +22,10 @@ namespace Coorth {
 
         public override bool Equals(object obj) { return obj is ActorId actorId && actorId.Equals(this); }
 
-        public override int GetHashCode() { return id.GetHashCode(); }
+        public override int GetHashCode() { return Id.GetHashCode(); }
 
-        public override string ToString() { return $"[ActorId]: {id.ToString()}"; }
+        public override string ToString() { return $"[ActorId]: {Id.ToString()}"; }
 
-        public string ToShortString() { return id.ToString(); }
+        public string ToShortString() { return Id.ToString(); }
     }
 }

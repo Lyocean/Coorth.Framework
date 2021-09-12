@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Coorth {
+    [Serializable, DataContract]
     public readonly struct ActorPath : IEquatable<ActorPath> {
         public readonly string Address;
         public readonly string Parent;
@@ -46,10 +46,6 @@ namespace Coorth {
                 Name = fullPath.Substring(index + 1);
             }
         }
-
-        public ActorRef Resolve(ActorContainer container) {
-            return container.GetRef(this);
-        }
         
         public static explicit operator ActorPath(string fullPath) {
             return new ActorPath(fullPath);
@@ -89,20 +85,6 @@ namespace Coorth {
 
         public bool Equals(ActorPath other) {
             return Parent == other.Parent && Name == other.Name && FullPath == other.FullPath;
-        }
-    }
-
-    public class ActorSelection {
-        private readonly ActorRef[] selections;
-
-        public ActorSelection(IEnumerable<ActorRef> selections) {
-            this.selections = selections.ToArray();
-        }
-
-        public void Send<T>(T message) {
-            foreach (var actorRef in selections) {
-                actorRef.Send(message);
-            }
         }
     }
 }

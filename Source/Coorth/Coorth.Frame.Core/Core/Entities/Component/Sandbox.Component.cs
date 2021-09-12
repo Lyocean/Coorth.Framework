@@ -353,7 +353,7 @@ namespace Coorth {
 
         #region Read & Write
         
-        public void ReadComponent<TSerializer>(TSerializer serializer, in EntityId entityId, Type type) where TSerializer : ISerializer {
+        public void ReadComponent(ISerializeReader serializer, in EntityId entityId, Type type) {
             ref var context = ref GetContext(entityId.Index);
             var componentGroup = GetComponentGroup(type);
             if(context.TryGet(componentGroup.Id, out var componentIndex)) {
@@ -367,7 +367,7 @@ namespace Coorth {
             }
         }
         
-        public void WriteComponent<TSerializer>(TSerializer serializer, in EntityId entityId, Type type) where TSerializer : ISerializer {
+        public void WriteComponent(ISerializeWriter serializer, in EntityId entityId, Type type) {
             ref var context = ref GetContext(entityId.Index);
             var componentGroup = GetComponentGroup(type);
             componentGroup.WriteComponent(serializer, context[componentGroup.Id]);

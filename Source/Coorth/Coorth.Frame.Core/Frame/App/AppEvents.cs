@@ -95,4 +95,12 @@ namespace Coorth {
         public TimeSpan GetDeltaTime() => DeltaTime;
         public TimeSpan GetTotalTime() => TotalTime;
     }
+
+    public readonly struct EventEndOfFrame : IEvent {
+        public readonly long FrameCount;
+
+        public EventEndOfFrame(long frameCount) {
+            FrameCount = frameCount;
+        }
+    }
 }

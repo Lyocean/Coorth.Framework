@@ -24,13 +24,13 @@ namespace Coorth {
         
         [StoreIgnore]
         protected Vector3 position;
-        [StoreMember(5), Display(Editable = true)]
+        [StoreMember(5), DataMember(Order = 5), Display(Editable = true)]
         public Vector3 Position { get => position; set => Modify(ref position, value); }
         public Vector3 WorldPosition { get => position; set=> Position = value; }
         public Vector3 LocalPosition { get => Parent != null ? position - Parent.position : position; set => Position = Parent != null ? Parent.position + value : value; }
 
         protected Quaternion rotation;
-        [StoreMember(10), Display(Editable = true)]
+        [StoreMember(10), DataMember(Order = 10), Display(Editable = true)]
         public Quaternion Rotation { get => rotation; set => Modify(ref rotation, value); }
         public Quaternion WorldRotation { get => rotation; set => Rotation = value; }
         public Quaternion LocalRotation { get => Parent != null ? rotation/Parent.rotation : rotation; set => Rotation = Parent != null ? Parent.rotation * value : value; }
@@ -40,7 +40,7 @@ namespace Coorth {
         public Vector3 LocalAngles => LocalRotation.ToAxis();
         
         protected Vector3 scale = Vector3.One;
-        [StoreMember(15), Display(Editable = true)]
+        [StoreMember(15), DataMember(Order = 15), Display(Editable = true)]
         public Vector3 Scale { get => scale; set => Modify(ref scale, value);  }
         public Vector3 WorldScale { get => scale; set => Scale = value; }
         public Vector3 LocalScale { get => Parent != null ? scale/Parent.scale : scale; set => Scale = Parent != null ? Parent.scale * value : value; }
@@ -64,7 +64,7 @@ namespace Coorth {
                 parent = null;
             }
             foreach(var childTransform in children) {
-                childTransform.Entity.Destroy();
+                childTransform.Entity.Dispose();
             }
             children.Clear();
         }

@@ -77,15 +77,18 @@ namespace Coorth {
         public bool Remove(Type type) => Sandbox.RemoveComponent(Id, type);
 
         public void Clear() => Sandbox.ClearComponent(Id);
-
-        public void Destroy() => Sandbox.DestroyEntity(Id);
         
-        public void Dispose() => Destroy();
+        public void Dispose() => Sandbox.DestroyEntity(Id);
         
         public Entity Clone() => Sandbox.CloneEntity(this);
 
         object ICloneable.Clone() => Sandbox.CloneEntity(this);
 
+        void Write(ISerializeWriter writer) => Sandbox.WriteEntity(writer, Id);
+        
+        void Read(ISerializeReader reader) => Sandbox.ReadEntity(reader, Id);
+
+        
         public bool Equals(Entity other) {
             return Id.Equals(other.Id) && Equals(Sandbox, other.Sandbox);
         }

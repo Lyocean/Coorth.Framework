@@ -119,13 +119,11 @@ namespace Coorth {
                 LogUtil.Exception(ex);
             }
             //Infrastructure Events
-            if (IsMain) {
-                try {
-                    Infra.Dispatcher.Execute(e);
-                }
-                catch (Exception ex) {
-                    LogUtil.Exception(ex);
-                }
+            try {
+                Infra.Dispatcher.Execute(e);
+            }
+            catch (Exception ex) {
+                LogUtil.Exception(ex);
             }
             //World Events
             foreach (World world in worlds) {
@@ -165,7 +163,9 @@ namespace Coorth {
         
         #region Infra
 
-        protected virtual void SetupInfra() { }
+        protected virtual void SetupInfra() {
+
+        }
 
         #endregion
         

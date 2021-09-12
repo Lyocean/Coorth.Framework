@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Coorth.Maths {
+    [Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
     [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
     public struct Color : IEquatable<Color> {
         public float R;

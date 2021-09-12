@@ -65,6 +65,46 @@ namespace Coorth {
             });
         }
         
+        public void ForEachRef<TComponent>(ComponentActionRef<TEvent, TComponent> action) where TComponent : IComponent {
+            var sandbox = system.Sandbox;
+            var reaction = system.CreateReaction<TEvent>();
+            reaction.Include<TComponent>();
+            reaction.OnEvent(e => {
+                ComponentCollection<TComponent> components = sandbox.GetComponents<TComponent>();
+                components.ForEachRef(e, action);
+            });
+        }
+
+        public void ForEachRef<TComponent>(ComponentActionRefWithEntity<TEvent, TComponent> action) where TComponent : IComponent {
+            var sandbox = system.Sandbox;
+            var reaction = system.CreateReaction<TEvent>();
+            reaction.Include<TComponent>();
+            reaction.OnEvent(e => {
+                ComponentCollection<TComponent> components = sandbox.GetComponents<TComponent>();
+                components.ForEachRef(e, action);
+            });
+        }
+        
+        public void ForEachRef<TComponent>(ComponentActionIn<TEvent, TComponent> action) where TComponent : IComponent {
+            var sandbox = system.Sandbox;
+            var reaction = system.CreateReaction<TEvent>();
+            reaction.Include<TComponent>();
+            reaction.OnEvent(e => {
+                ComponentCollection<TComponent> components = sandbox.GetComponents<TComponent>();
+                components.ForEachIn(e, action);
+            });
+        }
+        
+        public void ForEachRef<TComponent>(ComponentActionInWithEntity<TEvent, TComponent> action) where TComponent : IComponent {
+            var sandbox = system.Sandbox;
+            var reaction = system.CreateReaction<TEvent>();
+            reaction.Include<TComponent>();
+            reaction.OnEvent(e => {
+                ComponentCollection<TComponent> components = sandbox.GetComponents<TComponent>();
+                components.ForEachIn(e, action);
+            });
+        }
+        
         #endregion
         
         #region Event_Comp_2
