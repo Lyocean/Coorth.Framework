@@ -1,28 +1,7 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
 namespace Coorth {
-    public abstract class MessageSystem : SystemBase {
-        
-        protected ActorContainer Container => World.Actors;
-        protected ActorComponent Actor => Singleton<ActorComponent>();
-        
-        protected bool IsDebug => Sandbox.Singleton().Has<DebugComponent>();
-
-        protected DebugComponent Debug => IsDebug ? Singleton<DebugComponent>() : default;
-        
-        protected bool IsReflectionEnable => IsDebug && Sandbox.Singleton().Get<DebugComponent>().IsReflectionEnable;
-
-        protected void Receive<T>(Action<ActorComponent, T> action) where T : IMessage {
-            Actor.Receive(action).ManageBy(ref Managed);
-        }
-        
-        protected void Receive<T>(Action<AgentComponent, T> action) where T : IAgentMessage {
-            Actor.Receive(action).ManageBy(ref Managed);
-        }
-    }
-    
     [System, DataContract, Guid("D4144E18-DF68-43E6-8CDE-F601AF95FCB0")]
     public class ActorSystem : MessageSystem {
 
@@ -35,16 +14,16 @@ namespace Coorth {
 
             //Actor Message
             ////Entity Message
-            Receive<MessageCreateEntity>(OnReceive);
-            Receive<MessageDestroyEntity>(OnReceive);
+            OnReceive<MessageCreateEntity>(OnReceive);
+            OnReceive<MessageDestroyEntity>(OnReceive);
             ////Component Message
-            Receive<MessageAddComponent>(OnReceive);
-            Receive<MessageRemoveComponent>(OnReceive);
-            Receive<MessageModifyComponent>(OnReceive);
+            OnReceive<MessageAddComponent>(OnReceive);
+            OnReceive<MessageRemoveComponent>(OnReceive);
+            OnReceive<MessageModifyComponent>(OnReceive);
             ////System Message
-            Receive<MessageAddSystem>(OnReceive);
-            Receive<MessageRemoveSystem>(OnReceive);
-            Receive<MessageActiveSystem>(OnReceive);
+            OnReceive<MessageAddSystem>(OnReceive);
+            OnReceive<MessageRemoveSystem>(OnReceive);
+            OnReceive<MessageActiveSystem>(OnReceive);
         }
         
         private static void Execute(EventComponentAdd<AgentComponent> e) {
@@ -60,18 +39,18 @@ namespace Coorth {
 
         #region Message
 
-        private void OnReceive(ActorComponent actor, MessageCreateEntity msg) {
-            if (actor.TryGetAgent(msg.AgentId, out var agent)) {
+        private void OnReceive(RouterComponent router, MessageCreateEntity msg) {
+            if (router.TryGetAgent(msg.AgentId, out var agent)) {
                 Debug?.Logger?.LogWarning($"Duplicate agent id: {msg.AgentId}");
                 agent.Entity.Dispose();
             }
             Entity entity = Sandbox.CreateEntity();
             agent = entity.Add<AgentComponent>();
-            agent.Setup(actor, msg.AgentId, true);
+            agent.Setup(router, msg.AgentId, true);
         }
         
-        private void OnReceive(ActorComponent actor, MessageDestroyEntity msg) {
-            if (!actor.TryGetAgent(msg.AgentId, out var agent)) {
+        private void OnReceive(RouterComponent router, MessageDestroyEntity msg) {
+            if (!router.TryGetAgent(msg.AgentId, out var agent)) {
                 Debug?.Logger?.LogWarning($"Missing agent with id: {msg.AgentId}");
                 return;
             }
@@ -90,7 +69,7 @@ namespace Coorth {
             // agent.Entity.Modify()
         }
         
-        private void OnReceive(ActorComponent actor, MessageAddSystem msg) {
+        private void OnReceive(RouterComponent router, MessageAddSystem msg) {
             if (msg.ParentType == null) {
                 Sandbox.AddSystem(msg.SystemType, IsReflectionEnable);
             }
@@ -100,16 +79,14 @@ namespace Coorth {
             }
         }
         
-        private void OnReceive(ActorComponent actor, MessageRemoveSystem msg) {
+        private void OnReceive(RouterComponent router, MessageRemoveSystem msg) {
             Sandbox.RemoveSystem(msg.SystemType);
         }
         
-        private void OnReceive(ActorComponent actor, MessageActiveSystem msg) {
+        private void OnReceive(RouterComponent router, MessageActiveSystem msg) {
             Sandbox.ActiveSystem(msg.SystemType, msg.IsActive);
         }
 
         #endregion
-        
-
     }
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 
 namespace Coorth {
@@ -65,8 +64,7 @@ namespace Coorth {
             ref var context = ref CreateContext(archetype);
             var entity = context.GetEntity(this);
             _Execute(new EventEntityAdd(entity));
-            for(var i =0;i< archetype.Types.Length; i++) {
-                var typeId = archetype.Types[i];
+            foreach (var typeId in archetype.Types) {
                 var componentGroup = GetComponentGroup(typeId);
                 var componentIndex = componentGroup.AddComponent(entity);
                 context[typeId] = componentIndex;
@@ -145,7 +143,7 @@ namespace Coorth {
         
         public IEnumerable<Entity> GetEntities() {
             var count = contexts.Count;
-            for (var i = 0; i < contexts.Count; i++) {
+            for (var i = 0; i < count; i++) {
                 var entity = contexts[i].GetEntity(this);
                 if (!entity.IsNull) {
                     yield return entity;
@@ -185,10 +183,13 @@ namespace Coorth {
         }
         
         public void ClearEntities() {
-            // var entityIds = entities.GetEntityIds().ToList();
-            // foreach (var id in entityIds) {
-            //     DestroyEntity(id);
-            // }
+            var list = new List<EntityId>();
+            for (int i = 0; i < contexts.Count; i++) {
+                list.Add(contexts[i].Id);
+            }
+            foreach (var id in list) {
+                DestroyEntity(id);
+            }
         }
         
         #endregion
@@ -223,70 +224,57 @@ namespace Coorth {
 
         #region Read & Write
 
-        public Entity ReadEntity<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+        public Entity ReadEntity(ISerializeReader reader) {
             var entity = CreateEntity();
-            ReadEntity<TSerializer>(serializer, entity);
+            ReadEntity(reader, entity.Id);
             return entity;
         }
         
-        public void ReadEntity<TSerializer>(TSerializer serializer, Entity entity) where TSerializer : ISerializer {
-            var componentCount = serializer.Read<ushort>();
-            for (var i = 0; i < componentCount; i++) {
-                var type = serializer.Read<Type>();
-                ReadComponent<TSerializer>(serializer, entity.Id, type);
-            }
-        }
-  
-        public IList<Entity> ReadEntities<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
-            return ReadArchetypeWithEntities(serializer, null);
-        }
-
-        public void WriteEntity<TSerializer>(TSerializer serializer, in EntityId entityId) where TSerializer : ISerializer {
-            serializer.WriteDictBegin(true, typeof(Entity));
-            try {
-                ref var context = ref GetContext(entityId.Index);
-                
-                serializer.WriteTag(nameof(Entity.Count), 0);
-                serializer.WriteValue<ushort>((ushort)context.Count);
-
-                serializer.WriteTag(nameof(EntityContext.Components), 1);
-                serializer.WriteDictBegin(false, default);
-                try {
-                    foreach (var pair in context.Components) {
-                        var componentGroup = GetComponentGroup(pair.Key);
-                        serializer.WriteKey<Type>(componentGroup.Type);
-                        componentGroup.WriteComponent<TSerializer>(serializer, pair.Value);
+        public void ReadEntity(ISerializeReader reader, EntityId entityId) {
+            using (reader.ReadScope(typeof(Entity))) {
+                reader.ReadTag(nameof(Entity.Count));
+                var count = reader.ReadValue<int>();
+                reader.ReadTag(nameof(EntityContext.Components));
+                using (reader.ReadDict(typeof(Type), typeof(IComponent), out var _)) {
+                    for (var i = 0; i < count; i++) {
+                        var type = reader.ReadKey<Type>();
+                        ReadComponent(reader, entityId, type);
                     }
                 }
-                finally {
-                    serializer.WriteDictEnd();
-                }
-            }
-            finally {
-                serializer.WriteDictEnd();
             }
         }
         
-        public void WriteEntities<TSerializer>(TSerializer serializer, ArchetypeCompiled archetypeCompiled, IList<Entity> entities, int startIndex = 0, int length = -1) where TSerializer : ISerializer {
-            
-            var archetype = archetypeCompiled.archetype;
-            _WriteArchetype<TSerializer>(serializer, archetype);
-            var entitiesCount = length > 0 ? length : entities.Count - startIndex;
-            serializer.WriteValue<int>(entitiesCount);
-            foreach (var componentId in archetype.Components) {
-                var componentGroup = GetComponentGroup(componentId);
-                for (var i = 0; i < entitiesCount; i++) {
-                    var entity = entities[i + startIndex];
-                    ref var context = ref GetContext(entity.Id.Index);
-                    if (!ReferenceEquals(context.Archetype, archetypeCompiled.archetype)) {
-                        throw new InvalidDataException($"Entity archetype match failed.");
+        // public void ReadEntity(ISerializeReader serializer, Entity entity) {
+        //     var componentCount = serializer.ReadValue<ushort>();
+        //     for (var i = 0; i < componentCount; i++) {
+        //         var type = serializer.ReadValue<Type>();
+        //         ReadComponent(serializer, entity.Id, type);
+        //     }
+        // }
+  
+        public IList<Entity> ReadEntities(ISerializeReader reader) {
+            return ReadArchetypeWithEntities(reader, null);
+        }
+        
+        public void WriteEntity(ISerializeWriter writer, in EntityId entityId) {
+            using (writer.WriteScope(typeof(Entity))) {
+                ref var context = ref GetContext(entityId.Index);
+                writer.WriteTag(nameof(Entity.Count), 1);
+                writer.WriteValue(context.Count);
+                writer.WriteTag(nameof(EntityContext.Components), 2);
+                using (writer.WriteDict(typeof(Type), typeof(IComponent), context.Count)) {
+                    foreach (var pair in context.Components) {
+                        var componentGroup = GetComponentGroup(pair.Key);
+                        writer.WriteKey(componentGroup.Type);
+                        componentGroup.WriteComponent(writer, pair.Value);
                     }
-                    if (!ReferenceEquals(this, entity.Sandbox) || context.Version != entity.Id.Version) {
-                        continue;
-                    }
-                    var componentIndex = context[componentId];
-                    componentGroup.WriteComponent<TSerializer>(serializer, componentIndex);
                 }
+            }
+        }
+        
+        public void WriteEntities(ISerializeWriter writer, IList<Entity> entities) {
+            foreach (var entity in entities) {
+                WriteEntity(writer, entity.Id);
             }
         }
  

@@ -74,6 +74,11 @@ namespace Coorth {
             return AddSystem(system);
         }
 
+        public SystemBase WithSystem<T>() where T : SystemBase, new() {
+            AddSystem<T>();
+            return this;
+        }
+
         public T OfferSystem<T>() where T : SystemBase, new() {
             return HasSystem<T>() ? GetSystem<T>() : AddSystem<T>();
         }
@@ -167,7 +172,7 @@ namespace Coorth {
         
         protected virtual void OnDeActive() { }
 
-        protected override void Dispose(bool dispose) {
+        protected sealed override void Dispose(bool dispose) {
             Sandbox.RemoveSystem(this);
         }
 
@@ -244,7 +249,39 @@ namespace Coorth {
             Subscribe<EventEntityAdd>(e => action(e.Entity, true));
             Subscribe<EventEntityRemove>(e => action(e.Entity, true));
         }
+
+        protected void MatchSystem<T>(Action<T> onAdd, Action<T> onRemove) where T : SystemBase {
+            if (onAdd != null) {
+                var system = Sandbox.GetSystem<T>();
+                if (system != null) {
+                    onAdd(system);
+                } 
+                Subscribe<EventSystemAdd<T>>(_ => onAdd((T)_.System));
+            }
+
+            if (onRemove != null) {
+                Subscribe<EventSystemRemove<T>>(_ => onRemove((T)_.System));
+            }
+        }
         
+        protected void MatchComponent<T>(Action<T> onAdd, Action<T> onRemove) where T : IComponent {
+            if (onAdd != null) {
+                var components = Sandbox.GetComponents<T>();
+                foreach (var component in components) {
+                    onAdd(component);
+                }
+                Subscribe<EventComponentAdd<T>>(_ => onAdd((T)_.Component));
+            }
+
+            if (onRemove != null) {
+                Subscribe<EventComponentRemove<T>>(_ => onRemove((T)_.Component));
+            }
+        }
+
+        public void Associate<TSystem, TChild>() where  TSystem : SystemBase  where TChild : SystemBase, new() {
+            MatchSystem<TSystem>(s=> s.AddSystem<TChild>(), null);
+        }
+
         #endregion
     }
     

@@ -3,8 +3,22 @@ using System.Collections;
 using System.Collections.Generic;
 
 namespace Coorth {
+    public delegate void ComponentActionRef<TEvent, TComponent>(in TEvent e, ref TComponent component)
+        where TEvent : IEvent where TComponent : IComponent;
+
+    public delegate void ComponentActionRefWithEntity<TEvent, TComponent>(in TEvent e, Entity entity,
+        ref TComponent component) where TEvent : IEvent where TComponent : IComponent;
+
+    public delegate void ComponentActionIn<TEvent, TComponent>(in TEvent e, in TComponent component)
+        where TEvent : IEvent where TComponent : IComponent;
+
+    public delegate void ComponentActionInWithEntity<TEvent, TComponent>(in TEvent e, Entity entity,
+        in TComponent component) where TEvent : IEvent where TComponent : IComponent;
+    
+
+    public delegate void ComponentActionWithState<TState, T>(in TState state, Entity entity, ref T component);
+
     public readonly struct ComponentCollection<T> : IEnumerable<T> where T : IComponent {
-        
         private readonly ComponentGroup<T> group;
 
         internal ComponentCollection(Sandbox sandbox) {
@@ -16,31 +30,67 @@ namespace Coorth {
         }
 
         public void ForEach(Action<T> action) {
-            for(var i = 0; i< group.Count; i++) {
+            for (var i = 0; i < group.Count; i++) {
                 action(group.components[i]);
             }
         }
 
         public void ForEach(Action<Entity, T> action) {
             var sandbox = group.Sandbox;
-            for(var i = 0; i< group.Count; i++) {
+            for (var i = 0; i < group.Count; i++) {
                 ref var context = ref sandbox.GetContext(group.mapping[i]);
                 action(context.GetEntity(sandbox), group.components[i]);
             }
         }
 
         public void ForEach<TState>(TState state, Action<TState, T> action) {
-            for(var i = 0; i< group.Count; i++) {
+            for (var i = 0; i < group.Count; i++) {
                 action(state, group.components[i]);
             }
         }
 
         public void ForEach<TState>(TState state, Action<TState, Entity, T> action) {
             var sandbox = group.Sandbox;
-            for(var i = 0; i< group.Count; i++) {
+            for (var i = 0; i < group.Count; i++) {
                 var index = group.mapping[i];
                 ref var context = ref sandbox.GetContext(index);
                 action(state, context.GetEntity(sandbox), group.components[i]);
+            }
+        }
+
+        public void ForEachRef<TEvent>(in TEvent e, ComponentActionRef<TEvent, T> action) where TEvent : IEvent {
+            var sandbox = group.Sandbox;
+            for (var i = 0; i < group.Count; i++) {
+                var index = group.mapping[i];
+                ref var context = ref sandbox.GetContext(index);
+                action(e, ref group.components[i]);
+            }
+        }
+        
+        public void ForEachRef<TEvent>(in TEvent e, ComponentActionRefWithEntity<TEvent, T> action) where TEvent : IEvent {
+            var sandbox = group.Sandbox;
+            for (var i = 0; i < group.Count; i++) {
+                var index = group.mapping[i];
+                ref var context = ref sandbox.GetContext(index);
+                action(e, context.GetEntity(sandbox), ref group.components[i]);
+            }
+        }
+        
+        public void ForEachIn<TEvent>(in TEvent e, ComponentActionIn<TEvent, T> action) where TEvent : IEvent {
+            var sandbox = group.Sandbox;
+            for (var i = 0; i < group.Count; i++) {
+                var index = group.mapping[i];
+                ref var context = ref sandbox.GetContext(index);
+                action(e, in group.components[i]);
+            }
+        }
+        
+        public void ForEachIn<TEvent>(in TEvent e, ComponentActionInWithEntity<TEvent, T> action) where TEvent : IEvent {
+            var sandbox = group.Sandbox;
+            for (var i = 0; i < group.Count; i++) {
+                var index = group.mapping[i];
+                ref var context = ref sandbox.GetContext(index);
+                action(e, context.GetEntity(sandbox), in group.components[i]);
             }
         }
 
@@ -89,7 +139,8 @@ namespace Coorth {
     }
 
 
-    public readonly struct ComponentCollection<T1, T2> : IEnumerable<(T1, T2)> where T1 : IComponent where T2 : IComponent {
+    public readonly struct ComponentCollection<T1, T2> : IEnumerable<(T1, T2)>
+        where T1 : IComponent where T2 : IComponent {
         private readonly ComponentGroup<T1> group1;
         private readonly ComponentGroup<T2> group2;
 
@@ -105,7 +156,7 @@ namespace Coorth {
 
         public void ForEach(Action<T1, T2> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -116,7 +167,7 @@ namespace Coorth {
 
         public void ForEach(Action<Entity, T1, T2> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -127,7 +178,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, T1, T2> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -138,7 +189,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, Entity, T1, T2> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -152,7 +203,7 @@ namespace Coorth {
         IEnumerator<(T1, T2)> IEnumerable<(T1, T2)>.GetEnumerator() => new Enumerator(group1, group2);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public struct Enumerator : IEnumerator<(T1, T2)> {
             private readonly ComponentGroup<T1> group1;
             private readonly ComponentGroup<T2> group2;
@@ -197,7 +248,8 @@ namespace Coorth {
         }
     }
 
-    public readonly struct ComponentCollection<T1, T2, T3> : IEnumerable<(T1, T2, T3)> where T1 : IComponent where T2 : IComponent where T3 : IComponent {
+    public readonly struct ComponentCollection<T1, T2, T3> : IEnumerable<(T1, T2, T3)>
+        where T1 : IComponent where T2 : IComponent where T3 : IComponent {
         private readonly ComponentGroup<T1> group1;
         private readonly ComponentGroup<T2> group2;
         private readonly ComponentGroup<T3> group3;
@@ -216,7 +268,7 @@ namespace Coorth {
 
         public void ForEach(Action<T1, T2, T3> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -229,7 +281,7 @@ namespace Coorth {
 
         public void ForEach(Action<Entity, T1, T2, T3> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -242,7 +294,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, T1, T2, T3> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -255,7 +307,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, Entity, T1, T2, T3> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -271,7 +323,7 @@ namespace Coorth {
         IEnumerator<(T1, T2, T3)> IEnumerable<(T1, T2, T3)>.GetEnumerator() => new Enumerator(group1, group2, group3);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public struct Enumerator : IEnumerator<(T1, T2, T3)> {
             private readonly ComponentGroup<T1> group1;
             private readonly ComponentGroup<T2> group2;
@@ -321,7 +373,10 @@ namespace Coorth {
         }
     }
 
-    public readonly struct ComponentCollection<T1, T2, T3, T4> : IEnumerable<(T1, T2, T3, T4)> where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent {
+    public readonly struct ComponentCollection<T1, T2, T3, T4> : IEnumerable<(T1, T2, T3, T4)> where T1 : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent {
         private readonly ComponentGroup<T1> group1;
         private readonly ComponentGroup<T2> group2;
         private readonly ComponentGroup<T3> group3;
@@ -334,7 +389,8 @@ namespace Coorth {
             this.group4 = sandbox.GetComponentGroup<T4>();
         }
 
-        internal ComponentCollection(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3, ComponentGroup<T4> group4) {
+        internal ComponentCollection(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3,
+            ComponentGroup<T4> group4) {
             this.group1 = group1;
             this.group2 = group2;
             this.group3 = group3;
@@ -343,7 +399,7 @@ namespace Coorth {
 
         public void ForEach(Action<T1, T2, T3, T4> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -358,7 +414,7 @@ namespace Coorth {
 
         public void ForEach(Action<Entity, T1, T2, T3, T4> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -373,7 +429,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, T1, T2, T3, T4> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -388,7 +444,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, Entity, T1, T2, T3, T4> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -403,10 +459,11 @@ namespace Coorth {
 
         public Enumerator GetEnumerator() => new Enumerator(group1, group2, group3, group4);
 
-        IEnumerator<(T1, T2, T3, T4)> IEnumerable<(T1, T2, T3, T4)>.GetEnumerator() => new Enumerator(group1, group2, group3, group4);
+        IEnumerator<(T1, T2, T3, T4)> IEnumerable<(T1, T2, T3, T4)>.GetEnumerator() =>
+            new Enumerator(group1, group2, group3, group4);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public struct Enumerator : IEnumerator<(T1, T2, T3, T4)> {
             private readonly ComponentGroup<T1> group1;
             private readonly ComponentGroup<T2> group2;
@@ -416,7 +473,8 @@ namespace Coorth {
 
             private (T1, T2, T3, T4) current;
 
-            internal Enumerator(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3, ComponentGroup<T4> group4) {
+            internal Enumerator(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3,
+                ComponentGroup<T4> group4) {
                 this.group1 = group1;
                 this.group2 = group2;
                 this.group3 = group3;
@@ -461,7 +519,8 @@ namespace Coorth {
         }
     }
 
-    public readonly struct ComponentCollection<T1, T2, T3, T4, T5> : IEnumerable<(T1, T2, T3, T4, T5)> where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent {
+    public readonly struct ComponentCollection<T1, T2, T3, T4, T5> : IEnumerable<(T1, T2, T3, T4, T5)>
+        where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent {
         private readonly ComponentGroup<T1> group1;
         private readonly ComponentGroup<T2> group2;
         private readonly ComponentGroup<T3> group3;
@@ -476,7 +535,8 @@ namespace Coorth {
             this.group5 = sandbox.GetComponentGroup<T5>();
         }
 
-        internal ComponentCollection(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3, ComponentGroup<T4> group4, ComponentGroup<T5> group5) {
+        internal ComponentCollection(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3,
+            ComponentGroup<T4> group4, ComponentGroup<T5> group5) {
             this.group1 = group1;
             this.group2 = group2;
             this.group3 = group3;
@@ -486,7 +546,7 @@ namespace Coorth {
 
         public void ForEach(Action<T1, T2, T3, T4, T5> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -503,7 +563,7 @@ namespace Coorth {
 
         public void ForEach(Action<Entity, T1, T2, T3, T4, T5> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -520,7 +580,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, T1, T2, T3, T4, T5> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -537,7 +597,7 @@ namespace Coorth {
 
         public void ForEach<TState>(TState state, Action<TState, Entity, T1, T2, T3, T4, T5> action) {
             var sandbox = group1.Sandbox;
-            for(var i = 0; i< group1.Count; i++) {
+            for (var i = 0; i < group1.Count; i++) {
                 var component1 = group1.components[i];
                 ref var context = ref sandbox.GetContext(group1.mapping[i]);
                 var compIndex2 = context.Components[group2.Id];
@@ -554,10 +614,11 @@ namespace Coorth {
 
         public Enumerator GetEnumerator() => new Enumerator(group1, group2, group3, group4, group5);
 
-        IEnumerator<(T1, T2, T3, T4, T5)> IEnumerable<(T1, T2, T3, T4, T5)>.GetEnumerator() => new Enumerator(group1, group2, group3, group4, group5);
+        IEnumerator<(T1, T2, T3, T4, T5)> IEnumerable<(T1, T2, T3, T4, T5)>.GetEnumerator() =>
+            new Enumerator(group1, group2, group3, group4, group5);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        
+
         public struct Enumerator : IEnumerator<(T1, T2, T3, T4, T5)> {
             private readonly ComponentGroup<T1> group1;
             private readonly ComponentGroup<T2> group2;
@@ -568,7 +629,8 @@ namespace Coorth {
 
             private (T1, T2, T3, T4, T5) current;
 
-            internal Enumerator(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3, ComponentGroup<T4> group4, ComponentGroup<T5> group5) {
+            internal Enumerator(ComponentGroup<T1> group1, ComponentGroup<T2> group2, ComponentGroup<T3> group3,
+                ComponentGroup<T4> group4, ComponentGroup<T5> group5) {
                 this.group1 = group1;
                 this.group2 = group2;
                 this.group3 = group3;
@@ -618,21 +680,28 @@ namespace Coorth {
     }
 
     public static class ComponentCollectionExtension {
-
-        public static ComponentCollection<T1, T2> GetComponents<T1, T2>(this Sandbox sandbox)  where T1 : IComponent where T2 : IComponent {
+        public static ComponentCollection<T1, T2> GetComponents<T1, T2>(this Sandbox sandbox)
+            where T1 : IComponent where T2 : IComponent {
             return new ComponentCollection<T1, T2>(sandbox);
-        }   
+        }
 
-        public static ComponentCollection<T1, T2, T3> GetComponents<T1, T2, T3>(this Sandbox sandbox)  where T1 : IComponent where T2 : IComponent where T3 : IComponent {
+        public static ComponentCollection<T1, T2, T3> GetComponents<T1, T2, T3>(this Sandbox sandbox)
+            where T1 : IComponent where T2 : IComponent where T3 : IComponent {
             return new ComponentCollection<T1, T2, T3>(sandbox);
-        }   
+        }
 
-        public static ComponentCollection<T1, T2, T3, T4> GetComponents<T1, T2, T3, T4>(this Sandbox sandbox)  where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent {
+        public static ComponentCollection<T1, T2, T3, T4> GetComponents<T1, T2, T3, T4>(this Sandbox sandbox)
+            where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent {
             return new ComponentCollection<T1, T2, T3, T4>(sandbox);
-        }   
+        }
 
-        public static ComponentCollection<T1, T2, T3, T4, T5> GetComponents<T1, T2, T3, T4, T5>(this Sandbox sandbox)  where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent {
+        public static ComponentCollection<T1, T2, T3, T4, T5> GetComponents<T1, T2, T3, T4, T5>(this Sandbox sandbox)
+            where T1 : IComponent
+            where T2 : IComponent
+            where T3 : IComponent
+            where T4 : IComponent
+            where T5 : IComponent {
             return new ComponentCollection<T1, T2, T3, T4, T5>(sandbox);
-        }   
+        }
     }
 }

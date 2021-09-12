@@ -41,9 +41,9 @@ namespace Coorth {
         
         int CloneComponent(Entity entity, int componentIndex);
 
-        void ReadComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer;
+        void ReadComponent(ISerializeReader serializer, int componentIndex);
 
-        void WriteComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer;
+        void WriteComponent(ISerializeWriter serializer, int componentIndex);
 
         ComponentPack PackComponent(Entity entity, int componentIndex);
 
@@ -254,12 +254,12 @@ namespace Coorth {
             return AddComponent(entity, ref targetComponent);
         }
 
-        public void ReadComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer {
+        public void ReadComponent(ISerializeReader serializer, int componentIndex) {
             ref var component = ref components[componentIndex];
-            serializer.Read(ref component);
+            serializer.ReadValue(ref component);
         }
 
-        public void WriteComponent<TSerializer>(TSerializer serializer, int componentIndex) where TSerializer : ISerializer {
+        public void WriteComponent(ISerializeWriter serializer, int componentIndex) {
             ref var component = ref components[componentIndex];
             serializer.WriteValue(component);
         }

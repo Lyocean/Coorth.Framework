@@ -17,7 +17,7 @@ namespace Coorth {
 
         public void AddChild(TKey key, TValue child) {
             child.Parent = (TValue)this;
-            children = children ??= new Dictionary<TKey, TValue>();
+            children ??= new Dictionary<TKey, TValue>();
             children.Add(key, child);
             child.Key = key;
             OnChildAdd(key, child);

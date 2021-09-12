@@ -95,20 +95,20 @@ namespace Coorth {
 
         #region Read & Write
 
-        public void ReadSandbox<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
-            var archetypeCount = serializer.Read<int>();
+        public void ReadSandbox(ISerializeReader serializer) {
+            var archetypeCount = serializer.ReadValue<int>();
             for (var i = 0; i < archetypeCount; i++) {
-                ReadArchetypeWithEntities<TSerializer>(serializer, null);
+                ReadArchetypeWithEntities(serializer, null);
             }
         }
 
-        public void WriteSandbox<TSerializer>(TSerializer serializer) where TSerializer : ISerializer {
+        public void WriteSandbox(ISerializeWriter serializer) {
             var archetypeCount = archetypes.Sum(pair => pair.Value.Count);
             serializer.WriteValue<int>(archetypeCount);
             foreach (var pair in archetypes) {
                 for (int i = 0; i < pair.Value.Count; i++) {
                     var archetype = pair.Value[i];
-                    WriteArchetypeWithEntities<TSerializer>(serializer, archetype);
+                    WriteArchetypeWithEntities(serializer, archetype);
                 }
             }
         }

@@ -17,18 +17,13 @@ namespace Coorth {
             Sandbox.BindComponent<ScriptComponent>();
             AddSystem<ScriptSystem>();
             
-            Sandbox.BindComponent<ActorComponent>();
+            Sandbox.BindComponent<RouterComponent>();
             Sandbox.BindComponent<AgentComponent>();
             AddSystem<ActorSystem>();
 
+            
+            
             Sandbox.BindComponent<DebugComponent>();
-        }
-
-        protected override void OnRemove() {
-            RemoveSystem<ActorSystem>();
-            RemoveSystem<ScriptSystem>();
-            RemoveSystem<ActiveSystem>();
-            RemoveSystem<TransformSystem>();
         }
     }
 }

@@ -8,7 +8,7 @@ namespace Coorth {
             this.action = func;
         }
 
-        public override Task ExecuteAsync(in ActorMail e) {
+        public override Task ReceiveAsync(in ActorMail e) {
             return action.Invoke(e);
         }
     }
