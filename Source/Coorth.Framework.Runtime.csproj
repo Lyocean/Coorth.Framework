@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <LangVersion>9.0</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.Memory" Version="4.5.4" />
+        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Core\Entities\Collection\ComponentCollection.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+      </None>
+      <None Update="Core\Entities\Collection\EntityCollection.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>EntityCollection.cs</LastGenOutput>
+      </None>
+      <None Remove="Coorth.Frame.Core.csproj.DotSettings" />
+      <None Remove="**/*.meta" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Core\Entities\Collection\ComponentCollection.cs">
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+        <DependentUpon>ComponentCollection.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Core\Entities\Collection\EntityCollection.cs">
+        <DependentUpon>EntityCollection.tt</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,15 @@
+{
+  "name": "com.coorth.framework",
+  "displayName": "Coorth.Framework",
+  "version": "0.0.1",
+  "unity": "2021.1",
+  "description": "Coorth Framework",
+  "keywords": [
+    "coorth",
+    "core",
+    "game",
+    "framework"
+  ],
+  "category": "Coorth Package",
+  "type": "library"
+}

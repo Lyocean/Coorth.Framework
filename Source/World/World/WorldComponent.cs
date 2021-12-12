@@ -1,0 +1,15 @@
+﻿namespace Coorth {
+    [Component(Singleton = true), StoreContract("C1F86AB7-787A-40F1-BBAF-D0228F4BBE59")]
+    public class WorldComponent : Component {
+        
+        public World World { get; private set; }
+
+        public AppFrame App => World.App;
+
+        public Infra Infra => App.Infra;
+
+        internal void Setup(World world) {
+            this.World = world;
+        }
+    }
+}

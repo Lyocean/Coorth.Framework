@@ -1,0 +1,31 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+namespace Coorth {
+<#
+    const int COUNT = 7;
+    for (var i = 1; i <= COUNT; i++) {
+        var templates = "";
+        
+        for (var j = 1; j <= i; j++) {
+            templates += j == i ? $"TP{j}" : $"TP{j}, ";
+        }
+        
+        for (var j = 0; j <= i; j++) {
+            var arguments = "";
+            for (var k = 1; k <= i; k++) {
+                var prefix = (i-k) < j ? "ref" : "in";
+                arguments += k == i ? $"{prefix} TP{k} p{k}" : $"{prefix} TP{k} p{k}, ";
+            }
+            var suffix = j == 0 ? "" : (j == 1 ? "R" : $"R{j}");
+#>
+    public delegate void EventAction<#=suffix#><<#=templates#>>(<#=arguments#>);
+
+    public delegate TResult EventFunc<#=suffix#><<#=templates#>, out TResult>(<#=arguments#>);
+
+<#
+       }
+   }
+#>
+}
