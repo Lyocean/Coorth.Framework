@@ -7,6 +7,6 @@
         
         public static readonly ActorConfig Default = new ActorConfig();
         
-        public int ActorThroughput => 100;
+        public int ActorThroughput => int.MaxValue;
     }
 }

@@ -1,8 +1,9 @@
 ﻿using System;
+using Coorth.Logs;
 
 namespace Coorth {
-    using Coorth.Logs;
-    public class LogManager : ManagerBase {
+    [Manager]
+    public class LogManager : Management, ILogManager {
         
         public ILogger Root { get; private set; }
 

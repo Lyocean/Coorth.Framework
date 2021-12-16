@@ -27,7 +27,7 @@ namespace Coorth {
 
         public readonly ActorMailbox Mailbox;
 
-        private IActorConfig Config => Container.Config;
+        private IActorConfig Config => Runtime.Config;
 
         public override TActor GetActor<TActor>() => (TActor) Actor;
         

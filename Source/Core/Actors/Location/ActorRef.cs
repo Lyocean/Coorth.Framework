@@ -12,7 +12,7 @@ namespace Coorth {
 
         public bool IsNull => Context == null;
 
-        public ActorContainer Container => Context.Container;
+        public ActorRuntime Runtime => Context.Runtime;
 
         public ActorId Id => Context.Id;
 

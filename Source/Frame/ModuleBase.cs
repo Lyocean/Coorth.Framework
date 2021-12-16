@@ -10,7 +10,7 @@ namespace Coorth {
         
         public virtual EventDispatcher Dispatcher => Root.Dispatcher;
         
-        public virtual ActorContainer Actors => Root.Actors;
+        public virtual ActorRuntime Actors => Root.Actors;
 
         public World World => Root.App.CurrentWorld;
 

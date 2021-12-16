@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 
 namespace Coorth {
-     public static class TaskUtil {
+     public static partial class TaskUtil {
 
          private static TaskManager manager;
 

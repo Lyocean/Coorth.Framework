@@ -12,9 +12,9 @@ namespace Coorth {
         
         public ActorId Id => Context.Id;
         
-        protected ActorContainer Container => Context.Container;
+        protected ActorRuntime Runtime => Context.Runtime;
         
-        protected EventDispatcher Dispatcher => Container.Dispatcher;
+        protected EventDispatcher Dispatcher => Runtime.Dispatcher;
 
         public virtual Task ReceiveAsync(in ActorMail e) {
             return Task.CompletedTask;

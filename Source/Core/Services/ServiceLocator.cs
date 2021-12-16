@@ -37,6 +37,11 @@ namespace Coorth {
             child.parent = this;
             children.Add(child);
         }
+
+        public void RemoveChild(ServiceLocator child) {
+            child.parent = null;
+            children.Remove(child);
+        }
         
         public IServiceBinding Bind(Type type) {
             var service = services.GetOrAdd(type, CreateBinding);

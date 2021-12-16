@@ -4,13 +4,13 @@
 
         public override EventDispatcher Dispatcher { get; } = new EventDispatcher();
 
-        private readonly ActorContainer actors;
-        public override ActorContainer Actors => actors;
+        private readonly ActorRuntime actors;
+        public override ActorRuntime Actors => actors;
 
         private readonly AppFrame app;
         public AppFrame App => app;
 
-        public ModuleRoot(ServiceLocator parent, ActorContainer actors, AppFrame app) {
+        public ModuleRoot(ServiceLocator parent, ActorRuntime actors, AppFrame app) {
             parent.AddChild(Services);
             this.actors = actors;
             this.app = app;

@@ -10,7 +10,7 @@ namespace Coorth {
             var context = new LocalContext(id, this, actor, mailbox, new ActorPath(path));
 
             Context.AddChild(context);
-            Container.OnActorContextAttach(id, context);
+            Runtime.OnActorContextAttach(id, context);
             
             return context.Ref;
         }
@@ -27,12 +27,12 @@ namespace Coorth {
         }
         
         public void RemoveActor(ActorId id) {
-            Container.OnActorContextDetach(id);
+            Runtime.OnActorContextDetach(id);
             Context.RemoveChild(id);
         }
         
         public void RemoveActor(ActorRef actorRef) {
-            Container.OnActorContextDetach(actorRef.Id);
+            Runtime.OnActorContextDetach(actorRef.Id);
             Context.RemoveChild(actorRef.Id);
         }
     }

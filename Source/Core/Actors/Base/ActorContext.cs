@@ -16,9 +16,9 @@ namespace Coorth {
 
         protected abstract ActorDomain Domain { get; }
         
-        public ActorContainer Container => Domain.Container;
+        public ActorRuntime Runtime => Domain.Runtime;
 
-        protected ActorScheduler Scheduler => Domain.Container.Scheduler;
+        protected ActorScheduler Scheduler => Domain.Runtime.Scheduler;
 
         public ActorContext Parent { get; private set; }
 

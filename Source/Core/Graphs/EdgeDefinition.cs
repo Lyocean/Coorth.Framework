@@ -1,4 +1,4 @@
-﻿namespace Coorth.Graphs.Experiment {
+﻿namespace Coorth {
     public class EdgeDefinition {
         
         public PortDefinition Source;

@@ -7,22 +7,22 @@ namespace Coorth {
 
         public string Name { get; private set; }
 
-        public ActorContainer Container { get; private set; }
+        public ActorRuntime Runtime { get; private set; }
 
-        public ServiceLocator Services => Container.Services;
+        public ServiceLocator Services => Runtime.Services;
 
-        public EventDispatcher Dispatcher => Container.Dispatcher;
+        public EventDispatcher Dispatcher => Runtime.Dispatcher;
 
         public ActorPath Path;
 
-        internal void Setup(ActorContainer container, string name) {
+        internal void Setup(ActorRuntime runtime, string name) {
             this.Name = name;
-            this.Container = container;
+            this.Runtime = runtime;
             this.Path = new ActorPath(name);
         }
         
         protected override void OnDispose(bool dispose) {
-            Container._RemoveDomain(this);
+            Runtime._RemoveDomain(this);
         }
 
         public virtual Task ReceiveAsync(in ActorMail mail) => Task.CompletedTask;

@@ -17,7 +17,7 @@ namespace Coorth {
         
         public readonly ActorRef Ref;
         
-        protected ActorScheduler Scheduler => Ref.Container.Scheduler;
+        protected ActorScheduler Scheduler => Ref.Runtime.Scheduler;
 
         public ActorProxy(ActorRef value) {
             this.Ref = value;

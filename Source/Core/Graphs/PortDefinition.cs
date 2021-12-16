@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Coorth.Graphs.Experiment {
+namespace Coorth {
     public class PortDefinition {
         public int Index { get; internal set; }
         public NodeDefinition Node;

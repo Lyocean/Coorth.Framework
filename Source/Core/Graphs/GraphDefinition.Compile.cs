@@ -1,4 +1,4 @@
-﻿namespace Coorth.Graphs.Experiment {
+﻿namespace Coorth {
     public partial class GraphDefinition {
         
         public GraphData Compile() {

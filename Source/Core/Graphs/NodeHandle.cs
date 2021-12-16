@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Coorth.Graphs.Experiment {
+namespace Coorth {
     public readonly struct NodeHandle {
         public readonly Type Type;
         public readonly Guid Id;

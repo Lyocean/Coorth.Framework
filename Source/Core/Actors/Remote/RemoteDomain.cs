@@ -67,7 +67,7 @@ namespace Coorth {
         public Result OnReceive(ActorMessage message) {
             var senderId = message.Sender;
             var targetId =  message.Target;
-            var targetRef = Container.GetRef(targetId);
+            var targetRef = Runtime.GetRef(targetId);
             if (targetRef.IsNull) {
                 return Result.Failure("Can't find actor: " + targetId);
             }
@@ -79,7 +79,7 @@ namespace Coorth {
         public Result<Task<IResponse>> OnRequest(ActorRequest request) {
             var senderId = request.Sender;
             var targetId =  request.Target;
-            var targetRef = Container.GetRef(targetId);
+            var targetRef = Runtime.GetRef(targetId);
             if (targetRef.IsNull) {
                 return Result.Failure<Task<IResponse>>("Can't find actor: " + targetId);
             }

@@ -6,16 +6,24 @@ namespace Coorth {
 
         public static readonly Infra Instance = new Infra();
         
-        private Infra() { }
-        
         private static readonly ServiceLocator services = new ServiceLocator();
 
         public ServiceLocator Services => services;
-        
+
         public static EventDispatcher Dispatcher => services.Dispatcher;
         
         private struct Impl<T> where T: class {
             public static T Instance;
+        }
+        
+        private Infra() { }
+
+        public void AddChild(ServiceLocator child) {
+            services.AddChild(child);
+        }
+        
+        public void RemoveChild(ServiceLocator child) {
+            services.RemoveChild(child);
         }
         
         public static IServiceBinding Bind(Type type) => services.Bind(type);

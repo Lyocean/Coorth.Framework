@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using Coorth.Logs;
 
 namespace Coorth {
-    using Coorth.Logs;
     public static class LogUtil {
         private static ILogger logger = new ConsoleLogger();
 

@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 namespace Coorth {
     public abstract class AppFrame : Disposable, ISupportInitialize {
 
-        #region Static
-
         private static readonly List<AppFrame> apps = new List<AppFrame>();
 
         public static AppFrame Main { get => apps.Count > 0 ? apps[0] : default; set => ChangeMainApp(apps.IndexOf(value)); }
@@ -24,9 +22,6 @@ namespace Coorth {
             apps[index].IsMain = false;
         }
         
-        #endregion
-        
-        #region Fields
 
         public readonly AppConfig Config;
 
@@ -40,7 +35,7 @@ namespace Coorth {
 
         protected readonly EventDispatcher Dispatcher = new EventDispatcher();
 
-        public readonly ActorContainer Actors;
+        public readonly ActorRuntime Actors;
         
         public Infra Infra => Infra.Instance;
         public ServiceLocator Services => Infra.Services;
@@ -51,14 +46,11 @@ namespace Coorth {
         public IReadOnlyList<World> Worlds => worlds;
 
         public ModuleRoot Module { get; private set; }
-
-        #endregion
-
-        #region Lifecycle
+        
 
         protected AppFrame(AppConfig config = null) {
             this.Config = config ?? AppConfig.Default;
-            this.Actors = new ActorContainer(this.Dispatcher, this.Config);
+            this.Actors = new ActorRuntime(this.Dispatcher, this.Config);
 
             this.Module = new ModuleRoot(Services, this.Actors, this);
 
@@ -158,18 +150,12 @@ namespace Coorth {
         }
         
         protected virtual void OnDispose() { }
-        
-        #endregion
-        
-        #region Infra
+
 
         protected virtual void SetupInfra() {
 
         }
 
-        #endregion
-        
-        #region World
         
         public World CreateWorld(WorldConfig config) {
             var world = new World(this, config);
@@ -190,17 +176,10 @@ namespace Coorth {
         protected virtual void SetupWorld() {
             var config = GetDefaultWorldConfig();
             var world = CreateWorld(config);
-
-
         }
         
-        #endregion
-
-        #region Module
-
         protected virtual void SetupModule() { }
-
-        #endregion
+        
 
     }
 

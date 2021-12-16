@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Coorth {
-    public class ActorContainer {
+    public class ActorRuntime {
 
         public readonly EventDispatcher Dispatcher;
 
@@ -16,12 +16,12 @@ namespace Coorth {
         private readonly ConcurrentDictionary<ActorId, ActorContext> contexts = new ConcurrentDictionary<ActorId, ActorContext>();
 
         private readonly LocalDomain defaultDomain;
-
+        
         public ActorScheduler Scheduler { get; }
 
         private readonly ConcurrentDictionary<ActorPath, ActorId> paths = new ConcurrentDictionary<ActorPath, ActorId>();
         
-        public ActorContainer(EventDispatcher dispatcher = null, IActorConfig config = null, ServiceLocator services = null) {
+        public ActorRuntime(EventDispatcher dispatcher = null, IActorConfig config = null, ServiceLocator services = null) {
             this.Dispatcher = dispatcher ?? new EventDispatcher();
             this.Config = config ?? ActorConfig.Default;
             this.Services = services ?? new ServiceLocator();

@@ -38,7 +38,7 @@ namespace Coorth {
 
         public readonly EventDispatcher Dispatcher;
         
-        public ActorContainer Actors => App.Actors;
+        public ActorRuntime Actors => App.Actors;
 
         public readonly ActorDomain ActorDomain;
 

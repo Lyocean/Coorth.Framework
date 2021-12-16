@@ -2,9 +2,9 @@
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Coorth.Tasks;
 
 namespace Coorth {
-    using Coorth.Tasks;
     
     public class ConcurrentEventNode : Disposable, IEventNode {
 
@@ -21,7 +21,8 @@ namespace Coorth {
         }
     }
 
-    public sealed class TaskManager : ManagerBase {
+    [Manager]
+    public sealed class TaskManager : Management, ITaskManager {
 
         public int MainThreadId;
 
