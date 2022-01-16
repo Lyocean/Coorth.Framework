@@ -42,7 +42,9 @@ namespace Coorth {
 
         public readonly ActorDomain ActorDomain;
 
-        public World(AppFrame app, WorldConfig config) {
+        public readonly WorldModule Module;
+
+        public World(AppFrame app, WorldConfig config, WorldModule module) {
             lock (locking) {
                 this.Index = currentIndex++;
                 worlds.Add(this);
@@ -53,13 +55,21 @@ namespace Coorth {
             this.Services = new ServiceLocator(this.Dispatcher);
             this.App = app;
             
-            this.App.Services.AddChild(this.Services);
+            this.App.Managers.AddChild(this.Services);
+            this.App.Dispatcher.AddChild(this.Dispatcher);
 
             this.ActorDomain = this.Actors.CreateDomain<LocalDomain>();
-
+            this.Module = module;
             this.Active = CreateSandbox(config.Sandbox);
         }
 
+        public void SetActive(bool active) {
+            for (var i = 0; i < sandboxes.Count; i++) {
+                var sandbox = sandboxes[i];
+                sandbox.RootSystem.SetActive(active);
+            }
+        }
+        
         public World AsMain() {
             Current = this;
             return this;

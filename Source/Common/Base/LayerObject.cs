@@ -13,7 +13,7 @@ namespace Coorth {
         
         public int ChildCount => children?.Count ?? 0;
 
-        public bool IsSelfActive { get; private set; }
+        public bool IsSelfActive { get; private set; } = true;
 
         private bool IsParentActive => Parent == null || Parent.IsActive;
         
@@ -97,7 +97,6 @@ namespace Coorth {
                 pair.Value.OnSetActive(active);
             }
         }
-
 
         protected virtual void OnAdd() {
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Coorth.Maths;
 
 namespace Coorth.Logs {
     public class ComposeLogger : Logger {
@@ -9,22 +10,10 @@ namespace Coorth.Logs {
         protected void AddLogger(ILogger logger) {
             this.loggers.Add(logger);
         }
-        
-        public override void LogDebug(string message) {
-            foreach (var logger in loggers) {
-                logger.LogDebug(message);
-            }
-        }
 
-        public override void LogWarning(string message) {
+        public override void Log(in LogData data) {
             foreach (var logger in loggers) {
-                logger.LogWarning(message);
-            }
-        }
-
-        public override void LogError(string message) {
-            foreach (var logger in loggers) {
-                logger.LogError(message);
+                logger.Log(in data);
             }
         }
 

@@ -2,7 +2,7 @@
 using System;
 
 namespace Coorth {
-    public readonly partial struct SystemSubscription<TEvent> where TEvent : IEvent {
+    public readonly partial struct SystemSubscription<TEvent> {
 
         #region Component1
 

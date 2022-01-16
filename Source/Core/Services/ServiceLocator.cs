@@ -45,7 +45,13 @@ namespace Coorth {
         
         public IServiceBinding Bind(Type type) {
             var service = services.GetOrAdd(type, CreateBinding);
-            service.ToFactory(container => Activator.CreateInstance(type));
+            service.ToFactory(_ => Activator.CreateInstance(type));
+            return service;
+        }
+
+        public IServiceBinding Bind(Type type, Type implType) {
+            var service = services.GetOrAdd(type, CreateBinding);
+            service.ToFactory(_ => Activator.CreateInstance(implType));
             return service;
         }
         
@@ -63,10 +69,16 @@ namespace Coorth {
 
         public ServiceBinding<T> Bind<T>() where T : new() {
             var service = services.GetOrAdd(typeof(T), CreateBinding);
-            service.ToFactory(container => new T());
+            service.ToFactory(_ => new T());
             return new ServiceBinding<T>(service);
         }
 
+        public ServiceBinding<T> Bind<T, TImpl>() where T : TImpl where TImpl : new() {
+            var service = services.GetOrAdd(typeof(T), CreateBinding);
+            service.ToFactory(_ => new TImpl());
+            return new ServiceBinding<T>(service);
+        }
+        
         public IServiceBinding Get(Type type) {
             return services.TryGetValue(type, out var binding) ? binding : null;
         }

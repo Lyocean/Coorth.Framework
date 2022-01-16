@@ -157,7 +157,7 @@ namespace Coorth {
 
         #region Subscribe
 
-        internal SystemReaction<T> CreateReaction<T>() where T : IEvent {
+        internal SystemReaction<T> CreateReaction<T>() {
             var reaction = new SystemReaction<T>(this);
             reactions.Add(reaction);
             Dispatcher.Subscribe(reaction);
@@ -165,11 +165,11 @@ namespace Coorth {
             return reaction;
         }
 
-        internal void RemoveReaction<T>(SystemReaction<T> reaction) where T : IEvent {
+        internal void RemoveReaction<T>(SystemReaction<T> reaction) {
             reactions.Remove(reaction);
         }
 
-        protected SystemSubscription<TEvent> Subscribe<TEvent>() where TEvent : IEvent {
+        protected SystemSubscription<TEvent> Subscribe<TEvent>() {
             return new SystemSubscription<TEvent>(this);
         }
 

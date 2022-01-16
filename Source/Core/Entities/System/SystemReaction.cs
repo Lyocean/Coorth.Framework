@@ -12,7 +12,7 @@ namespace Coorth {
 
     }
     
-    public sealed class SystemReaction<TEvent> : Disposable, IEventReaction<TEvent>, ISystemReaction where TEvent : IEvent {
+    public sealed class SystemReaction<TEvent> : Disposable, IEventReaction<TEvent>, ISystemReaction {
         
         public EventId ProcessId { get; } = EventId.New();
 

@@ -26,6 +26,19 @@ namespace Coorth {
             }         
         }
         
+        public ActorRef CreateActor<TActor, TP1>(string name, TP1 p1) where TActor : class, IActor, ISetup<TP1> {
+            if (typeof(TActor).IsInterface || typeof(TActor).IsAbstract) {
+                var actor = TypeBinding.Create<TActor>();
+                actor.OnSetup(p1);
+                return CreateActor<TActor>(actor, name);
+            }
+            else {
+                var actor = Activator.CreateInstance<TActor>();
+                return CreateActor<TActor>(actor, name);
+            }         
+        }
+        
+        
         public void RemoveActor(ActorId id) {
             Runtime.OnActorContextDetach(id);
             Context.RemoveChild(id);

@@ -10,6 +10,7 @@
             //SpaceComponent
             OnComponentAdd((ref SpaceComponent component) => component.OnAdd());
             OnComponentRemove((ref SpaceComponent component) => component.OnRemove());
+            
             //TransformComponent
             OnComponentAdd((in Entity entity, ref TransformComponent component) => component.OnAdd(in entity));
             OnComponentRemove((in Entity _, ref TransformComponent component) => component.OnRemove());

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Coorth {
     public class NodeDefinition {
@@ -11,9 +12,11 @@ namespace Coorth {
 
         public GraphDefinition Graph { get; private set; }
 
-        public List<PortDefinition> InPorts = new List<PortDefinition>();
+        private readonly List<PortDefinition> inPorts = new List<PortDefinition>();
+        public IReadOnlyList<PortDefinition> InPorts => inPorts;
 
-        public List<PortDefinition> OutPorts = new List<PortDefinition>();
+        private readonly List<PortDefinition> outPorts = new List<PortDefinition>();
+        public IReadOnlyList<PortDefinition> OutPorts => outPorts;
 
         public int InDegree => InPorts.Sum(port => port.Edges.Count);
 
@@ -26,16 +29,62 @@ namespace Coorth {
         internal void Setup(GraphDefinition graph) {
             this.Graph = graph;
         }
+
+        public void AddInPort(PortDefinition port) {
+            port.Setup(this, inPorts.Count);
+            inPorts.Add(port);
+        }
+        
+        public void AddInPort<T>() where T : PortDefinition, new() {
+            AddInPort(new T());
+        }
+        
+        public void AddOutPort(PortDefinition port) {
+            port.Setup(this, outPorts.Count);
+            outPorts.Add(port);
+        }
+        
+        public void AddOutPort<T>() where T : PortDefinition, new() {
+            AddOutPort(new T());
+        }
+
+        public NodeData Compile(ref int index) {
+            int inputMin = inPorts.Count > 0 ? index : -1;
+            int inputMax = inPorts.Count > 0 ? inputMin + inPorts.Count - 1 : -1;
+            int outputMin = OutPorts.Count > 0 ? inputMax + 1 : -1;
+            int outputMax = OutPorts.Count > 0 ? outputMin + inPorts.Count - 1 : -1;
+            var data = new NodeData(this, inputMin, inputMax, outputMin, outputMax);
+            index = index + inPorts.Count + OutPorts.Count;
+            return data;
+        }
+
+    }
+
+    public class NodeDefinition<TContext> : NodeDefinition where TContext : IGraphContext {
+        
+        public virtual void OnBuild(ref TContext context) { }
+        
+        public virtual void OnInit(ref TContext context) { }
+        
+        public virtual void OnEnter(ref TContext context) { }
+
+        public virtual NodeStatus OnExecute(ref TContext context) => NodeStatus.Success;
+
+        public virtual Task OnExecuteAsync(TContext context) => Task.CompletedTask;
+
+        public virtual void OnExit(ref TContext context) { }
+
+        public virtual void OnClear(ref TContext context) {}
     }
     
     public readonly struct NodeData {
         public readonly NodeDefinition Definition;
-        public readonly short InputMin;
-        public readonly short InputMax;
-        public readonly short OutputMin;
-        public readonly short OutputMax;
+        public readonly int InputMin;
+        public readonly int InputMax;
+        public readonly int OutputMin;
+        public readonly int OutputMax;
 
-        public NodeData(NodeDefinition definition, short inputMin, short inputMax, short outputMin, short outputMax) {
+        public NodeData(NodeDefinition definition, int inputMin, int inputMax, int outputMin, int outputMax) {
             this.Definition = definition;
             this.InputMin = inputMin;
             this.InputMax = inputMax;

@@ -11,7 +11,7 @@ namespace Coorth {
             AddSystem<SandboxSystem>();
             AddSystem<ScriptSystem>();
             AddSystem<ActorSystem>();
-            AddSystem<DebugSystem>();
+            // AddSystem<DebugSystem>();
             AddSystem<FolderSystem>();
         }
     }

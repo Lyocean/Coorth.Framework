@@ -1,12 +1,14 @@
 {
-    "name": "Coorth.Frame.Tests",
+    "name": "Coorth.Framework.Tests",
     "rootNamespace": "Coorth.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Coorth.Frame.Core"
+        "Coorth.Framework.Runtime"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

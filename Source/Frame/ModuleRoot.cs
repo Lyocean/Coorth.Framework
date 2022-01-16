@@ -1,19 +1,22 @@
 ﻿namespace Coorth {
     public sealed class ModuleRoot : ModuleBase {
-        public override ServiceLocator Services { get; } = new ServiceLocator();
+        
+        public override AppFrame App { get; }
+        
+        public override ServiceLocator Services { get; }
+        
+        public override EventDispatcher Dispatcher { get; }
+        
+        public override ActorRuntime Actors { get; }
 
-        public override EventDispatcher Dispatcher { get; } = new EventDispatcher();
+        public override LocalDomain Domain { get; }
 
-        private readonly ActorRuntime actors;
-        public override ActorRuntime Actors => actors;
-
-        private readonly AppFrame app;
-        public AppFrame App => app;
-
-        public ModuleRoot(ServiceLocator parent, ActorRuntime actors, AppFrame app) {
-            parent.AddChild(Services);
-            this.actors = actors;
-            this.app = app;
+        public ModuleRoot(AppFrame app, ServiceLocator services, EventDispatcher dispatcher, ActorRuntime actors) {
+            this.App = app;
+            this.Services = services;
+            this.Dispatcher = dispatcher;
+            this.Actors = actors;
+            this.Domain = Actors.CreateDomain<LocalDomain>();
         }
     }
 }

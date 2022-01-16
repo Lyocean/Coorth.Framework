@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public readonly partial struct SystemSubscription<TEvent> where TEvent : IEvent {
+    public readonly partial struct SystemSubscription<TEvent> {
         
         private readonly SystemBase system;
         

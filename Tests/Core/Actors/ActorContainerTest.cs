@@ -5,20 +5,20 @@ namespace Coorth.Tests.Actors {
         
         [Test]
         public void CreateContainer() {
-            var container = new ActorContainer();
+            var container = new ActorRuntime();
             Assert.NotNull(container);
         }
         
         [Test]
         public void CreateDomain() {
-            var container = new ActorContainer();
+            var container = new ActorRuntime();
             var domain = container.CreateDomain<LocalDomain>();
             Assert.NotNull(domain);
         }
         
         [Test]
         public void GetDomain() {
-            var container = new ActorContainer();
+            var container = new ActorRuntime();
             var domain10 = container.CreateDomain<LocalDomain>("111");
             var domain20 = container.CreateDomain<LocalDomain>("222");
 
@@ -38,7 +38,7 @@ namespace Coorth.Tests.Actors {
         
         [Test]
         public void DisposeDomain() {
-            var container = new ActorContainer();
+            var container = new ActorRuntime();
             var domain10 = container.CreateDomain<LocalDomain>("111");
             var _ = container.CreateDomain<LocalDomain>("222");
 

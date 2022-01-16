@@ -2,43 +2,46 @@
 
 namespace Coorth {
     [Event]
-    public readonly struct EventAppStartup : IAppEvent {
+    public readonly struct EventAppBeginInit {
+        
+    }
+
+    [Event]
+    public readonly struct EventAppEndInit {
+        
+    }
+    
+    [Event]
+    public readonly struct EventAppStartup {
         public readonly int ThreadId;
 
         public EventAppStartup(int threadId) {
             this.ThreadId = threadId;
         }
     }
-
-    [Event]
-    public readonly struct EventAppShutdown : IAppEvent {
-        
-    }
-
-    [Event]
-    public readonly struct EventAppQuit : IAppEvent {
-        
-    }
     
     [Event]
-    public readonly struct EventAppBeginInit : IAppEvent {
+    public readonly struct EventBeforeStep : ITimeEvent, ITickEvent {
+        public readonly TimeSpan TotalTime;
+
+        public readonly TimeSpan DeltaTime;
         
-    }
-
-    [Event]
-    public readonly struct EventAppEndInit : IAppEvent {
+        public readonly long FrameCount;
         
-    }
-
-    [Event]
-    public readonly struct EventAppPause : IAppEvent {
-        public readonly bool IsPause;
-
-        public EventAppPause(bool isPause) {
-            this.IsPause = isPause;
+        public DateTime CurrentTime => DateTime.MinValue + TotalTime;
+        
+        public float DeltaSecond => (float)DeltaTime.TotalSeconds;
+        
+        public EventBeforeStep(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
+            this.TotalTime = totalTime;
+            this.DeltaTime = deltaTime;
+            this.FrameCount = frameCount;
         }
+        
+        public TimeSpan GetDeltaTime() => DeltaTime;
+        public TimeSpan GetTotalTime() => TotalTime;
     }
-
+    
     [Event]
     public readonly struct EventStepUpdate : ITimeEvent, ITickEvent {
 
@@ -106,7 +109,7 @@ namespace Coorth {
         public TimeSpan GetTotalTime() => TotalTime;
 
     }
-
+    
     [Event]
     public readonly struct EventLateUpdate : ITimeEvent, ITickEvent {
 
@@ -129,7 +132,7 @@ namespace Coorth {
     }
 
     [Event]
-    public readonly struct EventEndOfFrame : IEvent {
+    public readonly struct EventEndOfFrame {
         
         public readonly TimeSpan TotalTime;
 
@@ -143,5 +146,23 @@ namespace Coorth {
             this.FrameCount = frameCount;
         }
     }
+    
+    [Event]
+    public readonly struct EventAppShutdown {
+        
+    }
 
+    [Event]
+    public readonly struct EventAppStatus {
+        public readonly bool IsPause;
+
+        public EventAppStatus(bool isPause) {
+            this.IsPause = isPause;
+        }
+    }
+    
+    [Event]
+    public readonly struct EventAppQuit {
+        
+    }
 }

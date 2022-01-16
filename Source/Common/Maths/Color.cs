@@ -169,5 +169,33 @@ namespace Coorth.Maths {
         public override string ToString() {
             return $"Color(R:{R},G:{G},B:{B},A:{A})";
         }
+
+        
+        public readonly string ToHexString() {
+            
+            void GetHexChar(float v, out char lChar, out char rChar) {
+                var lValue = ((int)(v * 255))/16;
+                var rValue = ((int)(v * 255))%16;
+                if (lValue < 10) {
+                    lChar = (char)('0' + lValue);
+                }
+                else {
+                    lChar = (char)('A' + (lValue - 10));
+                }
+                if (rValue < 10) {
+                    rChar = (char)('0' + rValue);
+                }
+                else {
+                    rChar = (char)('A' + (rValue - 10));
+                }
+            }
+
+            GetHexChar(R, out var rl, out var rr);
+            GetHexChar(G, out var gl, out var gr);
+            GetHexChar(B, out var bl, out var br);
+            GetHexChar(A, out var al, out var ar);
+
+            return $"{rl}{rr}{gl}{gr}{bl}{br}{al}{ar}";
+        }
     }
 }

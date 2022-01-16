@@ -45,7 +45,7 @@ namespace Coorth {
         /// </summary>
         /// <typeparam name="TEvent">事件</typeparam>
         /// <param name="action">响应函数</param>
-        public void Subscribe<TEvent>(Action<TEvent> action)  where TEvent: IEvent {
+        public void Subscribe<TEvent>(Action<TEvent> action) {
             Subscribe<TEvent>().OnEvent(action);
         }
 
@@ -54,7 +54,7 @@ namespace Coorth {
         /// </summary>
         /// <typeparam name="TEvent">事件</typeparam>
         /// <param name="action">响应函数</param>
-        public void Subscribe<TEvent>(EventAction<TEvent> action)  where TEvent: IEvent {
+        public void Subscribe<TEvent>(EventAction<TEvent> action) {
             Subscribe<TEvent>().OnEvent(action);
         }
 
@@ -63,7 +63,7 @@ namespace Coorth {
         /// </summary>
         /// <typeparam name="TEvent">事件</typeparam>
         /// <param name="action">响应函数</param>
-        public void Subscribe<TEvent>(Func<TEvent, ValueTask> action)  where TEvent: IEvent {
+        public void Subscribe<TEvent>(Func<TEvent, ValueTask> action) {
             Subscribe<TEvent>().OnEvent(action);
         }
 
@@ -73,7 +73,7 @@ namespace Coorth {
         /// <typeparam name="TEvent">事件</typeparam>
         /// <typeparam name="TComponent">组件</typeparam>
         /// <param name="action">响应函数</param>
-        protected  void ForEach<TEvent, TComponent>(Action<TEvent, TComponent> action) where TEvent: IEvent where TComponent: IComponent {
+        protected  void ForEach<TEvent, TComponent>(Action<TEvent, TComponent> action) where TComponent: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -83,7 +83,7 @@ namespace Coorth {
         /// <typeparam name="TEvent">事件</typeparam>
         /// <typeparam name="TComponent">组件</typeparam>
         /// <param name="action">响应函数</param>
-        protected void ForEach<TEvent, TComponent>(Action<TEvent, Entity, TComponent> action) where TEvent: IEvent where TComponent : IComponent {
+        protected void ForEach<TEvent, TComponent>(Action<TEvent, Entity, TComponent> action) where TComponent : IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -94,7 +94,7 @@ namespace Coorth {
         /// <typeparam name="TComponent1">组件1</typeparam>
         /// <typeparam name="TComponent2">组件2</typeparam>
         /// <param name="action">响应函数</param>
-        protected void ForEach<TEvent, TComponent1, TComponent2>(Action<TEvent, TComponent1, TComponent2> action) where TEvent: IEvent where TComponent1 : IComponent where TComponent2: IComponent {
+        protected void ForEach<TEvent, TComponent1, TComponent2>(Action<TEvent, TComponent1, TComponent2> action) where TComponent1 : IComponent where TComponent2: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -105,7 +105,7 @@ namespace Coorth {
         /// <typeparam name="TComponent1">组件1</typeparam>
         /// <typeparam name="TComponent2">组件2</typeparam>
         /// <param name="action">响应函数</param>
-        protected void ForEach<TEvent, TComponent1, TComponent2>(Action<TEvent, Entity, TComponent1, TComponent2> action) where TEvent: IEvent where TComponent1 : IComponent where TComponent2: IComponent {
+        protected void ForEach<TEvent, TComponent1, TComponent2>(Action<TEvent, Entity, TComponent1, TComponent2> action) where TComponent1 : IComponent where TComponent2: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
 
@@ -117,7 +117,7 @@ namespace Coorth {
         /// <typeparam name="TComponent2">组件2</typeparam>
         /// <typeparam name="TComponent3">组件3</typeparam>
         /// <param name="action">响应函数</param>
-        protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, TComponent1, TComponent2, TComponent3> action) where TEvent: IEvent where TComponent1 : IComponent where TComponent2: IComponent where TComponent3: IComponent {
+        protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, TComponent1, TComponent2, TComponent3> action) where TComponent1 : IComponent where TComponent2: IComponent where TComponent3: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -129,7 +129,7 @@ namespace Coorth {
         /// <typeparam name="TComponent2">组件2</typeparam>
         /// <typeparam name="TComponent3">组件3</typeparam>
         /// <param name="action">响应函数</param>
-        protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, Entity, TComponent1, TComponent2, TComponent3> action) where TEvent: IEvent where TComponent1 : class, IComponent where TComponent2: class, IComponent where TComponent3: IComponent {
+        protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, Entity, TComponent1, TComponent2, TComponent3> action) where TComponent1 : class, IComponent where TComponent2: class, IComponent where TComponent3: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -155,6 +155,8 @@ namespace Coorth {
             Subscribe<EventEntityAdd>(e => action(e.Entity, true));
             Subscribe<EventEntityRemove>(e => action(e.Entity, true));
         }
+        
+        
 
         protected void MatchSystem<T>(Action<T> onAdd, Action<T> onRemove) where T : SystemBase {
             if (onAdd != null) {
@@ -207,7 +209,7 @@ namespace Coorth {
         /// <typeparam name="TSystem">目标系统</typeparam>
         /// <typeparam name="TChild">子系统</typeparam>
         public void Associate<TSystem, TChild>() where  TSystem : SystemBase  where TChild : SystemBase, new() {
-            MatchSystem<TSystem>(s=> s.AddSystem<TChild>(), null);
+            MatchSystem<TSystem>(s=> s.Parent.AddSystem<TChild>(), null);
         }
 
         public delegate bool RemoveCondition<TEvent, TComponent>(in TEvent e, in Entity entity, in TComponent component);

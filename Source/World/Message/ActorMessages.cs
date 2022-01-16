@@ -7,22 +7,18 @@ namespace Coorth {
         long AgentId { get; set; }
     }
 
-
-    public abstract class AgentMessage : IAgentMessage {
-        [DataMember(Order = 100)]
-        public long AgentId { get; set; }
-    }
-    
-    [Message, DataContract, Guid("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
+    [Message, Serializable, StoreContract("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
     public class MessageCreateEntity : IMessage {
-        public readonly long AgentId;
         
+        [StoreMember(1)] public long AgentId { get; set; }
+
         public MessageCreateEntity(long agentId) {
             this.AgentId = agentId;
         }
+        
     }
     
-    [Message, DataContract, Guid("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
+    [Message, Serializable, StoreContract("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
     public class MessageDestroyEntity : IMessage {
         public readonly long AgentId;
 
@@ -31,8 +27,14 @@ namespace Coorth {
         }
     }
 
+    public abstract class AgentMessage : IAgentMessage {
+        [DataMember(Order = 100)]
+        public long AgentId { get; set; }
+    }
+    
     [Message, DataContract, Guid("BF941AEC-CD7F-499B-AC33-7A269D931FFC")]
     public class MessageAddComponent : AgentMessage {
+        
         public readonly Type ComponentType;
         
         public MessageAddComponent(Type componentType) {
@@ -48,7 +50,6 @@ namespace Coorth {
         public MessageRemoveComponent(Type componentType) {
             this.ComponentType = componentType;
         }
-
     }
     
     [Message, DataContract, Guid("C1E7F0FC-CBE1-4AFC-9EF5-DE7C9B031B0D")]
@@ -58,8 +59,6 @@ namespace Coorth {
         public MessageModifyComponent(Type componentType) {
             this.ComponentType = componentType;
         }
-        
-
     }
 
     [Message, DataContract, Guid("A71CF508-C3F1-403D-9636-0FFC9A993FE2")]

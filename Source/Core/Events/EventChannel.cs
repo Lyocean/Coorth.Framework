@@ -49,14 +49,26 @@ namespace Coorth {
         }
         
         public void Dispatch(in T e) {
-            for (var i = 0; i < reactions.Count; i++) { 
-                reactions[i].Execute(e);
+            for (var i = 0; i < reactions.Count; i++) {
+                try {
+                    reactions[i].Execute(e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                    throw;
+                }
             }
         }
         
         public async Task DispatchAsync(T e) {
             for (var i = 0; i < reactions.Count; i++) { 
-                await reactions[i].ExecuteAsync(e);
+                try {
+                    await reactions[i].ExecuteAsync(e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                    throw;
+                }
             }
         }
     }

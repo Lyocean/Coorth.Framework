@@ -2,7 +2,7 @@
 using System.Threading;
 
 namespace Coorth {
-    public class Infra : IServiceLocator {
+    public partial class Infra : IServiceLocator {
 
         public static readonly Infra Instance = new Infra();
         
@@ -28,9 +28,13 @@ namespace Coorth {
         
         public static IServiceBinding Bind(Type type) => services.Bind(type);
 
+        public static IServiceBinding Bind(Type type, Type implType) => services.Bind(type);
+        
         public static ServiceBinding<T> Bind<T>() where T : class, new()  => services.Bind<T>();
         
         public static ServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T : class  => services.Bind<T>(provider);
+        
+        public static ServiceBinding<T> Bind<T, TImpl>() where T : TImpl where TImpl : new()  => services.Bind<T, TImpl>();
 
         public static T Offer<T>() where T : class, new() {
             if (Impl<T>.Instance!=null) {
@@ -56,6 +60,10 @@ namespace Coorth {
             }
         }
 
+        public static void Execute<T>(in T e) {
+            services.Dispatcher.Dispatch(in e);
+        }
+
         public IServiceBinding BindService(Type type) => Bind(type);
 
         public ServiceBinding<T> BindService<T>() where T : class, new()  => Bind<T>();
@@ -71,5 +79,6 @@ namespace Coorth {
         public object Create(Type type) => services.Create(type);
 
         public T Create<T>() => services.Create<T>();
+        
     }
 }

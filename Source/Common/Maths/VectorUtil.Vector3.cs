@@ -172,5 +172,31 @@ namespace Coorth.Maths {
             result.Y = vector.Y - 2f * num * normal.Y;
             result.Z = vector.Z - 2f * num * normal.Z;
         }
+
+        public static Vector3 ProjectOnPlane(in Vector3 vector, in Vector3 normal) {
+            ProjectOnPlane(in vector, normal, out var result);
+            return result;
+        }
+        
+        public static void ProjectOnPlane(in Vector3 vector, in Vector3 normal, out Vector3 result) {
+            var value1 = Vector3.Dot(normal, normal);
+            if (value1 < MathUtil.ZERO_TOLERANCE) {
+                result = vector;
+            }
+            var value2 = Vector3.Dot(vector, normal);
+            result = new Vector3(vector.X - normal.X * value2 / value1, vector.Y - normal.Y * value2 / value1, vector.Z - normal.Z * value2 / value1);
+        }
+
+        public static Vector3 GetTangent(in Vector3 vector, in Vector3 normal, in Vector3 up) {
+            var right = Vector3.Cross(vector, up);
+            var tangent = Vector3.Cross(normal, right);
+            return tangent.Normalize();
+        }
+
+        public static Vector3 MoveTowards(in Vector3 source, in Vector3 target, float delta) {
+            var vector = target - source;
+            var length = vector.Length();
+            return vector.Normalize() * Math.Min(length, delta);
+        }
     }
 }

@@ -22,7 +22,6 @@ namespace Coorth {
         
         public void OnRegister(RouterComponent router) {
             this.Router = router;
-            
         }
         
         public void UnRegister(RouterComponent router) {

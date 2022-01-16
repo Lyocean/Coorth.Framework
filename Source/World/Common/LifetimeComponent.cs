@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Coorth.Common {
+namespace Coorth {
     
     [Flags]
     public enum LifetimeMode { Countdown = 1, DelayFrame = 2, Condition = 4 }
@@ -14,7 +14,7 @@ namespace Coorth.Common {
         public int FrameCount;
         
         internal Func<Entity, bool> Condition;
-
+        
         public void OnSetup(TimeSpan duration) {
             Mode = LifetimeMode.Countdown;
             Duration = duration;

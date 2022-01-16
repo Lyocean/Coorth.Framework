@@ -1,186 +1,182 @@
 ﻿using System;
 using System.Threading;
 using System.Collections.Generic;
-using System.ComponentModel;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public abstract class AppFrame : Disposable, ISupportInitialize {
+    public abstract partial class AppFrame : Disposable {
 
+        #region Static
+
+        private static readonly object locker = new object();
+        
         private static readonly List<AppFrame> apps = new List<AppFrame>();
+        
+        private static AppFrame MainApp { get { lock (locker) { return apps.FirstOrDefault(); } } }
 
-        public static AppFrame Main { get => apps.Count > 0 ? apps[0] : default; set => ChangeMainApp(apps.IndexOf(value)); }
-
-        private static void ChangeMainApp(int index) {
-            if (index <= 0 || index >= apps.Count) {
-                return;
+        private static void AddApp(AppFrame app) {
+            lock (locker) {
+                Infra.Instance.AddChild(app.services);
+                app.Index = apps.Count;
+                apps.Add(app);
             }
-            var temp = apps[0];
-            apps[0] = apps[index];
-            apps[index] = temp;
-            apps[0].IsMain = true;
-            apps[index].IsMain = false;
         }
         
+        public static AppFrame GetApp(Guid guid) {
+            lock (locker) {
+                return apps.Find(app => app.Id == guid);
+            }
+        }
+        
+        public static AppFrame GetApp(string name) {
+            lock (locker) {
+                return apps.Find(app => app.Name == name);
+            }
+        }
+        
+        public static bool RemoveApp(AppFrame app) {
+            lock (locker) {
+                if (!apps.Remove(app)) {
+                    return false;
+                }
+                Infra.Instance.RemoveChild(app.services);
+                for (var i = 0; i < apps.Count; i++) {
+                    apps[i].Index = i;
+                }
+                return true;
+            }
+        }
+        
+        #endregion
 
+        #region Fields & Lifecycle
+
+        /// <summary> App唯一Id </summary>
+        public readonly Guid Id;
+        
+        /// <summary> App名称 </summary>
+        public readonly string Name;
+
+        /// <summary> App索引 </summary>
+        public int Index { get; private set; }
+
+        /// <summary> 是否是主App </summary>
+        public bool IsMain => Index == 0;
+        
+        /// <summary> App配置 </summary>
         public readonly AppConfig Config;
+        
+        private readonly EventDispatcher dispatcher;
+        public EventDispatcher Dispatcher => dispatcher;
 
-        private bool isRunning = false;
-
-        public bool IsRunning => isRunning;
-
-        public bool IsMain { get; private set; }
-
-        public int MainThreadId { get; private set; }
-
-        protected readonly EventDispatcher Dispatcher = new EventDispatcher();
+        private readonly ServiceLocator services;
+        
+        public ServiceLocator Managers => services;
 
         public readonly ActorRuntime Actors;
-        
-        public Infra Infra => Infra.Instance;
-        public ServiceLocator Services => Infra.Services;
-        
-        public World CurrentWorld {get=> World.Current; private set=>World.Current = value; }
 
-        private readonly List<World> worlds = new List<World>();
-        public IReadOnlyList<World> Worlds => worlds;
+        private readonly ModuleRoot root;
 
-        public ModuleRoot Module { get; private set; }
+        private bool isRunning;
+
+        /// <summary> App是否正在运行中 </summary>
+        public bool IsRunning => isRunning && !IsDisposed;
         
-
-        protected AppFrame(AppConfig config = null) {
+        private Thread mainThread;
+        
+        /// <summary> App主线程Id </summary>
+        public int MainThreadId => mainThread.ManagedThreadId;
+        
+        protected AppFrame(string name, AppConfig config = null, Guid id = default) {
+            this.Id = id == default ? Guid.NewGuid() : id;
+            this.Name = !string.IsNullOrWhiteSpace(name) ? name : "GameApp";
             this.Config = config ?? AppConfig.Default;
-            this.Actors = new ActorRuntime(this.Dispatcher, this.Config);
 
-            this.Module = new ModuleRoot(Services, this.Actors, this);
+            this.dispatcher = new EventDispatcher();
+            this.services = new ServiceLocator(this.dispatcher);
+            this.Actors = new ActorRuntime(this.dispatcher, this.Config);
+            this.root = new ModuleRoot(this, services, this.dispatcher, this.Actors);
+            this.root.SetActive(false);
 
-            if (apps.Count == 0) {
-                this.IsMain = true;
-            }
             apps.Add(this);
         }
 
-        public AppFrame AsMain() {
-            Main = this;
+        public AppFrame Setup() {
+            LogUtil.Info(nameof(AppFrame), nameof(Setup));
+            OnSetup();
             return this;
         }
         
-        public virtual void Setup() {
-            
-            SetupInfra();
-            SetupWorld();
-            SetupModule();
-            
-            OnSetup();
-        }
-
         protected virtual void OnSetup() { }
 
-        public virtual System.Threading.Tasks.Task Load() { return Task.CompletedTask; }
+        public Task Load() {
+            LogUtil.Info(nameof(AppFrame), nameof(Load));
+            return OnLoad();
+        }
         
-        public virtual void BeginInit() {
-            Execute(new EventAppBeginInit());
+        protected virtual Task OnLoad() { return Task.CompletedTask; }
+        
+        public void Init() {
+            LogUtil.Info(nameof(AppFrame), nameof(Init));
+            dispatcher.Dispatch(new EventAppBeginInit());
+            OnInit();
+            dispatcher.Dispatch(new EventAppEndInit());
         }
 
-        public virtual void EndInit() {
-            Execute(new EventAppEndInit());
-        }
+        protected virtual void OnInit() { }
 
-        public bool Startup() {
-            if (isRunning) {
-                return false;
+        public void Startup() {
+            if (IsRunning) {
+                return;
             }
+            LogUtil.Info(nameof(AppFrame), nameof(Startup));
             isRunning = true;
-            MainThreadId = Thread.CurrentThread.ManagedThreadId;
+            mainThread = Thread.CurrentThread;
+            root.SetActive(true);
             OnStartup();
-            Dispatcher.Dispatch(new EventAppStartup(MainThreadId));
-            return true;
+            dispatcher.Dispatch(new EventAppStartup(MainThreadId));
         }
         
         protected virtual void OnStartup() { }
         
-        public void Execute<T>(in T e) where T: IEvent {
-            if (IsDisposed) {
+        public void Execute<T>(in T e) {
+            if (IsDisposed || !IsRunning) {
                 return;
             }
-            //AppFrame Events
+            OnExecute(in e);
             try {
-                Dispatcher.Dispatch(e);
+                dispatcher.Dispatch(e);
             }
             catch (Exception ex) {
-                LogUtil.Exception(ex);
-            }
-            //Infrastructure Events
-            try {
-                Infra.Dispatcher.Dispatch(e);
-            }
-            catch (Exception ex) {
-                LogUtil.Exception(ex);
-            }
-            //World Events
-            foreach (World world in worlds) {
-                try {
-                    world.Dispatcher.Dispatch(e);
-                } catch (Exception ex) {
-                    LogUtil.Exception(ex);
-                }
-            }
-            //Module Events
-            try {
-                Module.Dispatcher.Dispatch(e);
-            } catch (Exception ex) {
                 LogUtil.Exception(ex);
             }
         }
 
+        protected virtual void OnExecute<T>(in T e) { }
+
         public void Shutdown() {
-            if (!isRunning) {
+            if (!IsRunning) {
                 return;
             }
-            isRunning = false;
-            Dispatcher.Dispatch(new EventAppShutdown());
+            LogUtil.Info(nameof(AppFrame), nameof(Shutdown));
+            dispatcher.Dispatch(new EventAppShutdown());
             OnShutdown();
+            root.SetActive(false);
+            isRunning = false;
         }
         
         protected virtual void OnShutdown() { }
-        
+
         protected override void OnDispose(bool dispose) {
+            LogUtil.Info(nameof(AppFrame), nameof(OnDispose));
             Shutdown();
-            OnDispose();
+            OnDestroy();
         }
         
-        protected virtual void OnDispose() { }
-
-
-        protected virtual void SetupInfra() {
-
-        }
-
+        protected virtual void OnDestroy() { }
         
-        public World CreateWorld(WorldConfig config) {
-            var world = new World(this, config);
-            worlds.Add(world);
-            if (CurrentWorld == null) {
-                CurrentWorld = world;
-            }
-            if (IsRunning) {
-                CurrentWorld.Execute(new EventAppStartup(MainThreadId));
-            }
-            return world;
-        }
-
-        protected virtual WorldConfig GetDefaultWorldConfig() {
-            return new WorldConfig();
-        }
-        
-        protected virtual void SetupWorld() {
-            var config = GetDefaultWorldConfig();
-            var world = CreateWorld(config);
-        }
-        
-        protected virtual void SetupModule() { }
-        
-
+        #endregion
     }
 
 }

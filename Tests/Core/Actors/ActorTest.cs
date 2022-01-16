@@ -5,11 +5,11 @@ using NUnit.Framework;
 namespace Coorth.Tests.Actors {
     public class ActorTest {
 
-        private ActorContainer container;
+        private ActorRuntime container;
 
         [SetUp]
         public void Setup() {
-            container = new ActorContainer();
+            container = new ActorRuntime();
         }
 
         [Test]

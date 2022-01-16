@@ -2,39 +2,35 @@
 
 namespace Coorth.Logs {
     public class ConsoleLogger : Logger {
-        
-        public override void LogDebug(string message) {
-            var time = DateTime.Now;
-            Console.WriteLine($"[{time}][Debug]{message}");
-        }
-
-        
-        public override void LogWarning(string message) {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            var time = DateTime.Now;
-            Console.Write($"[{time}][Warning]: ");
-            Console.ResetColor();
-            Console.WriteLine(message);
-        }
-
-        public override void LogError(string message) {
-            Console.ForegroundColor = ConsoleColor.DarkRed;
-            var time = DateTime.Now;
-            Console.Write($"[{time}][Error]: ");
-            Console.ResetColor();
-            Console.WriteLine(message);
-        }
-
-        public override void LogException<T>(T e = null) {
-            if (e == null) {
-                e = Activator.CreateInstance<T>();
+        public override void Log(in LogData data) {
+            var time = data.Time;
+            var message = data.Content;
+            switch (data.Level) {
+                case LogLevel.Debug:
+                    Console.WriteLine($"[{time}][Debug]{message}");
+                    break;
+                case LogLevel.Info:
+                    Console.WriteLine($"[{time}][Debug]{message}");
+                    break;
+                case LogLevel.Warning:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write($"[{time}][Warning]: ");
+                    Console.ResetColor();
+                    Console.WriteLine(message);
+                    break;
+                case LogLevel.Error:
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    Console.Write($"[{time}][Error]: ");
+                    Console.ResetColor();
+                    Console.WriteLine(message);
+                    break;
+                case LogLevel.Exception:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write($"[{time}][Exception]: ");
+                    Console.ResetColor();
+                    Console.WriteLine(data.Exception);
+                    break;
             }
-
-            Console.ForegroundColor = ConsoleColor.Red;
-            var time = DateTime.Now;
-            Console.Write($"[{time}][Exception]: ");
-            Console.ResetColor();
-            Console.WriteLine(e);
         }
     }
 }

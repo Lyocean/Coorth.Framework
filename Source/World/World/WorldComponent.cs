@@ -4,9 +4,11 @@
         
         public World World { get; private set; }
 
+        public WorldModule Module => World.Module;
+        
         public AppFrame App => World.App;
 
-        public Infra Infra => App.Infra;
+        // public Infra Infra => App.Infra;
 
         internal void Setup(World world) {
             this.World = world;

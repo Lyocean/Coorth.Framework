@@ -3,7 +3,7 @@
 namespace Coorth.Common {
     [Component, StoreContract("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
     public struct ActiveComponent : IComponent {
-        [StoreMember(1)] 
+        [StoreMember(1)]
         private BitMask64 mask;
         public BitMask64 Mask => mask;
 

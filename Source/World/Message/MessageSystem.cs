@@ -1,4 +1,5 @@
 ﻿using System;
+using Coorth.Common;
 
 namespace Coorth {
     
@@ -8,11 +9,9 @@ namespace Coorth {
 
         protected RouterComponent Router => Singleton<RouterComponent>();
         
-        protected bool IsDebug => Sandbox.Singleton().Has<DebugComponent>();
-
-        protected DebugComponent Debug => IsDebug ? Singleton<DebugComponent>() : default;
+        protected bool IsDebug => Singleton<SandboxComponent>().IsDebug;
         
-        protected bool IsReflectionEnable => IsDebug && Sandbox.Singleton().Get<DebugComponent>().IsReflectionEnable;
+        protected bool IsReflectionEnable => Singleton<SandboxComponent>().IsDebug && Singleton<SandboxComponent>().IsReflectionEnable;
 
         protected void OnReceive<T>(Action<RouterComponent, T> action) where T : IMessage {
             Router.Receive(action).ManageBy(ref Collector);

@@ -125,8 +125,7 @@ namespace Coorth {
             return Receive<T>((actor, msg) => {
                 var result = actor.TryGetAgent(msg.AgentId, out var agent);
                 if (result == false || agent == null || agent.AgentId == 0) {
-                    var debug = Sandbox.Singleton<DebugComponent>();
-                    debug?.Logger.LogWarning($"Missing agent with id: {msg.AgentId}");
+                    LogUtil.Warning($"Missing agent with id: {msg.AgentId}");
                     return;
                 }
                 action(agent, msg);

@@ -12,11 +12,16 @@ namespace Coorth {
         
         public virtual ActorRuntime Actors => Root.Actors;
 
-        public World World => Root.App.CurrentWorld;
+        public virtual LocalDomain Domain => Root.Domain;
 
-        protected Infra Infra => Root.App.Infra;
+        public virtual AppFrame App => Root.App;
         
-        public Sandbox Sandbox => World.Active;
+        
+        // public World World => Root.App.CurrentWorld;
+
+        // protected Infra Infra => Root.App.Infra;
+        
+        // public Sandbox Sandbox => World.Active;
         
         protected override void OnChildAdd(Type key, ModuleBase value) {
             Root.Dispatcher.Dispatch(new EventModuleAdd(this, key, value));
@@ -26,22 +31,22 @@ namespace Coorth {
             Root.Dispatcher.Dispatch(new EventModuleRemove(this, key, value));
         }
 
-        public void Subscribe<T>(Action<T> action) where T : IEvent {
+        public void Subscribe<T>(Action<T> action) {
             var reaction = Dispatcher.Subscribe(action);
             Collector.Add(reaction);
         }
         
-        public void Subscribe<T>(Func<T, Task> action) where T : IEvent {
+        public void Subscribe<T>(Func<T, Task> action) {
             var reaction = Dispatcher.Subscribe(action);
             Collector.Add(reaction);
         }
         
-        public void Subscribe<T>(EventDispatcher dispatcher, Action<T> action) where T : IEvent {
+        public void Subscribe<T>(EventDispatcher dispatcher, Action<T> action) {
             var reaction = dispatcher.Subscribe(action);
             Collector.Add(reaction);
         }
         
-        public void Subscribe<T>(EventDispatcher dispatcher, Func<T, Task> action) where T : IEvent {
+        public void Subscribe<T>(EventDispatcher dispatcher, Func<T, Task> action) {
             var reaction = dispatcher.Subscribe(action);
             Collector.Add(reaction);
         }

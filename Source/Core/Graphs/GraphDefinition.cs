@@ -16,7 +16,7 @@ namespace Coorth {
             var node = new T();
             nodes.Add(node.Id, node);
             node.Setup(this);
-            return new NodeHandle<T>();
+            return new NodeHandle<T>(node.Id);
         }
 
         public bool Exists(NodeHandle handle) {
@@ -31,41 +31,48 @@ namespace Coorth {
             for (var i = 0; i < node.InPorts.Count; i++) {
                 var port = node.InPorts[i];
                 foreach (var edge in port.Edges) {
-                    edge.Source.Edges.Remove(edge);
+                    edge.Source.RemoveEdge(edge);
                     edges.Remove(edge);
                 }
             }
             for (var i = 0; i < node.OutPorts.Count; i++) {
                 var port = node.OutPorts[i];
                 foreach (var edge in port.Edges) {
-                    edge.Target.Edges.Remove(edge);
+                    edge.Target.RemoveEdge(edge);
                     edges.Remove(edge);
                 }
             }
             return true;
         }
+
+        public NodeDefinition GetDefinition(NodeHandle handle) {
+            return !nodes.TryGetValue(handle.Id, out var node) ? null : node;
+        }
         
         public bool Connect(NodeHandle sourceHandle, int outputId, NodeHandle targetHandle, int inputId) {
             if (!nodes.TryGetValue(sourceHandle.Id, out var sourceNode)) {
-                return false;
+                throw new KeyNotFoundException(sourceHandle.ToString());
             }
             if (outputId < 0 || sourceNode.OutPorts.Count <= outputId) {
-                return false;
+                throw new IndexOutOfRangeException(outputId.ToString());
             }
             if (!nodes.TryGetValue(targetHandle.Id, out var targetNode)) {
-                return false;
+                throw new KeyNotFoundException(targetHandle.ToString());
             }
             if (inputId < 0 || targetNode.InPorts.Count <= inputId) {
-                return false;
+                throw new IndexOutOfRangeException(inputId.ToString());
             }
-            var sourcePort = sourceNode.InPorts[outputId];
+            var sourcePort = sourceNode.OutPorts[outputId];
             var targetPort = targetNode.InPorts[inputId];
+            if (sourcePort == null || targetPort == null) {
+                throw new NullReferenceException();
+            }
             var edge = new EdgeDefinition {
                 Source = sourcePort,
                 Target = targetPort
             };
-            sourcePort.Edges.Add(edge);
-            targetPort.Edges.Add(edge);
+            sourcePort.AddEdge(edge);
+            targetPort.AddEdge(edge);
             edges.Add(edge);
             return true;
         }
@@ -83,5 +90,9 @@ namespace Coorth {
             this.Ports = ports;
             this.Edges = edges;
         }
+    }
+    
+    
+    public interface IGraphContext {
     }
 }

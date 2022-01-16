@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Coorth.Serializes;
 
 namespace Coorth {
@@ -199,86 +198,5 @@ namespace Coorth {
 
         #endregion
 
-    }
-
-    public abstract class ByteSerializeReader : SerializeReader {
-
-        public override DateTime ReadDateTime() {
-            return new DateTime(ReadLong());
-        }
-
-        public override TimeSpan ReadTimeSpan() {
-            return new TimeSpan(ReadLong());
-        }
-
-        public override Guid ReadGuid() {
-            var size = Unsafe.SizeOf<Guid>();
-            var bytes = new byte[size];
-            for (var i = 0; i < size; i++) {
-                bytes[i] = ReadByte();
-            }
-            return new Guid(bytes);
-        }
-
-        public override Type ReadType() {
-            var isGuid = ReadBool();
-            if (isGuid) {
-                return TypeBinding.GetType(ReadGuid());
-            }
-            else {
-                return Type.GetType(ReadString());
-            }
-        }
-
-        public override T ReadEnum<T>() {
-            var size = Unsafe.SizeOf<T>();
-            if (size == sizeof(byte)) {
-                var value = ReadByte();
-                return Unsafe.As<byte, T>(ref value);
-            } else if (size == sizeof(short)) {
-                var value = ReadShort();
-                return Unsafe.As<short, T>(ref value);
-            } else if (size == sizeof(int)) {
-                var value = ReadInt();
-                return Unsafe.As<int, T>(ref value);
-            } else if (size == sizeof(long)) {
-                var value = ReadLong();
-                return Unsafe.As<long, T>(ref value);
-            }
-            throw new NotSupportedException(typeof(T).ToString());
-        }
-    }
-
-    public abstract class TextSerializeReader : SerializeReader {
-        public override DateTime ReadDateTime() {
-            var text = ReadString();
-            return DateTime.Parse(text);
-        }
-
-        public override TimeSpan ReadTimeSpan() {
-            var text = ReadString();
-            return TimeSpan.Parse(text);
-        }
-
-        public override Guid ReadGuid() {
-            var text = ReadString();
-            return Guid.Parse(text);
-        }
-
-        public override Type ReadType() {
-            var text = ReadString();
-            if (text.Contains("|")) {
-                return TypeBinding.GetType(text.Substring(text.IndexOf("|", StringComparison.Ordinal)+1));
-            }
-            else {
-                return Type.GetType(text);
-            }
-        }
-
-        public override T ReadEnum<T>() {
-            var text = ReadString();
-            // UnityEngine.Debug.Log($"{typeof(T)} --> {text}");
-            return (T)Enum.Parse(typeof(T), text);
-        }
     }
 }
