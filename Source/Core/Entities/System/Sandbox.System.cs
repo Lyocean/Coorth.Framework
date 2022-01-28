@@ -95,14 +95,9 @@ namespace Coorth {
             return RootSystem.AddSystem(system);
         }
 
-        public EventId AddAction<T>(Action<T> action) where T : class, IEvent {
-            var system = OfferSystem<SystemActions>();
-            return system.Add(action);
-        }
-
-        public bool RemoveAction(EventId id) {
-            var system = OfferSystem<SystemActions>();
-            return system.Remove(id);
+        public IEventReaction<T> AddAction<T>(Action<T> action) where T : class, IEvent {
+            var reaction = Dispatcher.Subscribe<T>(action);
+            return reaction;
         }
 
         public T OfferSystem<T>() where T : SystemBase, new() {

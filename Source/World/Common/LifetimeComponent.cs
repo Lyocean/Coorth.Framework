@@ -34,7 +34,13 @@ namespace Coorth {
     public static class LifetimeExtension {
 
         public static void Destroy(this in Entity entity) {
-            entity.Add<LifetimeComponent, int>(0);
+            if (entity.Has<LifetimeComponent>()) {
+                ref var lifetime = ref entity.Get<LifetimeComponent>();
+                lifetime.OnSetup(0);
+            }
+            else {
+                entity.Add<LifetimeComponent, int>(0);
+            }
         }
         
         public static void Destroy(this in Entity entity, TimeSpan delay) {

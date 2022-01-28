@@ -32,8 +32,11 @@ namespace Coorth {
 <# } #>
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
 <# for (var i = 1; i <= count; i++) { #>
                     ref var component<#=i#> = ref componentGroup<#=i#>.Get(context.Get(componentGroup<#=i#>.TypeId));

@@ -16,8 +16,8 @@ namespace Coorth {
             
         }
 
-        public Task DispatchAsync<T>(T e) {
-            return Task.CompletedTask;
+        public ValueTask DispatchAsync<T>(T e) {
+            return Task.CompletedTask.ToValueTask();
         }
     }
 

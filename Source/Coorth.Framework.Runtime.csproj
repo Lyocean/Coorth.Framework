@@ -24,6 +24,10 @@
       </None>
       <None Remove="Coorth.Frame.Core.csproj.DotSettings" />
       <None Remove="**/*.meta" />
+      <None Update="Core\Entities\Collection\SystemSubscription.ForEachs.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -34,6 +38,9 @@
       </Compile>
       <Compile Update="Core\Entities\Collection\EntityCollection.cs">
         <DependentUpon>EntityCollection.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Core\Entities\Collection\SystemSubscription.ForEachs.cs">
+        <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
       </Compile>
     </ItemGroup>
 

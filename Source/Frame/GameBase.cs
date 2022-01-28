@@ -65,7 +65,7 @@ namespace Coorth {
         
         protected virtual void TickLoop(in DateTime lastTime, ref TimeSpan frameStepTime, in TimeSpan deltaTickTime) {
             //Before Tick
-            App.Execute(new EventBeforeTick(Ticker.TickTotalTime, deltaTickTime, Ticker.TotalTickFrameCount));
+            Infra.Execute(new EventBeforeTick(Ticker.TickTotalTime, deltaTickTime, Ticker.TotalTickFrameCount));
             App.Execute(new EventBeforeTick(Ticker.TickTotalTime, deltaTickTime, Ticker.TotalTickFrameCount));
 
             //Step Update

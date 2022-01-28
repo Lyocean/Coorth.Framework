@@ -1,58 +1,147 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public readonly partial struct SystemSubscription<TEvent> {
+    
+    public interface ISystemSubscription {
+
+        Type EventType { get; }
         
+        IReadOnlyCollection<Type> IncludeComponents { get; }
+
+        IReadOnlyCollection<Type> ExcludeComponents { get; }
+
+    }
+    
+    public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubscription {
+
         private readonly SystemBase system;
         
-        internal SystemSubscription(SystemBase system) {
-            this.system = system;
-        }
+        private readonly EventDispatcher dispatcher;
 
-        public void OnEvent(Action<TEvent> action) {
-            var reaction = system.CreateReaction<TEvent>();
-            reaction.OnEvent((in TEvent e) => action(e));
+        private IEventReaction<TEvent> reaction;
+
+        public Type EventType => typeof(TEvent);
+
+        private Sandbox Sandbox => system.Sandbox;
+
+        private EntityMatcher matcher;
+        
+        private HashSet<Type> includes;
+        
+        private HashSet<Type> excludes;
+
+        public IReadOnlyCollection<Type> IncludeComponents => (IReadOnlyCollection<Type>)includes ?? Array.Empty<Type>();
+        
+        public IReadOnlyCollection<Type> ExcludeComponents => (IReadOnlyCollection<Type>)excludes ?? Array.Empty<Type>();
+        
+        public SystemSubscription(SystemBase system, EventDispatcher dispatcher) {
+            this.system = system;
+            this.dispatcher = dispatcher;
+        }
+        
+        private void ValidateReaction() {
+            if (reaction != null) {
+                throw new InvalidOperationException("[SystemSubscription] Can't add action duplicate.");
+            }
         }
         
         public void OnEvent(EventAction<TEvent> action) {
-            var reaction = system.CreateReaction<TEvent>();
-            reaction.OnEvent(action);
-        }
-        
-        public void OnEvent(Func<TEvent, ValueTask> action, bool continueOnCapturedContext = true) {
-            var reaction = system.CreateReaction<TEvent>();
-            reaction.OnEvent((in TEvent e) => action(e).ConfigureAwait(continueOnCapturedContext));
-        }
-        
-        public void OnEvent(EventFunc<TEvent, ValueTask> action, bool continueOnCapturedContext = true) {
-            var reaction = system.CreateReaction<TEvent>();
-            reaction.OnEvent((in TEvent e) => action(in e).ConfigureAwait(continueOnCapturedContext));
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
         }
 
-        public void OnMatch(EntityMatcher matcher, Action<TEvent, Entity> action) {
-            var sandbox = system.Sandbox;
-            var reaction = system.CreateReaction<TEvent>();
-            if (matcher.Includes != null) {
-                foreach (var typeId in matcher.Includes) {
-                    var componentGroup = sandbox.GetComponentGroup(typeId);
-                    reaction.Include(componentGroup.Type);
-                }
-            }
-            if (matcher.Excludes != null) {
-                foreach (var typeId in matcher.Excludes) {
-                    var componentGroup = sandbox.GetComponentGroup(typeId);
-                    reaction.Exclude(componentGroup.Type);
-                }
-            }
+        public void OnEvent(Action<TEvent> action) {
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
+        }
+        
+        public void OnEvent(Func<TEvent, ValueTask> action) {
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
+        }
 
-            reaction.OnEvent((in TEvent e) => {
-                var entities = sandbox.GetEntities(matcher);
-                foreach (Entity entity in entities) {
-                    action(e, entity);
-                }
-            });
+        public void OnEvent(EventFunc<TEvent, ValueTask> action) {
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
+        }
+        
+        public void OnEvent(Func<TEvent, Task> action) {
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
+        }
+
+        public void OnEvent(EventFunc<TEvent, Task> action) {
+            ValidateReaction();
+            reaction = dispatcher.Subscribe<TEvent>(action);
+        }
+        
+        private void _Include(Type type) {
+            includes ??= new HashSet<Type>();
+            includes.Add(type);
+        }
+
+        private void _Include<T>() where T : IComponent => _Include(typeof(T));
+
+        private void _Exclude(Type type) {
+            excludes ??= new HashSet<Type>();
+            excludes.Add(type);
+        }
+        
+        private void _Exclude<T>() where T : IComponent => _Exclude(typeof(T));
+        
+        public SystemSubscription<TEvent> Include<T>() where T : IComponent {
+            matcher ??= new EntityMatcher();
+            matcher.Include<T>();
+            _Include<T>();
+            return this;
+        }
+        
+        public SystemSubscription<TEvent> Include<T1, T2>() where T1 : IComponent where T2 : IComponent {
+            matcher ??= new EntityMatcher();
+            matcher.Include<T1>().Include<T2>();
+            _Include<T1>();
+            _Include<T2>();
+            return this;
+        }
+        
+        public SystemSubscription<TEvent> Include<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
+            matcher ??= new EntityMatcher();
+            matcher.Include<T1>().Include<T2>().Include<T3>();
+            _Include<T1>();
+            _Include<T2>();
+            _Include<T3>();
+            return this;
+        }
+       
+        public SystemSubscription<TEvent> Exclude<T>() where T : IComponent {
+            matcher ??= new EntityMatcher();
+            matcher.Exclude<T>();
+            _Exclude<T>();
+            return this;
+        }
+        
+        public SystemSubscription<TEvent> Exclude<T1, T2>() where T1 : IComponent where T2 : IComponent {
+            matcher ??= new EntityMatcher();
+            matcher.Exclude<T1>().Exclude<T2>();
+            _Exclude<T1>();
+            _Exclude<T2>();
+            return this;
+        }
+        
+        public SystemSubscription<TEvent> Exclude<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
+            matcher ??= new EntityMatcher();
+            matcher.Exclude<T1>().Exclude<T2>().Exclude<T3>();
+            _Exclude<T1>();
+            _Exclude<T2>();
+            _Exclude<T3>();
+            return this;
+        }
+        
+        protected override void OnDispose(bool dispose) {
+            reaction.Dispose();
+            system.RemoveReaction(this);
         }
     }
 }

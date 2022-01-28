@@ -115,7 +115,7 @@ namespace Coorth.Maths {
         public static float Angle(Vector3 from, Vector3 to) {
             from = from.Normalize();
             to = to.Normalize();
-            float num = Vector3.Dot(from, to) / (from.Length() * to.Length());
+            float num = Vector3.Dot(from, to);
             num = (float)Math.Acos(MathUtil.Clamp(num, -1f, 1f));
             if (from.X * to.Y - to.X * from.Y > 0f) {
                 num = 0f - num;
@@ -196,7 +196,10 @@ namespace Coorth.Maths {
         public static Vector3 MoveTowards(in Vector3 source, in Vector3 target, float delta) {
             var vector = target - source;
             var length = vector.Length();
-            return vector.Normalize() * Math.Min(length, delta);
+            if (delta >= length) {
+                return target;
+            }
+            return source + vector.Normalize() * delta;
         }
     }
 }

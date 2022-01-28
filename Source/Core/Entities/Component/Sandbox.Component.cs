@@ -366,9 +366,9 @@ namespace Coorth {
             }
         }
 
-        public void ClearComponent(in EntityId id) {
-            ref var context = ref GetContext(id.Index);
-            var entity = context.GetEntity(this);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void _ClearComponents(ref EntityContext context, in Entity entity) {
+            var id = entity.Id;
             foreach (var pair in context.Components) {
                 var group = GetComponentGroup(pair.Key);
                 group.OnRemoveComponent(id, pair.Value);
@@ -378,8 +378,15 @@ namespace Coorth {
                 group.RemoveComponent(in entity, pair.Value);
             }
             context.Archetype.RemoveEntity(context.Group);
-            context.Archetype = emptyArchetype;
             context.Components.Clear();
+            context.Archetype = null;
+        }
+        
+        public void ClearComponent(in EntityId id) {
+            ref var context = ref GetContext(id.Index);
+            _ClearComponents(ref context, context.GetEntity(this));
+            context.Archetype = emptyArchetype;
+            emptyArchetype.AddEntity(id.Index);
         }
 
         #endregion

@@ -57,7 +57,7 @@ namespace Coorth {
         }
 
         private void OnChildRemove(Type key, SystemBase child) {
-            child.reactions.Clear();
+            child.subscriptions.Clear();
             child.ClearSystems();
         }
 

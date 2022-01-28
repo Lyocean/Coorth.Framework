@@ -11,8 +11,7 @@ namespace Coorth.Tasks {
         
         public override void Execute(in T e) {
             if (condition.Invoke(e)) {
-                taskCompletionSource.SetResult(e);
-                this.Dispose();
+                base.Execute(in e);
             }
         }
     }

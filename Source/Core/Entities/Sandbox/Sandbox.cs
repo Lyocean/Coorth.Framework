@@ -110,15 +110,20 @@ namespace Coorth {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void Dispatch<T>(in T e = default) {
+        public void Dispatch<T>(in T e = default) {
             Dispatcher.Dispatch(e);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ValueTask DispatchAsync<T>(in T e = default) {
+            return Dispatcher.DispatchAsync(e);
         }
         
         public void Execute<T>(in T e = default) {
             Dispatcher.Dispatch(e);
         }
         
-        public Task ExecuteAsync<T>(in T e = default) {
+        public ValueTask ExecuteAsync<T>(in T e = default) {
             return Dispatcher.DispatchAsync(e);
         }
         

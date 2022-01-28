@@ -163,25 +163,24 @@ namespace Coorth {
         #region Destroy Entity
 
         public bool DestroyEntity(EntityId id) {
-            if (!HasEntity(id)) {
+            if (id.Index >= contexts.Count) {
                 return false;
             }
-
-            Dispatch(new EventEntityRemove(new Entity(this, id)));
-            ClearComponent(id);
-
             ref var context = ref contexts.Ref(id.Index);
-            if (context.Index == id.Index && context.Version == id.Version) {
-                context.Version++;
-                context.Components.Clear();
-                context.Index = reusing;
-                reusing = id.Index;
-                entityCount--;
-                return true;
-            }
-            else {
+            if (context.Index != id.Index || context.Version != id.Version) {
                 return false;
             }
+
+            var entity = new Entity(this, id);
+            Dispatch(new EventEntityRemove(entity));
+            _ClearComponents(ref context, in entity);
+            
+            context.Version++;
+            context.Components.Clear();
+            context.Index = reusing;
+            reusing = id.Index;
+            entityCount--;
+            return true;
         }
 
         public bool DestroyEntity(Entity entity) {

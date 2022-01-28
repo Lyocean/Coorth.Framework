@@ -2,6 +2,7 @@
 using System;
 
 namespace Coorth {
+    
     public readonly partial struct EntityCollection {
 
         #region Component1
@@ -12,8 +13,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(component1);
@@ -27,8 +31,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(context.GetEntity(sandbox), component1);
@@ -42,8 +49,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(e, component1);
@@ -57,8 +67,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(e, context.GetEntity(sandbox), component1);
@@ -72,8 +85,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(in component1);
@@ -87,8 +103,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(ref component1);
@@ -102,8 +121,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(context.GetEntity(sandbox), in component1);
@@ -117,8 +139,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(context.GetEntity(sandbox), ref component1);
@@ -132,8 +157,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(in e, in component1);
@@ -147,8 +175,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(in e, ref component1);
@@ -162,8 +193,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(in e, context.GetEntity(sandbox), in component1);
@@ -177,8 +211,11 @@ namespace Coorth {
             var componentGroup1 = sandbox.GetComponentGroup<T1>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     action(in e, context.GetEntity(sandbox), ref component1);
@@ -198,8 +235,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -215,8 +255,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -232,8 +275,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -249,8 +295,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -266,8 +315,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -283,8 +335,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -300,8 +355,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -317,8 +375,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -334,8 +395,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -351,8 +415,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -368,8 +435,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -385,8 +455,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -402,8 +475,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -419,8 +495,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -436,8 +515,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -453,8 +535,11 @@ namespace Coorth {
             var componentGroup2 = sandbox.GetComponentGroup<T2>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -476,8 +561,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -495,8 +583,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -514,8 +605,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -533,8 +627,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -552,8 +649,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -571,8 +671,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -590,8 +693,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -609,8 +715,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -628,8 +737,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -647,8 +759,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -666,8 +781,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -685,8 +803,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -704,8 +825,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -723,8 +847,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -742,8 +869,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -761,8 +891,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -780,8 +913,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -799,8 +935,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -818,8 +957,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -837,8 +979,11 @@ namespace Coorth {
             var componentGroup3 = sandbox.GetComponentGroup<T3>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -862,8 +1007,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -883,8 +1031,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -904,8 +1055,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -925,8 +1079,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -946,8 +1103,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -967,8 +1127,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -988,8 +1151,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1009,8 +1175,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1030,8 +1199,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1051,8 +1223,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1072,8 +1247,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1093,8 +1271,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1114,8 +1295,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1135,8 +1319,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1156,8 +1343,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1177,8 +1367,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1198,8 +1391,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1219,8 +1415,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1240,8 +1439,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1261,8 +1463,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1282,8 +1487,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1303,8 +1511,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1324,8 +1535,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1345,8 +1559,11 @@ namespace Coorth {
             var componentGroup4 = sandbox.GetComponentGroup<T4>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1372,8 +1589,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1395,8 +1615,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1418,8 +1641,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1441,8 +1667,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1464,8 +1693,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1487,8 +1719,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1510,8 +1745,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1533,8 +1771,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1556,8 +1797,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1579,8 +1823,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1602,8 +1849,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1625,8 +1875,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1648,8 +1901,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1671,8 +1927,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1694,8 +1953,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1717,8 +1979,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1740,8 +2005,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1763,8 +2031,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1786,8 +2057,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1809,8 +2083,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1832,8 +2109,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1855,8 +2135,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1878,8 +2161,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1901,8 +2187,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1924,8 +2213,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1947,8 +2239,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1970,8 +2265,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));
@@ -1993,8 +2291,11 @@ namespace Coorth {
             var componentGroup5 = sandbox.GetComponentGroup<T5>();
             for(var i = 0; i < archetypes.Length; i++) {
                 var archetype = archetypes[i];
-                for(var j = 0; j < archetype.EntityCount; j++) {
+                for(var j = 0; j < archetype.EntityCapacity; j++) {
                     var index = archetype.GetEntity(j);
+                    if(index < 0) {
+                        continue;
+                    }
                     ref var context = ref sandbox.GetContext(index);
                     ref var component1 = ref componentGroup1.Get(context.Get(componentGroup1.TypeId));
                     ref var component2 = ref componentGroup2.Get(context.Get(componentGroup2.TypeId));

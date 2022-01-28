@@ -32,6 +32,8 @@ namespace Coorth {
         
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
         
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
+
         public EventBeforeStep(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;
             this.DeltaTime = deltaTime;
@@ -53,6 +55,8 @@ namespace Coorth {
         
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
 
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
+
         public EventStepUpdate(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;
             this.DeltaTime = deltaTime;
@@ -66,6 +70,7 @@ namespace Coorth {
     
     [Event]
     public readonly struct EventBeforeTick : ITimeEvent, ITickEvent {
+        
         public readonly TimeSpan TotalTime;
 
         public readonly TimeSpan DeltaTime;
@@ -76,6 +81,8 @@ namespace Coorth {
         
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
         
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
+
         public EventBeforeTick(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;
             this.DeltaTime = deltaTime;
@@ -99,6 +106,8 @@ namespace Coorth {
         
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
         
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
+
         public EventTickUpdate(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;
             this.DeltaTime = deltaTime;
@@ -121,6 +130,8 @@ namespace Coorth {
         
         public float DeltaSecond => (float)DeltaTime.TotalSeconds;
 
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
+
         public EventLateUpdate(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;
             this.DeltaTime = deltaTime;
@@ -139,6 +150,10 @@ namespace Coorth {
         public readonly TimeSpan DeltaTime;
         
         public readonly long FrameCount;
+
+        public float DeltaSecond => (float)DeltaTime.TotalSeconds;
+        
+        public float TotalSecond => (float)TotalTime.TotalSeconds;
 
         public EventEndOfFrame(TimeSpan totalTime, TimeSpan deltaTime, long frameCount) {
             this.TotalTime = totalTime;

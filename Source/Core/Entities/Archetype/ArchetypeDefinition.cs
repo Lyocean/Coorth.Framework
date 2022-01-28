@@ -13,9 +13,11 @@ namespace Coorth {
 
         public int EntityCount;
 
+        public int EntityCapacity;
+        
         private readonly Dictionary<int, ArchetypeDefinition> links = new Dictionary<int, ArchetypeDefinition>();
 
-        private int reusing = -1;
+        private int reusing = 0;
         
         public readonly int Flag;
 
@@ -65,7 +67,7 @@ namespace Coorth {
         #region Entity
 
         public int AddEntity(int entityIndex) {
-            var position = reusing;
+            var position = -reusing - 1;
             EntityCount++;
             if (position >= 0) {
                 reusing = entities[position];
@@ -74,14 +76,17 @@ namespace Coorth {
             else {
                 position = entities.Count;
                 entities.Add(entityIndex + 1);
+                EntityCapacity++;
             }
+            
             return position;
         }
 
         public void RemoveEntity(int position) {
             entities[position] = reusing;
-            reusing = position;
+            reusing = -(position+1);
             EntityCount--;
+            
         }
 
         public int GetEntity(int position) {

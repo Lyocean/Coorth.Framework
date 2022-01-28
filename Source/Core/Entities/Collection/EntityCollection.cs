@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Coorth {
@@ -31,7 +32,13 @@ namespace Coorth {
                     var archetype = archetypes[archetypeIndex];
                     if(index < archetype.EntityCount) {
                         var entityIndex = archetype.GetEntity(index);
-                        Current = sandbox.GetEntity(entityIndex);
+                        try {
+                            Current = sandbox.GetEntity(entityIndex);
+                        }
+                        catch (Exception e) {
+                            LogUtil.Error($"index:{index}, entityIndex:{entityIndex}");
+                            throw;
+                        }
                         index ++;
                         return true;
                     }

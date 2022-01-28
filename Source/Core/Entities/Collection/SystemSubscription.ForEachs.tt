@@ -3,7 +3,7 @@
 using System;
 
 namespace Coorth {
-    public readonly partial struct SystemSubscription<TEvent> where TEvent : IEvent {
+    public partial class SystemSubscription<TEvent> {
 <# 
     const int COUNT = 3;
     var variants = GetActionVariants();
@@ -24,32 +24,30 @@ namespace Coorth {
                 var actionName = variant.GetActionTemplate(index) + templates + ">";
 #>
         public void ForEach<<#=templates#>>(<#= actionName #> action) <#= constraints #> {
-            var reaction = system.CreateReaction<TEvent>();
-            var sandbox = system.Sandbox;
 <# for(var i =1; i<= count;i++) { #>
-            reaction.Include<T<#=i#>>();
+            _Include<T<#=i#>>();
 <#}#>
 <#if(count == 1) {#>
-            reaction.OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-                ComponentCollection<T1> components = sandbox.GetComponents<T1>();
+            OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+                ComponentCollection<T1> components = Sandbox.GetComponents<T1>();
                 components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
             });
 <#} else if(count <= 3) {#>
 <#if(count == 2) {#>
-            if (sandbox.GetBinding<T1>().HasDependency<T2>()) {
+            if (Sandbox.GetBinding<T1>().HasDependency<T2>()) {
 <#} else if(count == 3) {#>
-            if (sandbox.GetBinding<T1>().HasDependency<T2>() && sandbox.GetBinding<T1>().HasDependency<T3>()) {
+            if (Sandbox.GetBinding<T1>().HasDependency<T2>() && Sandbox.GetBinding<T1>().HasDependency<T3>()) {
 <#} else {#>
             throw new NotImplementException();
 <#}#>
                 var matcher = Matcher.Include<<#=templates#>>();
-                reaction.OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-                    EntityCollection entities = sandbox.GetEntities(matcher);
+                OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+                    EntityCollection entities = Sandbox.GetEntities(matcher);
                     entities.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
                 });
             } else {
-                reaction.OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-                    ComponentCollection<<#=templates#>> components = sandbox.GetComponents<<#=templates#>>();
+                OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+                    ComponentCollection<<#=templates#>> components = Sandbox.GetComponents<<#=templates#>>();
                     components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
                 });
             }

@@ -16,9 +16,9 @@ namespace Coorth {
 
         protected EventDispatcher Dispatcher => Sandbox.Dispatcher;
         
-        private readonly List<ISystemReaction> reactions = new List<ISystemReaction>();
+        private readonly List<ISystemSubscription> subscriptions = new List<ISystemSubscription>();
 
-        public IReadOnlyList<ISystemReaction> Reactions => reactions;
+        public IReadOnlyList<ISystemSubscription> Subscriptions => subscriptions;
         
         protected T Singleton<T>() where T : IComponent, new() => Sandbox.Singleton<T>();
         
@@ -35,8 +35,8 @@ namespace Coorth {
             }
             OnDispose(true);
         }
-        
-        protected virtual void OnDispose(bool dispose) {
+
+        private void OnDispose(bool dispose) {
             IsDisposed = true;
             ClearSystems();
             Parent?.RemoveSystem(Key);
@@ -151,26 +151,6 @@ namespace Coorth {
         /// <returns>子系统实例</returns>
         public T OfferSystem<T>() where T : SystemBase, new() {
             return HasSystem<T>() ? GetSystem<T>() : AddSystem<T>();
-        }
-
-        #endregion
-
-        #region Subscribe
-
-        internal SystemReaction<T> CreateReaction<T>() {
-            var reaction = new SystemReaction<T>(this);
-            reactions.Add(reaction);
-            Dispatcher.Subscribe(reaction);
-            Collector.Add(reaction);
-            return reaction;
-        }
-
-        internal void RemoveReaction<T>(SystemReaction<T> reaction) {
-            reactions.Remove(reaction);
-        }
-
-        protected SystemSubscription<TEvent> Subscribe<TEvent>() {
-            return new SystemSubscription<TEvent>(this);
         }
 
         #endregion

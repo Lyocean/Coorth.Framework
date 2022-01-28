@@ -2,8 +2,6 @@
     "name": "Coorth.Framework.Tests",
     "rootNamespace": "Coorth.Tests",
     "references": [
-        "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner",
         "Coorth.Framework.Runtime"
     ],
     "includePlatforms": [

@@ -13,11 +13,13 @@ namespace Coorth.Common {
         }
 
         private void Execute(in EventEndOfFrame e) {
+
             var collection = Sandbox.GetComponents<LifetimeComponent>();
             foreach (var (entity, component) in collection) {
                 Execute(in e, in entity, component);
             }
             foreach (Entity target in entities) {
+                // LogUtil.Debug($"2 Destroy {target.Id}");
                 target.Dispose();
             }
             entities.Clear();

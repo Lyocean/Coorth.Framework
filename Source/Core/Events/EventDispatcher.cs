@@ -1,10 +1,98 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Coorth.Tasks;
 
 namespace Coorth {
-    using Coorth.Tasks;
     public class EventDispatcher : EventNode {
+        
+        private readonly Dictionary<Type, EventChannel> channels = new Dictionary<Type, EventChannel>();
+        
+        private EventChannel<T> OfferChannel<T>() {
+            var key = typeof(T);
+            if (channels.TryGetValue(key, out var channel)) {
+                return (EventChannel<T>)channel;
+            }
+            channel = new EventChannel<T>(this);
+            channels.Add(key, channel);
+            return (EventChannel<T>)channel;
+        }
 
+        public IEventReaction<T> Subscribe<T>(Action<T> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+
+        // public IEventReaction<T> Subscribe<T>(T e, Action<T> action) {
+        //     return OfferChannel<T>().Subscribe(action);
+        // }
+
+        public IEventReaction<T> Subscribe<T>(EventAction<T> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+        
+        public IEventReaction<T> Subscribe<T>(Func<T, Task> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+        
+        public IEventReaction<T> Subscribe<T>(Func<T, ValueTask> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+        
+        public IEventReaction<T> Subscribe<T>(EventFunc<T, Task> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+        
+        public IEventReaction<T> Subscribe<T>(EventFunc<T, ValueTask> action) {
+            return OfferChannel<T>().Subscribe(action);
+        }
+        
+        public IEventReaction<T> Subscribe<T>(IEventReaction<T> reaction) {
+            return OfferChannel<T>().Subscribe(reaction);
+        }
+        
+#if NET5_0_OR_GREATER
+         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+#else
+         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        public override void Dispatch<T>(in T e) {
+            if (channels.TryGetValue(typeof(T), out var channel)) {
+                var reactions = ((EventChannel<T>)channel).Reactions;
+                for (var i = 0; i < reactions.Count; i++) {
+#if !DEBUG
+                    try {
+#endif
+                    reactions[i].Execute(in e);
+#if !DEBUG
+                    } catch (Exception exception) {
+                        LogUtil.Exception(exception);
+                    }
+#endif
+                }
+            }
+            base.Dispatch(in e);
+        }
+        
+        public override async ValueTask DispatchAsync<T>(T e) {
+            if (channels.TryGetValue(typeof(T), out var channel)) {
+                var reactions = ((EventChannel<T>)channel).Reactions;
+                for (var i = 0; i < reactions.Count; i++) {
+#if !DEBUG
+                    try {
+#endif
+                    await reactions[i].ExecuteAsync(e);
+#if !DEBUG
+                    } catch (Exception exception) {
+                        LogUtil.Exception(exception);
+                    }
+#endif
+                }
+            }
+            await base.DispatchAsync(e);
+        }
+
+        
         public Task<T> ReceiveEvent<T>(int count = 1) {
             var future = new EventFuture<T>(count);
             Subscribe(future);
@@ -32,6 +120,5 @@ namespace Coorth {
         }
 
         public Task UntilCondition(Func<bool> condition, int matchTimes = 1) => UntilCondition<EventTickUpdate>(_ => condition(), matchTimes);
-
     }
 }

@@ -120,6 +120,23 @@ namespace Coorth {
             Count++;
             return ref Values[index];
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ref T Alloc(int index, int capacity) {
+            if (index >= capacity) {
+                throw new ArgumentException("index must less than capacity.");
+            }
+            int size = Capacity;
+            if (index >= size) {
+                size = size == 0 ? 4 : Math.Min(size * 2, capacity);
+                do {
+                    size = Math.Min(size * 2, capacity);
+                } while (index >= size);
+                Array.Resize(ref Values, size);
+            }
+            Count++;
+            return ref Values[index];
+        }
 
         public struct Enumerator : IEnumerator<T> {
 

@@ -3,19 +3,18 @@
 namespace Coorth.Tasks {
     public class TimeFuture<T> : EventFuture<T> where T: ITickEvent {
 
-        public TimeSpan duration;
+        public readonly TimeSpan Duration;
 
         private TimeSpan elapse;
 
         public TimeFuture(TimeSpan time) : base(0) {
-            this.duration = time;
+            this.Duration = time;
         }
         
         public override void Execute(in T e) {
             elapse += e.GetDeltaTime(); 
-            if (elapse >= duration) {
-                taskCompletionSource.SetResult(e);
-                this.Dispose();
+            if (elapse >= Duration) {
+                base.Execute(in e);
             }
         }
     }
