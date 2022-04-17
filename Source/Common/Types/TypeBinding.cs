@@ -6,23 +6,17 @@ using System.Runtime.InteropServices;
 
 namespace Coorth {
     public static class TypeBinding {
-
         private abstract class BindingData<T> {
-            public static BindingData<T> Instance;
-            public static Type ImplType => Instance.GetImplType();
+            public static BindingData<T>? Instance;
+            // public static Type? ImplType => Instance?.GetImplType();
             protected abstract Type GetImplType();
             protected abstract T CreateInstance();
-            public static T Create() => Instance.CreateInstance();
+            public static T? Create() => Instance != null ? Instance.CreateInstance() : default;
         }
         
         private class BindingData<T, TImpl> : BindingData<T> where TImpl : T {
-            protected override Type GetImplType() {
-                return typeof(TImpl);
-            }
-
-            protected override T CreateInstance() {
-                return Activator.CreateInstance<TImpl>();
-            }
+            protected override Type GetImplType() => typeof(TImpl);
+            protected override T CreateInstance() => Activator.CreateInstance<TImpl>();
         }
 
         static TypeBinding() {
@@ -43,10 +37,11 @@ namespace Coorth {
             
             Bind<object>("19F00BDD-2264-4465-AC85-B28A5C75B2EC");
             Bind<Type>("C0CD0AE0-33DA-4E93-A836-E17487463B5E");
+            Bind<Guid>("78EDB4BE-F87E-48F3-81F3-84E487E8174A");
 
             Bind<DateTime>("3D312AA2-2FBD-4DDF-82C0-E7A50CA2F2D9");
             Bind<TimeSpan>("643B4585-0D3E-41BC-8276-618ADEE89A49");
-            
+
             Bind<Vector2>("D4BA03C3-67F5-46A2-BA3C-DEC02A7D6C45");
             Bind<Vector3>("C7D5F4CC-91B6-431F-9006-D27B8F05E003");
             Bind<Vector4>("699015B5-D33B-41F8-ADE6-830F057F88E6");
@@ -62,14 +57,9 @@ namespace Coorth {
         }
 
         private static void LoadType(Type type) {
-            var storeAttribute = type.GetCustomAttribute<StoreContractAttribute>();
-            if (storeAttribute!= null && storeAttribute.Guid != Guid.Empty) {
-                Bind(type, storeAttribute.Guid);
-            } else {
-                var guidAttribute = type.GetCustomAttribute<GuidAttribute>();
-                if (guidAttribute != null) {
-                    Bind(type, guidAttribute.Value);
-                }
+            var guidAttribute = type.GetCustomAttribute<GuidAttribute>();
+            if (guidAttribute != null) {
+                Bind(type, guidAttribute.Value);
             }
         }
                 
@@ -78,12 +68,13 @@ namespace Coorth {
         }
 
         public static T Create<T>() {
-            return BindingData<T>.Create();
+            var instance = BindingData<T>.Create();
+            return instance ?? Activator.CreateInstance<T>();
         }
 
-        private static readonly ConcurrentDictionary<Type, Guid> type2Guids = new ConcurrentDictionary<Type, Guid>();
+        private static readonly ConcurrentDictionary<Type, Guid> type2Guids = new();
 
-        private static readonly ConcurrentDictionary<Guid, Type> guid2Types = new ConcurrentDictionary<Guid, Type>();
+        private static readonly ConcurrentDictionary<Guid, Type> guid2Types = new();
 
         public static void Bind<T>(string guid) => Bind(typeof(T), Guid.Parse(guid));
         
@@ -98,16 +89,10 @@ namespace Coorth {
         
         public static Guid GetGuid<T>() => GetGuid(typeof(T));
 
-        public static Guid GetGuid(Type type) {
-            return type2Guids.TryGetValue(type, out var guid) ? guid : type.GUID;
-        }
-        
-        public static Type GetType(Guid guid) {
-            return guid2Types.TryGetValue(guid, out var type) ? type : Type.GetTypeFromCLSID(guid);
-        }
+        public static Guid GetGuid(Type type) => type2Guids.TryGetValue(type, out var guid) ? guid : type.GUID;
 
-        public static Type GetType(string guid) {
-            return Guid.TryParse(guid, out var value) ? GetType(value) : null;
-        }
+        public static Type? GetType(Guid guid) => guid2Types.TryGetValue(guid, out var type) ? type : null;
+
+        public static Type? GetType(string guid) => Guid.TryParse(guid, out var value) ? GetType(value) : null;
     }
 }

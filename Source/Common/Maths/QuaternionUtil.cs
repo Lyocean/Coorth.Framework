@@ -212,7 +212,7 @@ namespace Coorth.Maths {
         public static Vector3 Rotate(this Quaternion self, Vector3 vector) {
             var pureQuaternion = new Quaternion(vector, 0);
             pureQuaternion = Quaternion.Conjugate(self) * pureQuaternion * self;
-            vector.X = pureQuaternion.X;
+            vector.X = -pureQuaternion.X;
             vector.Y = pureQuaternion.Y;
             vector.Z = pureQuaternion.Z;
             return vector;

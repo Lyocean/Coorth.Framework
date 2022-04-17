@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using Coorth.Common;
 
 namespace Coorth {
-    [System, Serializable, StoreContract("D4144E18-DF68-43E6-8CDE-F601AF95FCB0")]
+    [System, Serializable, DataContract, Guid("D4144E18-DF68-43E6-8CDE-F601AF95FCB0")]
     public class ActorSystem : MessageSystem {
 
         #region Common
@@ -44,7 +46,7 @@ namespace Coorth {
 
         private void OnReceive(RouterComponent router, MessageCreateEntity msg) {
             if (router.TryGetAgent(msg.AgentId, out var agent)) {
-                Singleton<SandboxComponent>().Logger?.LogWarning($"Duplicate agent id: {msg.AgentId}");
+                Singleton<SandboxComponent>().Logger?.Warn($"Duplicate agent id: {msg.AgentId}");
                 agent.Entity.Dispose();
             }
             Entity entity = Sandbox.CreateEntity();
@@ -54,7 +56,7 @@ namespace Coorth {
         
         private void OnReceive(RouterComponent router, MessageDestroyEntity msg) {
             if (!router.TryGetAgent(msg.AgentId, out var agent)) {
-                Singleton<SandboxComponent>().Logger?.LogWarning($"Missing agent with id: {msg.AgentId}");
+                Singleton<SandboxComponent>().Logger?.Warn($"Missing agent with id: {msg.AgentId}");
                 return;
             }
             agent.Entity.Dispose();

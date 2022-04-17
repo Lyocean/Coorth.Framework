@@ -13,8 +13,9 @@ namespace Coorth {
     
     [Event]
     public readonly struct EventAppStartup {
+        
         public readonly int ThreadId;
-
+        
         public EventAppStartup(int threadId) {
             this.ThreadId = threadId;
         }

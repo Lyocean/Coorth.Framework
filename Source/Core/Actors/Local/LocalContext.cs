@@ -27,7 +27,7 @@ namespace Coorth {
 
         public readonly ActorMailbox Mailbox;
 
-        private IActorConfig Config => Runtime.Config;
+        private IActorSetting Setting => Runtime.Setting;
 
         public override TActor GetActor<TActor>() => (TActor) Actor;
         
@@ -95,7 +95,7 @@ namespace Coorth {
         }
         
         public async Task Execute() {
-            for (var i = 0; i < Config.ActorThroughput; i++) {
+            for (var i = 0; i < Setting.ActorThroughput; i++) {
                 if (Mailbox.TryDequeue(out var mail)) {
                     await Receive(mail);
                 } else {

@@ -5,7 +5,7 @@ namespace Coorth {
         
         public readonly bool IsSuccess;
         
-        public readonly string Error;
+        public readonly string? Error;
         
         private Result(bool isSuccess) {
             this.IsSuccess = isSuccess;
@@ -37,13 +37,13 @@ namespace Coorth {
     
     public readonly struct Result<T> {
         
-        public readonly T Value;
+        public readonly T? Value;
         
         public readonly bool IsSuccess;
         
-        public readonly string Error;
+        public readonly string? Error;
         
-        public readonly Exception Exception;
+        public readonly Exception? Exception;
         
         private Result(bool isSuccess, T value) {
             this.Value = value;
@@ -85,7 +85,7 @@ namespace Coorth {
             return this.Exception?.ToString() ?? "unknown";
         }
 
-        public void Deconstruct(out bool isSuccess, out T value) {
+        public void Deconstruct(out bool isSuccess, out T? value) {
             isSuccess = this.IsSuccess;
             value = this.Value;
         }

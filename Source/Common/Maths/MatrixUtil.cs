@@ -183,7 +183,6 @@ namespace Coorth.Maths {
 
 	    #endregion
 
-
 	    #region Transform
 	    
 	    [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -256,8 +255,6 @@ namespace Coorth.Maths {
 	        result.M34 = 0.0f;
 	        result.M44 = 1.0f;
         }
-        
-
 
 	    #endregion
 
@@ -268,17 +265,12 @@ namespace Coorth.Maths {
 	    }
 
 	    public static Vector3 GetForward(this in Matrix4x4 matrix) {
-		    Matrix4x4.Decompose(matrix, out var scale, out var rotation, out var translation);
+		    Matrix4x4.Decompose(matrix, out _, out var rotation, out _);
 		    return rotation.Rotate(Vector3.UnitZ);
 	    }
 
 	    #endregion	    
 	    
-
-
-
-        
-
     }
 }
 

@@ -6,15 +6,16 @@ namespace Coorth {
     public class EntityMatcher {
         
         private int include;
-        private int[] includes;
-        public IReadOnlyList<int> Includes => includes;
+        private int[]? includes;
+        public IReadOnlyList<int> Includes => includes ?? Array.Empty<int>();
 
         private int exclude;
-        private int[] excludes;
-        public IReadOnlyList<int> Excludes => excludes;
+        private int[]? excludes;
+        public IReadOnlyList<int> Excludes => excludes ?? Array.Empty<int>();
 
         private int allType;
-        public int[] AllTypes { get; private set; }
+        private int[]? allTypes;
+        public int[] AllTypes => allTypes ?? Array.Empty<int>();
 
         internal bool Match(Sandbox container, ArchetypeDefinition archetype) {
             var components = archetype.Components;
@@ -35,7 +36,7 @@ namespace Coorth {
             return true;
         }
 
-        private static int[] Expand(int[] array, int[] expand, ref int flag) {
+        private static int[] Expand(int[]? array, int[] expand, ref int flag) {
             if (array == null) {
                 array = new int[expand.Length];
                 Array.Copy(expand, array, expand.Length);
@@ -51,13 +52,13 @@ namespace Coorth {
 
         private EntityMatcher Include(params int[] types) {
             includes = Expand(includes, types, ref include);
-            AllTypes = Expand(AllTypes, includes, ref allType);
+            allTypes = Expand(AllTypes, includes, ref allType);
             return this;
         }
 
         private EntityMatcher Exclude(params int[] types) {
             excludes = Expand(excludes, types, ref exclude);
-            AllTypes = Expand(AllTypes, excludes, ref allType);
+            allTypes = Expand(AllTypes, excludes, ref allType);
             return this;
         }
 
@@ -86,22 +87,24 @@ namespace Coorth {
         }
 
         public bool IsExclude(int type) {
-            if (excludes != null) {
-                foreach (var t in excludes) {
-                    if (t == type) {
-                        return true;
-                    }
+            if (excludes == null) {
+                return false;
+            }
+            foreach (var t in excludes) {
+                if (t == type) {
+                    return true;
                 }
             }
             return false;
         }
 
         public bool IsInclude(int type) {
-            if (includes != null) {
-                for (var i = 0; i < includes.Length; i++) {
-                    if (includes[i] == type) {
-                        return true;
-                    }
+            if (includes == null) {
+                return false;
+            }
+            for (var i = 0; i < includes.Length; i++) {
+                if (includes[i] == type) {
+                    return true;
                 }
             }
             return false;

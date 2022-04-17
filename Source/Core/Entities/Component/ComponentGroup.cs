@@ -42,7 +42,7 @@ namespace Coorth {
 
         public Sandbox Sandbox { get; set; }
 
-        public IComponentFactory<T> Factory { get; internal set; }
+        public IComponentFactory<T>? Factory { get; internal set; }
 
         //Component Value
         internal ChunkList<T> components;

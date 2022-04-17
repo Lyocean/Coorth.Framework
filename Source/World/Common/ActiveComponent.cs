@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Common {
-    [Component, StoreContract("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
+    [Component, DataContract, Guid("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
     public struct ActiveComponent : IComponent {
-        [StoreMember(1)]
+        [DataMember(Order = 1)]
         private BitMask64 mask;
         public BitMask64 Mask => mask;
 
@@ -20,5 +22,7 @@ namespace Coorth.Common {
             }
             return mask[index];
         }
+        
+        public bool this[int index] { get => Get(index); set => Set(index, value); }
     }
 }

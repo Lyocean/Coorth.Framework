@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
-    [StoreContract("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
+    [DataContract, Guid("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
     public readonly struct Entity : IEquatable<Entity>, ICloneable, IDisposable {
 
         public readonly EntityId Id;
@@ -14,7 +16,7 @@ namespace Coorth {
             this.Id = id;
         }
 
-        public static Entity Null => new Entity(null, EntityId.Null);
+        public static Entity Null => new Entity(Sandbox.GetDefault(), EntityId.Null);
 
         public int Count => Sandbox.ComponentCount(Id);
 
@@ -32,7 +34,7 @@ namespace Coorth {
         
         public ref T Add<T>() where T : IComponent, new() => ref Sandbox.AddComponent<T>(Id);
 
-        public ref T Add<T>(T component) where T : IComponent => ref Sandbox.AddComponent<T>(Id, component);
+        public ref T Add<T>(T component) where T : IComponent => ref Sandbox.AddComponent(Id, component);
 
         public ref T Add<T, TP1>(TP1 p1) where T : IComponent<TP1>, new() => ref Sandbox.AddComponent<T, TP1>(Id, p1);
 
@@ -50,11 +52,9 @@ namespace Coorth {
 
         public T Get<T>(T defaultValue) where T : IComponent => Sandbox.TryGetComponent<T>(Id, out var component) ? component : defaultValue;
 
-        public T TryGet<T>() where T : class, IComponent  => Sandbox.TryGetComponent<T>(Id, out var component) ? component : null;
-
-        public T? GetNullable<T>() where T : struct, IComponent  => Sandbox.TryGetComponent<T>(Id, out var component) ? component : null;
-
-        public bool TryGet<T>(out T component) where T : IComponent => Sandbox.TryGetComponent<T>(Id, out component);
+        public T? TryGet<T>() where T : IComponent => Sandbox.TryGetComponent<T>(Id, out var component) ? component : default;
+        
+        public bool TryGet<T>(out T component) where T : IComponent => Sandbox.TryGetComponent(Id, out component);
 
         public ComponentPtr<T> Ptr<T>() where T : IComponent => Sandbox.PtrComponent<T>(Id);
 
@@ -62,22 +62,27 @@ namespace Coorth {
 
         public ref T Offer<T>() where T : IComponent, new() => ref Sandbox.OfferComponent<T>(Id);
 
-        public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() => ref Sandbox.OfferComponent<T>(Id, provider);
+        public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() => ref Sandbox.OfferComponent(Id, provider);
         
         public ComponentPtr<T> Wrap<T>() where T : IComponent => Sandbox.GetComponentPtr<T>(Id);
 
+        public Entity Modify<T>() where T : IComponent {
+            Sandbox.ModifyComponent<T>(Id);
+            return this;
+        }
+        
         public Entity Modify<T>(in T component) where T : IComponent {
-            Sandbox.ModifyComponent<T>(Id, component);
+            Sandbox.ModifyComponent(Id, component);
             return this;
         }
 
-        public Entity Modify<T>(Action<Sandbox, T> action = null) where T : IComponent {
-            Sandbox.ModifyComponent<T>(Id, action);
+        public Entity Modify<T>(Action<Sandbox, T> action) where T : IComponent {
+            Sandbox.ModifyComponent(Id, action);
             return this;
         }
 
         public Entity Modify<T>(Func<Sandbox, T, T> action) where T : IComponent {
-            Sandbox.ModifyComponent<T>(Id, action);
+            Sandbox.ModifyComponent(Id, action);
             return this;
         }
 
@@ -109,7 +114,7 @@ namespace Coorth {
             return Id.Equals(other.Id) && Equals(Sandbox, other.Sandbox);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is Entity other && Equals(other);
         }
 
@@ -122,16 +127,12 @@ namespace Coorth {
         }
 
         public override int GetHashCode() {
-#if NET5_0_OR_GREATER
             return HashCode.Combine(Id, Sandbox);
-#else
-            return (Sandbox.GetHashCode() * 397) ^ Id.GetHashCode();
-#endif
         }
 
         public override string ToString() => $"Entity({Sandbox.Index}-Id:{Id.Index}-{Id.Version})";
         
-        [Serializer(typeof(Entity))]
+        [DataSerializer(typeof(Entity))]
         private class Serializer : Serializer<Entity> {
             public override void Write(SerializeWriter writer, in Entity value) {
                 value.Sandbox.WriteEntity(writer, value.Id);

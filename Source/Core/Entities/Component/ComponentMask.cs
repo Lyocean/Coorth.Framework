@@ -79,7 +79,7 @@ namespace Coorth {
             return true;
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is ComponentMask other && Equals(other);
         }
 

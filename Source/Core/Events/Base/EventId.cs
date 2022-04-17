@@ -25,7 +25,7 @@ namespace Coorth {
             return this.id == other.id;
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is EventId other && Equals(other);
         }
 

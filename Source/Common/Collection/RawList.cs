@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Coorth {
+    #nullable disable
     public struct RawList<T> : IEnumerable<T> {
     
         public T[] Values;

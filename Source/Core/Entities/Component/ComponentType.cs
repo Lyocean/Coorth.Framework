@@ -9,7 +9,7 @@ namespace Coorth {
         
         public static readonly int TypeId;
         
-        public static readonly ComponentAttribute Attribute;
+        public static readonly ComponentAttribute? Attribute;
         
         public static readonly bool IsValueType;
         

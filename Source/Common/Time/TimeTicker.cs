@@ -6,13 +6,15 @@ namespace Coorth {
     public struct TimeTicker {
         
         //Step
+        
+        public int MaxStepPerFrame => Setting.MaxStepPerFrame;
 
-        public int MaxStepPerFrame;
+        public float StepFrameRate => Setting.StepFrameRate;
 
-        public float StepFrameRate;
+        public TimeSpan StepDeltaTime => Setting.StepDeltaTime;
 
-        public TimeSpan StepDeltaTime => TimeSpan.FromSeconds(1.0/ StepFrameRate);
-
+        public readonly TickSetting Setting;
+        
         public TimeSpan StepTotalTime;
 
         public long TotalStepFrameCount;
@@ -21,29 +23,27 @@ namespace Coorth {
         
         //Tick
 
-        public float TickFrameRate;
+        public float TickFrameRate => Setting.TickFrameRate;
 
-        public TimeSpan TickDeltaTime => TimeSpan.FromSeconds(1f / TickFrameRate);
+        public TimeSpan TickDeltaTime => Setting.TickDeltaTime;
 
         public TimeSpan TickTotalTime ;
 
         public long TotalTickFrameCount;
 
-        public float TimeScale;
-        
+        public float TimeScale => Setting.TimeScale;
 
-        public void Setup(ITickSetting setting) {
-            //Step
-            this.MaxStepPerFrame = setting.MaxStepPerFrame;
-            this.StepFrameRate = setting.StepFrameRate;
+        public TimeTicker(TickSetting setting) {
+            this.Setting =setting;
             this.StepTotalTime = TimeSpan.Zero;
             this.TotalStepFrameCount = 0;
             this.RemainingStepTime = TimeSpan.Zero;
-            //Tick
-            this.TickFrameRate = setting.TickFrameRate;
             this.TickTotalTime = TimeSpan.Zero;
             this.TotalTickFrameCount = 0;
-            this.TimeScale = setting.TimeScale;
+        }
+
+        public void Setup(TickSetting setting) {
+
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

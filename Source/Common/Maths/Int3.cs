@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
+    [DataContract, Guid("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Int3 : IEquatable<Int3> {
         
@@ -54,14 +55,12 @@ namespace Coorth.Maths {
             return new Int3(l * r.X, l * r.Y, l * r.Z);
         }
         
-        public bool Equals(Int3 other) {
+        public readonly bool Equals(Int3 other) {
             return X == other.X && Y == other.Y && Z == other.Z;
         }
 
-        public override bool Equals(object obj) {
-            if (ReferenceEquals(null, obj)) return false;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Int3) obj);
+        public override readonly bool Equals(object? obj) {
+            return obj is Int3 other && Equals(other);
         }
 
         public static bool operator ==(Int3 left, Int3 right) {
@@ -72,16 +71,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = X;
-                hashCode = (hashCode * 397) ^ Y;
-                hashCode = (hashCode * 397) ^ Z;
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(X, Y, Z);
         }
-        
-        public override string ToString() {
+
+        public override readonly string ToString() {
             return $"Int3({X}, {Y}, {Z})";
         }
     }

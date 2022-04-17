@@ -7,18 +7,17 @@ namespace Coorth {
 
         #region Fields
 
-        public SystemRoot RootSystem { get; private set; }
+        public SystemRoot RootSystem { get; }
 
-        private readonly Dictionary<Type, SystemBase> systems = new Dictionary<Type, SystemBase>();
+        private readonly Dictionary<Type, SystemBase> systems = new();
 
         public int SystemCount => systems.Count;
         
         private void InitSystems() {
             var binding = BindSystem<SystemRoot>();
-            RootSystem = new SystemRoot();
             RootSystem.Setup(this, binding);
             OnSystemAdd(typeof(SystemRoot), RootSystem);
-            RootSystem.SetActive(true);
+            RootSystem.SetActive(false);
         }
 
         private void ClearSystems() {
@@ -28,12 +27,16 @@ namespace Coorth {
             }
             systems.Clear();
         }
+        
+        public void SetActive(bool active) {
+            this.RootSystem.SetActive(active);
+        }
 
         #endregion
 
         #region Binding
 
-        private static readonly Dictionary<Type, SystemBinding> systemBindings = new Dictionary<Type, SystemBinding>();
+        private static readonly Dictionary<Type, SystemBinding> systemBindings = new();
         
         public SystemBinding<T> BindSystem<T>() where T : SystemBase {
             var type = typeof(T);
@@ -64,16 +67,19 @@ namespace Coorth {
             return systems.Remove(key);
         }
         
-        internal static SystemBinding GetSystemBinding(Type type, bool reflection) {
+        internal static SystemBinding? GetSystemBinding(Type type, bool reflection) {
             if (systemBindings.TryGetValue(type, out var binding)) {
                 return binding;
             }
-            if (reflection) {
-                binding = (SystemBinding)Activator.CreateInstance(typeof(SystemBinding<>).MakeGenericType(type));
-                systemBindings.Add(type, binding);
-                return binding;
+            if (!reflection) {
+                return null;
             }
-            return null;
+            binding = Activator.CreateInstance(typeof(SystemBinding<>).MakeGenericType(type)) as SystemBinding;
+            if (binding == null) {
+                return null;
+            }
+            systemBindings.Add(type, binding);
+            return binding;
         }
         
         public SystemBase AddSystem(Type type, bool reflection = false) {
@@ -86,7 +92,7 @@ namespace Coorth {
         
         public T AddSystem<T>(T system) where T : SystemBase {
             BindSystem<T>();
-            return RootSystem.AddSystem<T>(system);
+            return RootSystem.AddSystem(system);
         }
         
         public T AddSystem<T>() where T : SystemBase, new() {
@@ -96,12 +102,12 @@ namespace Coorth {
         }
 
         public IEventReaction<T> AddAction<T>(Action<T> action) where T : class, IEvent {
-            var reaction = Dispatcher.Subscribe<T>(action);
+            var reaction = Dispatcher.Subscribe(action);
             return reaction;
         }
 
         public T OfferSystem<T>() where T : SystemBase, new() {
-            return HasSystem<T>() ? GetSystem<T>() : AddSystem<T>();
+            return GetSystem<T>() ?? AddSystem<T>();
         }
 
         public bool HasSystem<T>() where T : SystemBase {
@@ -113,10 +119,18 @@ namespace Coorth {
         }
 
         public T GetSystem<T>() where T : SystemBase {
-            return systems.TryGetValue(typeof(T), out var system) ? (T)system : default;
+            return systems.TryGetValue(typeof(T), out var system) ? (T)system : throw new KeyNotFoundException(typeof(T).Name);
+        }
+        
+        public T? TryGetSystem<T>() where T : SystemBase {
+            return systems.TryGetValue(typeof(T), out var system) ? (T)system : throw new KeyNotFoundException(typeof(T).Name);
         }
 
         public SystemBase GetSystem(Type type) {
+            return systems.TryGetValue(type, out var system) ? system : throw new KeyNotFoundException(type.Name);
+        }
+        
+        public SystemBase? TryGetSystem(Type type) {
             return systems.TryGetValue(type, out var system) ? system : default;
         }
         
@@ -130,7 +144,7 @@ namespace Coorth {
         
         public void ActiveSystem(Type type, bool active) {
             var system = GetSystem(type);
-            system.SetActive(active);
+            system?.SetActive(active);
         }
         
         public bool RemoveSystem(SystemBase system) {
@@ -153,7 +167,7 @@ namespace Coorth {
             if (ReferenceEquals(system, RootSystem)) {
                 return false;
             }
-            system.Parent.RemoveSystem(key);
+            system.Parent?.RemoveSystem(key);
             return true;
         }
 

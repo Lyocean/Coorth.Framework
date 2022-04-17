@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("DE608657-DB40-4EAB-AA16-AA31AE1CFA97")]
+    [DataContract, Guid("DE608657-DB40-4EAB-AA16-AA31AE1CFA97")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Size3 : IEquatable<Size3> {
         
@@ -12,9 +13,9 @@ namespace Coorth.Maths {
         
         public int Z;
 
-        public int W => X;
-        public int H => Y;
-        public int D => Z;
+        public readonly int W => X;
+        public readonly int H => Y;
+        public readonly int D => Z;
 
         public Size3(int width, int height, int depth) {
             this.X = width;
@@ -22,11 +23,11 @@ namespace Coorth.Maths {
             this.Z = depth;
         }
 
-        public bool Equals(Size3 other) {
+        public readonly bool Equals(Size3 other) {
             return X == other.X && Y == other.Y && Z == other.Z;
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Size3 other && Equals(other);
         }
         
@@ -38,16 +39,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
 
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = X;
-                hashCode = (hashCode * 397) ^ Y;
-                hashCode = (hashCode * 397) ^ Z;
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(X, Y, Z);
         }
         
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Size3(W:{W},H:{H},Z:{Z})";
         }
     }

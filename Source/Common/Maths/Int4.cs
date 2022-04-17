@@ -1,8 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("52A4045C-213C-4E02-9F18-89BC3AC5A03B")]
+    [DataContract, Guid("52A4045C-213C-4E02-9F18-89BC3AC5A03B")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Int4 : IEquatable<Int4> {
         
@@ -37,11 +38,11 @@ namespace Coorth.Maths {
             return new Int4(l * r.X, l * r.Y, l * r.Z, l * r.W);
         }
         
-        public bool Equals(Int4 other) {
+        public readonly bool Equals(Int4 other) {
             return X == other.X && Y == other.Y && Z == other.Z && W == other.W;
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is Int4 other && Equals(other);
         }
         
@@ -53,17 +54,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
 
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = X;
-                hashCode = (hashCode * 397) ^ Y;
-                hashCode = (hashCode * 397) ^ Z;
-                hashCode = (hashCode * 397) ^ W;
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(X, Y, Z, W);
         }
         
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Int3({X}, {Y}, {Z}, {W})";
         }
     }

@@ -20,22 +20,23 @@ namespace Coorth {
         public void BeginDict<TKey, TValue>(out int count) => BeginDict(typeof(TKey), typeof(TValue), out count);
         //Tag, Key, Value
         public abstract int ReadTag(string name, int index);
-        public virtual TKey ReadKey<TKey>() {   
+        public virtual TKey ReadKey<TKey>() where TKey: notnull {   
             //UnityEngine.Debug.Log($"ReadKey:{typeof(TKey)}");
             var type = typeof(TKey);
+            if (type.IsEnum) {
+                return ReadEnum<TKey>();                
+            }
             if (type.IsPrimitive) {
                 var serializer = Serializer.GetSerializer<TKey>();
                 if (serializer != null) {
-                    return serializer.Read(this, default);
+                    var key = serializer.Read(this, default);
+                    return key ?? throw new NotSupportedException(type.ToString());
                 }
-            } else if (type.IsEnum) {
-                return ReadEnum<TKey>();                
-            }
+            } 
             throw new NotSupportedException(type.ToString());
         }
 
-        public virtual void ReadValue<T>(ref T value) {
-            // UnityEngine.Debug.Log($"ReadValue:{typeof(T)}");
+        public void ReadValue<T>(ref T? value) {
             if (typeof(T).IsEnum) {
                 value = ReadEnum<T>();
                 return;
@@ -46,11 +47,16 @@ namespace Coorth {
                 return;
             }
             var objectSerializer = ObjectSerializer.Get(typeof(T));
-            if (objectSerializer != null) {
-                value = (T)objectSerializer.ReadObject(this, default);
-                return;
+            if (objectSerializer == null) {
+                throw new NotSupportedException(typeof(T).ToString());
             }
-            throw new NotSupportedException(typeof(T).ToString());
+            var obj = objectSerializer.ReadObject(this, default);
+            if (obj != null) {
+                value = (T)obj;
+            }
+            else {
+                value = default;
+            }
         }
         public virtual T ReadValue<T>() {
             T value = default;
@@ -59,7 +65,7 @@ namespace Coorth {
         }
 
         //Object
-        public virtual object ReadObject(Type type) {
+        public virtual object? ReadObject(Type type) {
             //UnityEngine.Debug.Log($"ReadObject:{type}");
 
             var serializer = Serializer.GetSerializer(type);
@@ -74,7 +80,7 @@ namespace Coorth {
         }
         
         //Field
-        public T ReadField<T>(string name, int index) {
+        public T? ReadField<T>(string name, int index) {
             //UnityEngine.Debug.Log($"ReadField:{name} - {index}");
             ReadTag(name, index);
             return ReadValue<T>();
@@ -124,7 +130,7 @@ namespace Coorth {
 
         #region Extension
 
-        public void ReadList<T>(ref List<T> list) {
+        public void ReadList<T>(ref List<T>? list) {
             BeginList<T>(out var count);
             if (count >= 0) {
                 if (list == null) {
@@ -147,7 +153,7 @@ namespace Coorth {
             }
         }
 
-        public void ReadList<T>(ref T[] array) {
+        public void ReadList<T>(ref T[]? array) {
             BeginList<T>(out var count);
             if (count >= 0) {
                 if (array == null || array.Length != count) {
@@ -170,7 +176,7 @@ namespace Coorth {
             }
         }
 
-        public void ReadDict<TK, TV>(ref Dictionary<TK, TV> dict) {
+        public void ReadDict<TK, TV>(ref Dictionary<TK, TV>? dict) where TK : notnull {
             BeginDict<TK, TV>(out var count);
             if (dict == null) {
                 dict = count > 0 ? new Dictionary<TK, TV>(count) : new Dictionary<TK, TV>();

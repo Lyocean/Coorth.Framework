@@ -13,20 +13,24 @@ namespace Coorth {
         }
 
         public override void WriteGuid(Guid value) {
-            var bytes = value.ToByteArray();
-            foreach (var b in bytes) {
-                WriteByte(b);
+            var size = Unsafe.SizeOf<Guid>();
+            var span = (stackalloc byte[size]);
+            if (!value.TryWriteBytes(span)) {
+                throw new ArgumentException("Write Guid failed.");
             }
+            WriteBytes(span);
         }
+
+        public abstract void WriteBytes(ReadOnlySpan<byte> value);
 
         public override void WriteType(Type type) {
             var guid = TypeBinding.GetGuid(type);
             if (guid == Guid.Empty) {
-                WriteByte((byte)StoreTypeFlags.ByName);
-                WriteString(type.FullName);
+                WriteByte((byte)DataTypeFlags.Name);
+                WriteString(type.FullName ?? string.Empty);
                 return;
             }
-            WriteByte((byte)StoreTypeFlags.ByGuid);
+            WriteByte((byte)DataTypeFlags.Guid);
             WriteGuid(guid);
         }
 

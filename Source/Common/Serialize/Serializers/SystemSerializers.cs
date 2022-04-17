@@ -2,7 +2,7 @@
 using Coorth.Maths;
 
 namespace Coorth.Serializes {
-    [Serializer(typeof(Vector2))]
+    [DataSerializer(typeof(Vector2))]
     public class Vector2Serializer : TupleSerializer<Vector2> {
         protected override void OnWrite(SerializeWriter writer, in Vector2 value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -15,7 +15,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Vector3))]
+    [DataSerializer(typeof(Vector3))]
     public class Vector3Serializer : TupleSerializer<Vector3> {
         protected override void OnWrite(SerializeWriter writer, in Vector3 value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -30,7 +30,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Vector4))]
+    [DataSerializer(typeof(Vector4))]
     public class Vector4Serializer : TupleSerializer<Vector4> {
         protected override void OnWrite(SerializeWriter writer, in Vector4 value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -47,7 +47,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Quaternion))]
+    [DataSerializer(typeof(Quaternion))]
     public class QuaternionSerializer : TupleSerializer<Quaternion> {
         protected override void OnWrite(SerializeWriter writer, in Quaternion value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -64,7 +64,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Int2))]
+    [DataSerializer(typeof(Int2))]
     public class Int2Serializer : TupleSerializer<Int2> {
         protected override void OnWrite(SerializeWriter writer, in Int2 value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -77,7 +77,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Int3))]
+    [DataSerializer(typeof(Int3))]
     public class Int3Serializer : TupleSerializer<Int3> {
         protected override void OnWrite(SerializeWriter writer, in Int3 value) {
             writer.WriteField(nameof(value.X), 1, value.X);
@@ -92,7 +92,7 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(Color))]
+    [DataSerializer(typeof(Color))]
     public class ColorSerializer : TupleSerializer<Color> {
         protected override void OnWrite(SerializeWriter writer, in Color value) {
             writer.WriteField(nameof(value.R), 1, value.R);
@@ -110,10 +110,10 @@ namespace Coorth.Serializes {
     }
 
 
-    [Serializer(typeof(BitMask32))]
+    [DataSerializer(typeof(BitMask32))]
     public class BitMask32Serializer : Serializer<BitMask32> {
         public override void Write(SerializeWriter writer, in BitMask32 value) {
-            writer.WriteUInt(value.Data);
+            writer.WriteUInt(value.Value);
         }
 
         public override BitMask32 Read(SerializeReader reader, BitMask32 value) {
@@ -121,10 +121,10 @@ namespace Coorth.Serializes {
         }
     }
     
-    [Serializer(typeof(BitMask64))]
+    [DataSerializer(typeof(BitMask64))]
     public class BitMask64Serializer : Serializer<BitMask64> {
         public override void Write(SerializeWriter writer, in BitMask64 value) {
-            writer.WriteULong(value.Data);
+            writer.WriteULong(value.Value);
         }
 
         public override BitMask64 Read(SerializeReader reader, BitMask64 value) {

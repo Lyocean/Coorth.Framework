@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
-    [Component, StoreContract("857C72EF-0954-4F3E-99ED-E5EC0738B25B")]
+    [Component, DataContract, Guid("857C72EF-0954-4F3E-99ED-E5EC0738B25B")]
     public class RouterComponent : Component {
 
         #region Fields

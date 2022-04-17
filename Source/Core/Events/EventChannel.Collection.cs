@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public class EventChannel_Collection<T> : EventReaction<T> {
+    public class EventChannel_Collection<T> : EventReaction<T> where T : notnull {
         
-        public Dictionary<T, List<IEventReaction<T>>> Reactions = new Dictionary<T, List<IEventReaction<T>>>();
+        public readonly Dictionary<T, List<IEventReaction<T>>> Reactions = new Dictionary<T, List<IEventReaction<T>>>();
         
         public EventChannel_Collection(EventChannel<T> channel) : base(channel) { }
         

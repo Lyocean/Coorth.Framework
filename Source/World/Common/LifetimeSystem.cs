@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Common {
-    [System, StoreContract("FB93ADDC-FF8B-4686-A079-50188F7EB575")]
+    [System, DataContract, Guid("FB93ADDC-FF8B-4686-A079-50188F7EB575")]
     public class LifetimeSystem : SystemBase {
         
         private readonly List<Entity> entities = new List<Entity>();

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("2B22E356-FF59-422D-8177-5E4841405314")]
+    [DataContract, Guid("2B22E356-FF59-422D-8177-5E4841405314")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Capsule : IEquatable<Capsule> {
         
@@ -19,15 +20,15 @@ namespace Coorth.Maths {
             this.Radius = radius;
         }
 
-        public bool Equals(Capsule other) {
+        public readonly bool Equals(Capsule other) {
             return Center.Equals(other.Center) && Radius.Equals(other.Radius) && Height.Equals(other.Height);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Capsule other && Equals(other);
         }
 
-        public override int GetHashCode() {
+        public override readonly int GetHashCode() {
             unchecked {
                 var hashCode = Center.GetHashCode();
                 hashCode = (hashCode * 397) ^ Radius.GetHashCode();
@@ -44,7 +45,7 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Capsule(Center:{Center}, Height:{Height}, Radius:{Radius})";
         }
     }

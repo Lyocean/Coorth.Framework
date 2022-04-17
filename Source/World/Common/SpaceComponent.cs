@@ -8,9 +8,9 @@ namespace Coorth.Common {
         
         public ref TransformComponent Transform => ref Entity.Get<TransformComponent>();
 
-        public void OnAdd() { }
+        public void OnSetup() { }
 
-        public void OnRemove() { }
+        public void OnClear() { }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector3 WorldToSpacePosition(in Vector3 value) => Transform.WorldToLocalPosition(value);

@@ -1,10 +1,10 @@
 ﻿namespace Coorth {
     public class WorldConfig {
-        public string Name;
+        public string Name { get; set; } = "World";
 
-        public ActorConfig Actor = ActorConfig.Default;
+        public ActorSetting Actor { get; set; } = ActorSetting.Default;
         
-        public SandboxConfig Sandbox = SandboxConfig.Default;
+        public SandboxConfig Sandbox { get; set; } = SandboxConfig.Default;
         
     }
 }

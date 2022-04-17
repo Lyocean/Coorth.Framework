@@ -13,15 +13,15 @@ namespace Coorth {
     
     public partial class ServiceLocator : Disposable, IServiceLocator {
      
-        private readonly ConcurrentDictionary<Type, ServiceBinding> services = new ConcurrentDictionary<Type, ServiceBinding>();
+        private readonly ConcurrentDictionary<Type, ServiceBinding> services = new();
 
-        private ServiceLocator parent;
+        private ServiceLocator? parent;
         
-        private readonly List<ServiceLocator> children = new List<ServiceLocator>();
+        private readonly List<ServiceLocator> children = new();
         
-        public event Action<ServiceLocator, Type, object> OnCreate;
+        public event Action<ServiceLocator, Type, object>? OnCreate;
 
-        public event Action<ServiceLocator, Type, object> OnDestroy;
+        public event Action<ServiceLocator, Type, object>? OnDestroy;
         
         public readonly EventDispatcher Dispatcher;
 
@@ -54,7 +54,7 @@ namespace Coorth {
             service.ToFactory(_ => Activator.CreateInstance(implType));
             return service;
         }
-        
+
         public ServiceBinding<T> Bind<T>(T value) {
             var service = services.GetOrAdd(typeof(T), CreateBinding);
             service.ToValue(value);
@@ -73,32 +73,32 @@ namespace Coorth {
             return new ServiceBinding<T>(service);
         }
 
-        public ServiceBinding<T> Bind<T, TImpl>() where T : TImpl where TImpl : new() {
+        public ServiceBinding<TImpl> Bind<T, TImpl>() where TImpl : T, new() {
             var service = services.GetOrAdd(typeof(T), CreateBinding);
             service.ToFactory(_ => new TImpl());
-            return new ServiceBinding<T>(service);
+            return new ServiceBinding<TImpl>(service);
         }
         
-        public IServiceBinding Get(Type type) {
-            return services.TryGetValue(type, out var binding) ? binding : null;
+        public IServiceBinding GetBinding(Type type) {
+            return services.TryGetValue(type, out var binding) ? binding : throw new NullReferenceException();
         }
         
-        public ServiceBinding<T> Get<T>() {
-            return new ServiceBinding<T>(Get(typeof(T)));
+        public ServiceBinding<T> GetBinding<T>() {
+            return new ServiceBinding<T>(GetBinding(typeof(T)));
         }
         
         public object Singleton(Type type) {
             if (services.TryGetValue(type, out var binding)) {
                 return binding.Singleton();
             }
-            return parent?.GetService(type);
+            return parent?.GetService(type) ?? throw new NullReferenceException();
         }
 
         public T Singleton<T>() where T: class {
             if (services.TryGetValue(typeof(T), out var binding)) {
                 return binding.Singleton<T>();
             }
-            return parent?.GetService<T>();
+            return parent?.GetService<T>() ?? throw new NullReferenceException();
         }
         
         public object Create(Type type) {

@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Coorth.Common {
-    [System, StoreContract("32B3C700-5454-4C27-83A1-B6B94C6B386D")]
+    [System, DataContract, Guid("32B3C700-5454-4C27-83A1-B6B94C6B386D")]
     public class SandboxSystem : SystemBase {
         protected override void OnAdd() {
             Sandbox.BindComponent<SandboxComponent>();
-            Subscribe<EventSandboxStartup>().OnEvent(Execute);
-            Subscribe<EventSandboxRunTick>().OnEvent(Execute);
-            Subscribe<EventSandboxTicking>().OnEvent(Execute);
+            Subscribe<EventSandboxStartup>().OnEvent(OnStartup);
+            Subscribe<EventSandboxRunTick>().OnEvent(OnRunTick);
+            Subscribe<EventSandboxTicking>().OnEvent(OnTicking);
         }
 
         protected override void OnActive() {
@@ -23,14 +25,14 @@ namespace Coorth.Common {
             component.IsRunning = false;
         }
 
-        private void Execute(EventSandboxStartup e) {
+        private void OnStartup(EventSandboxStartup e) {
             var component = Singleton<SandboxComponent>();
             component.Ticker.Setup(e.Setting);
             Sandbox.Context.Startup(Thread.CurrentThread);
             component.IsRunning = true;
         }
         
-        private void Execute(EventSandboxRunTick e) {
+        private void OnRunTick(EventSandboxRunTick e) {
             var component = Singleton<SandboxComponent>();
             component.Ticker.Setup(e.Setting);
             var thread = new Thread(Run);
@@ -41,7 +43,7 @@ namespace Coorth.Common {
             thread.Start();
         }
         
-        private void Execute(EventSandboxTicking e) {
+        private void OnTicking(EventSandboxTicking e) {
             var component = Singleton<SandboxComponent>();
             if (Sandbox.IsDisposed || !component.IsRunning) {
                 return;
@@ -85,19 +87,20 @@ namespace Coorth.Common {
     
     [Event]
     public readonly struct EventSandboxStartup : IEvent {
-        public readonly ITickSetting Setting;
         
-        public EventSandboxStartup(ITickSetting setting) {
+        public readonly TickSetting Setting;
+        
+        public EventSandboxStartup(TickSetting setting) {
             this.Setting = setting;
         }
     }
 
     [Event]
     public readonly struct EventSandboxRunTick : IEvent {
-        public readonly ITickSetting Setting;
+        public readonly TickSetting Setting;
         public readonly TaskCompletionSource<Sandbox> Completion;
 
-        public EventSandboxRunTick(ITickSetting setting, TaskCompletionSource<Sandbox> completion) {
+        public EventSandboxRunTick(TickSetting setting, TaskCompletionSource<Sandbox> completion) {
             this.Setting = setting;
             this.Completion = completion;
         }

@@ -5,7 +5,7 @@ namespace Coorth {
     
     public abstract class MessageSystem : SystemBase {
 
-        protected ActorRuntime Runtime => Singleton<WorldComponent>().World.Actors;
+        // protected ActorRuntime Runtime => Singleton<WorldComponent>().World.Actors;
 
         protected RouterComponent Router => Singleton<RouterComponent>();
         

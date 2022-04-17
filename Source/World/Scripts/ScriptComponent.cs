@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    [Component, StoreContract("5B494D7C-597D-4D08-9992-28FEC170DB78")]
+    [Component, DataContract, Guid("5B494D7C-597D-4D08-9992-28FEC170DB78")]
     public class ScriptComponent : Component, IDisposable {
 
         public bool IsDisposed { get; private set; }

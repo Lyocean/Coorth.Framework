@@ -1,15 +1,21 @@
-﻿namespace Coorth {
-    public sealed class ModuleRoot : ModuleBase {
-        
-        public override AppFrame App { get; }
-        
-        public override ServiceLocator Services { get; }
-        
-        public override EventDispatcher Dispatcher { get; }
-        
-        public override ActorRuntime Actors { get; }
+﻿using System;
 
-        public override LocalDomain Domain { get; }
+namespace Coorth {
+    public sealed class ModuleRoot : Module {
+
+        public override Type Key => typeof(ModuleRoot);
+
+        public override ModuleRoot Root => this;
+
+        public override AppFrame App { get; }
+
+        public override ServiceLocator Services { get; }
+
+        public override EventDispatcher Dispatcher { get; }
+
+        public ActorRuntime Actors { get; }
+
+        public LocalDomain Domain { get; }
 
         public ModuleRoot(AppFrame app, ServiceLocator services, EventDispatcher dispatcher, ActorRuntime actors) {
             this.App = app;

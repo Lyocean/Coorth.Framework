@@ -48,7 +48,7 @@ namespace Coorth {
             return Equals(Context, other.Context);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is ActorRef other && Equals(other);
         }
 

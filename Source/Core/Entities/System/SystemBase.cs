@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 
 namespace Coorth {
@@ -8,21 +7,25 @@ namespace Coorth {
 
         #region Fields
 
+#nullable disable
+        
         public Sandbox Sandbox { get; private set; }
         
         protected SystemBinding Binding { get; private set; }
+
+#nullable enable
 
         public bool IsDisposed { get; private set; }
 
         protected EventDispatcher Dispatcher => Sandbox.Dispatcher;
         
-        private readonly List<ISystemSubscription> subscriptions = new List<ISystemSubscription>();
+        private readonly List<ISystemSubscription> subscriptions = new();
 
         public IReadOnlyList<ISystemSubscription> Subscriptions => subscriptions;
         
         protected T Singleton<T>() where T : IComponent, new() => Sandbox.Singleton<T>();
         
-        protected T Singleton<T>(Func<Entity, T> provider) where T : IComponent, new() => Sandbox.Singleton().Offer<T>(provider);
+        protected T Singleton<T>(Func<Entity, T> provider) where T : IComponent, new() => Sandbox.Singleton().Offer(provider);
 
         public void Setup(Sandbox sandbox, SystemBinding binding) {
             this.Sandbox = sandbox;
@@ -33,10 +36,10 @@ namespace Coorth {
             if (IsDisposed) {
                 return;
             }
-            OnDispose(true);
+            OnDispose();
         }
 
-        private void OnDispose(bool dispose) {
+        private void OnDispose() {
             IsDisposed = true;
             ClearSystems();
             Parent?.RemoveSystem(Key);
@@ -64,7 +67,7 @@ namespace Coorth {
             var key = typeof(T);
             system.Setup(Sandbox, binding);
             AddChild(key, system);
-            Sandbox.OnSystemAdd<T>(key, system);
+            Sandbox.OnSystemAdd(key, system);
             system.SetActive(true);
             return system;
         }
@@ -126,7 +129,9 @@ namespace Coorth {
         /// </summary>
         /// <typeparam name="T">子系统类</typeparam>
         /// <returns>子系统实例</returns>
-        public T GetSystem<T>() where T : SystemBase => Children.TryGetValue(typeof(T), out var system) ? (T)system : default;
+        public T? TryGetSystem<T>() where T : SystemBase => Children.TryGetValue(typeof(T), out var system) ? (T)system : default;
+        
+        public T GetSystem<T>() where T : SystemBase => Children.TryGetValue(typeof(T), out var system) ? (T)system : throw new KeyNotFoundException();
 
         /// <summary>
         /// 获取所有子系统
@@ -150,7 +155,7 @@ namespace Coorth {
         /// <typeparam name="T">子系统类</typeparam>
         /// <returns>子系统实例</returns>
         public T OfferSystem<T>() where T : SystemBase, new() {
-            return HasSystem<T>() ? GetSystem<T>() : AddSystem<T>();
+            return TryGetSystem<T>() ?? AddSystem<T>();
         }
 
         #endregion

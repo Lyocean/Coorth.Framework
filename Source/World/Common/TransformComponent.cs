@@ -3,10 +3,13 @@ using System.Numerics;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using Coorth.Maths;
 
 namespace Coorth.Common {
-    [Component, StoreContract("482164B6-9432-4AB8-B217-A843BEB96CB8")]
+    
+    [Component, DataContract, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
     public struct TransformComponent : IComponent {
 
         #region Hierarchy
@@ -29,7 +32,7 @@ namespace Coorth.Common {
 
         public SpaceComponent Space => GetSpace();
         
-        public void OnAdd(in Entity entity) {
+        public void OnSetup(in Entity entity) {
             if (entity.IsNull) {
                 throw new ArgumentException();
             }
@@ -43,9 +46,9 @@ namespace Coorth.Common {
             this.worldMatrix = Matrix4x4.Identity;
         }
         
-        public void OnRemove() { }
+        public void OnClear() { }
         
-        private SpaceComponent GetSpace() {
+        private SpaceComponent? GetSpace() {
             if (Entity.TryGet<SpaceComponent>(out var space)) {
                 return space;
             }
@@ -189,12 +192,12 @@ namespace Coorth.Common {
         #endregion
 
         #region Position
-
-        private Vector3 localPosition;
         
+        private Vector3 localPosition;
+        [DataMember(Order = 1)]
         public Vector3 LocalPosition { get => GetLocalPosition(); set => SetLocalPosition(value); }
 
-        [Display]
+        [DataDisplay]
         public Vector3 WorldPosition { get => GetWorldPosition(); set => SetWorldPosition(value); }
 
         public Vector3 SpacePosition { get => GetSpacePosition(); set => SetSpacePosition(value); }
@@ -260,6 +263,7 @@ namespace Coorth.Common {
 
         public Quaternion SpaceRotation { get => GetSpaceRotation(); set => SetSpaceRotation(value); }
         
+        [DataMember(Order = 2)]
         public Vector3 LocalAngles { get => LocalRotation.ToEulerDegree(); set => LocalRotation = value.ToQuaternion(); }
 
         public Vector3 WorldAngles { get => WorldRotation.ToEulerDegree(); set => WorldRotation = value.ToQuaternion(); }
@@ -323,10 +327,10 @@ namespace Coorth.Common {
         #region Scaling
 
         private Vector3 localScale;
-        
+        [DataMember(Order = 3)]
         public Vector3 LocalScale { get => GetLocalScaling(); set => SetLocalScaling(value); }
 
-        [Display]
+        [DataDisplay]
         public Vector3 WorldScale { get => GetWorldScaling(); set => SetWorldScaling(value); }
 
         public Vector3 SpaceScale { get => GetSpaceScaling(); set => SetSpaceScaling(value); }
@@ -494,6 +498,7 @@ namespace Coorth.Common {
         public enum FlagsTypes : byte { None = 0, UseTRS = 1, Immediate = 1 << 1, ChangeEvent = 1 << 2, All = UseTRS | Immediate | ChangeEvent }
 
         #endregion
+
     }
     
     

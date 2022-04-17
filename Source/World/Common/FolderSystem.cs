@@ -1,5 +1,8 @@
-﻿namespace Coorth.Common {
-    [System, StoreContract("4C94F9C9-C178-4E34-9755-DA59E08D96DF")]
+﻿using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+
+namespace Coorth.Common {
+    [System, DataContract, Guid("4C94F9C9-C178-4E34-9755-DA59E08D96DF")]
     public class FolderSystem : SystemBase {
         
         protected override void OnAdd() {

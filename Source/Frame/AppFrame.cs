@@ -5,62 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Coorth {
-    public abstract partial class AppFrame : Disposable {
-        #region Static
+    public abstract partial class AppFrame : Disposable, IExecutable {
 
-        private static readonly object locker = new object();
-
-        private static readonly List<AppFrame> apps = new List<AppFrame>();
-
-        private static AppFrame MainApp {
-            get {
-                lock (locker) {
-                    return apps.FirstOrDefault();
-                }
-            }
-        }
-
-        private static void AddApp(AppFrame app) {
-            lock (locker) {
-                Infra.Instance.AddChild(app.services);
-                app.Index = apps.Count;
-                apps.Add(app);
-            }
-        }
-
-        public static AppFrame GetApp(Guid guid) {
-            lock (locker) {
-                return apps.Find(app => app.Id == guid);
-            }
-        }
-
-        public static AppFrame GetApp(string name) {
-            lock (locker) {
-                return apps.Find(app => app.Name == name);
-            }
-        }
-
-        public static bool RemoveApp(AppFrame app) {
-            lock (locker) {
-                if (!apps.Remove(app)) {
-                    return false;
-                }
-
-                Infra.Instance.RemoveChild(app.services);
-                for (var i = 0; i < apps.Count; i++) {
-                    apps[i].Index = i;
-                }
-
-                return true;
-            }
-        }
-
-        #endregion
-
-        #region Fields & Lifecycle
-
+        public readonly int Id;
+        
         /// <summary> App唯一Id </summary>
-        public readonly Guid Id;
+        public readonly Guid Guid;
 
         /// <summary> App名称 </summary>
         public readonly string Name;
@@ -72,19 +22,23 @@ namespace Coorth {
         public bool IsMain => Index == 0;
 
         /// <summary> App配置 </summary>
-        public readonly AppConfig Config;
+        public readonly AppSetting Setting;
+
+        public AppContext Context = new AppContext();
+
+        public AppTime Time => Context.Time;
 
         private readonly EventDispatcher dispatcher;
         public EventDispatcher Dispatcher => dispatcher;
 
         private readonly ServiceLocator services;
 
-        public ServiceLocator Managers => services;
+        public ServiceLocator Services => services;
 
         public readonly ActorRuntime Actors;
 
-        private readonly ModuleRoot root;
-
+        private bool isSetup;
+        
         private bool isRunning;
 
         /// <summary> App是否正在运行中 </summary>
@@ -95,23 +49,26 @@ namespace Coorth {
         /// <summary> App主线程Id </summary>
         public int MainThreadId => mainThread.ManagedThreadId;
 
-        protected AppFrame(string name, AppConfig config = null, Guid id = default) {
-            this.Id = id == default ? Guid.NewGuid() : id;
+        protected AppFrame(string name, AppSetting setting) {
+            this.Guid = Guid.NewGuid();
+            this.Id = setting.AppId;
             this.Name = !string.IsNullOrWhiteSpace(name) ? name : "GameApp";
-            this.Config = config ?? AppConfig.Default;
+            this.Setting = setting;
+            this.mainThread = Thread.CurrentThread;
 
             this.dispatcher = new EventDispatcher();
             this.services = new ServiceLocator(this.dispatcher);
-            this.Actors = new ActorRuntime(this.dispatcher, this.Config);
+            this.Actors = new ActorRuntime(this.dispatcher, this.Setting);
             this.root = new ModuleRoot(this, services, this.dispatcher, this.Actors);
             this.root.SetActive(false);
-
-            apps.Add(this);
+            
+            AddApp(this);
         }
 
         public AppFrame Setup() {
             LogUtil.Info(nameof(AppFrame), nameof(Setup));
             OnSetup();
+            isSetup = true;
             return this;
         }
 
@@ -154,10 +111,9 @@ namespace Coorth {
         }
 
         public void Execute<T>(in T e) {
-            if (IsDisposed || !IsRunning) {
+            if (IsDisposed || !isSetup) {
                 return;
             }
-
             OnExecute(in e);
 #if DEBUG
             dispatcher.Dispatch(e);
@@ -193,11 +149,10 @@ namespace Coorth {
             LogUtil.Info(nameof(AppFrame), nameof(OnDispose));
             Shutdown();
             OnDestroy();
+            RemoveApp(this);
         }
 
         protected virtual void OnDestroy() {
         }
-
-        #endregion
     }
 }

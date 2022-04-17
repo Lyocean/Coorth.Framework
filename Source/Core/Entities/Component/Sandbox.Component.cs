@@ -266,7 +266,7 @@ namespace Coorth {
 
         #region Offer
         
-        public T Singleton<T>() where T : IComponent {
+        public T Singleton<T>() where T : IComponent, new() {
             return OfferComponent<T>(Singleton().Id);
         }
         
@@ -303,7 +303,7 @@ namespace Coorth {
 
         #region Modify
         
-        public void ModifyComponent<T>(in EntityId id, Action<Sandbox, T> action = null) where T : IComponent {
+        public void ModifyComponent<T>(in EntityId id, Action<Sandbox, T>? action = null) where T : IComponent {
             var typeId = ComponentType<T>.TypeId;
             ref var context = ref GetContext(id.Index);
             var group = GetComponentGroup<T>();

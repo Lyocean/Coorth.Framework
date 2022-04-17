@@ -5,26 +5,24 @@ using Coorth.Serializes;
 namespace Coorth {
     public abstract class ByteSerializeReader : SerializeReader {
 
-        public override DateTime ReadDateTime() {
-            return new DateTime(ReadLong());
-        }
+        public override DateTime ReadDateTime() => new(ReadLong());
 
-        public override TimeSpan ReadTimeSpan() {
-            return new TimeSpan(ReadLong());
-        }
+        public override TimeSpan ReadTimeSpan() => new(ReadLong());
+
+        public abstract int ReadBytes(Span<byte> value);
 
         public override Guid ReadGuid() {
-            int size = Unsafe.SizeOf<Guid>();
-            var bytes = new byte[size];
-            for (var i = 0; i < size; i++) {
-                bytes[i] = ReadByte();
+            var size = Unsafe.SizeOf<Guid>();
+            var span = (stackalloc byte[size]);
+            if (ReadBytes(span) != size) {
+                throw new ArgumentException("Read Guid failed.");
             }
-            return new Guid(bytes);
+            return new Guid(span);
         }
 
-        public override Type ReadType() {
-            var flag = (StoreTypeFlags)ReadByte();
-            if (flag == StoreTypeFlags.ByName) {
+        public override Type? ReadType() {
+            var flag = (DataTypeFlags)ReadByte();
+            if (flag == DataTypeFlags.Name) {
                 return Type.GetType(ReadString());
             }
             return TypeBinding.GetType(ReadGuid());

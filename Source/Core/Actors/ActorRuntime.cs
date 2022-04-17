@@ -7,7 +7,7 @@ namespace Coorth {
 
         public readonly EventDispatcher Dispatcher;
 
-        public readonly IActorConfig Config;
+        public readonly IActorSetting Setting;
 
         public readonly ServiceLocator Services;
 
@@ -21,9 +21,9 @@ namespace Coorth {
 
         private readonly ConcurrentDictionary<ActorPath, ActorId> paths = new ConcurrentDictionary<ActorPath, ActorId>();
         
-        public ActorRuntime(EventDispatcher dispatcher = null, IActorConfig config = null, ServiceLocator services = null) {
+        public ActorRuntime(EventDispatcher? dispatcher = null, IActorSetting? setting = null, ServiceLocator? services = null) {
             this.Dispatcher = dispatcher ?? new EventDispatcher();
-            this.Config = config ?? ActorConfig.Default;
+            this.Setting = setting ?? ActorSetting.Default;
             this.Services = services ?? new ServiceLocator();
             this.Scheduler = new ActorScheduler();
             defaultDomain = CreateDomain<LocalDomain>();

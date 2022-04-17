@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Coorth {
-    public readonly struct DictList<TKey, TValue> {
+    public readonly struct DictList<TKey, TValue> where TKey : notnull {
         
         private readonly List<TValue> list;
         
@@ -32,7 +33,7 @@ namespace Coorth {
             return list[dict[key]];
         }
 
-        public bool TryGet(TKey key, out TValue value) {
+        public bool TryGet(TKey key, [MaybeNullWhen(false)]out TValue value) {
             if (dict.TryGetValue(key, out int index)) {
                 value = list[index];
                 return true;

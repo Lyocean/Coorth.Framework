@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
+    [DataContract, Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
     [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
     public partial struct Color : IEquatable<Color> {
         
@@ -14,7 +15,6 @@ namespace Coorth.Maths {
         public float B;
         
         public float A;
-
 
 
         public Color(float rgb, float alpha = 1f) {
@@ -81,7 +81,7 @@ namespace Coorth.Maths {
             this.A = values[index+3];
         }
         
-        public float[] ToArray() {
+        public readonly float[] ToArray() {
             return new[] { this.R, this.G, this.B, this.A };
         }
         
@@ -93,7 +93,7 @@ namespace Coorth.Maths {
         }
         
         public static explicit operator int(Color value) {
-            return ((int)(byte)(value.R * 255) << 24) | ((int)(byte)(value.G * 255) << 16) | ((int)(byte)(value.B * 255) << 8) | (int)(byte)(value.B * 255);
+            return ((byte)(value.R * 255) << 24) | ((byte)(value.G * 255) << 16) | ((byte)(value.B * 255) << 8) | (byte)(value.B * 255);
         }
         
         public static explicit operator Color(int value) {
@@ -108,10 +108,10 @@ namespace Coorth.Maths {
         }
         
         public static explicit operator long(Color value) {
-            var r = ((long) (value.R * 255) << 48);
-            var g = ((long) (value.G * 255) << 32);
-            var b = ((long) (value.B * 255) << 16);
-            var a = ((long) (value.A * 255));
+            var r = (long) (value.R * 255) << 48;
+            var g = (long) (value.G * 255) << 32;
+            var b = (long) (value.B * 255) << 16;
+            var a = (long) (value.A * 255);
             return r | g | b | a;
         }
         
@@ -120,7 +120,7 @@ namespace Coorth.Maths {
         }
 
         public float this[int index] {
-            get {
+            readonly get {
                 switch (index) {
                     case 0: return this.R;
                     case 1: return this.G;
@@ -140,11 +140,13 @@ namespace Coorth.Maths {
             }
         }
 
-        public bool Equals(Color other) {
+        public Vector3 RGB() => new Vector3(R, G, B);
+        
+        public readonly bool Equals(Color other) {
             return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Color other && Equals(other);
         }
 
@@ -156,17 +158,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                int hashCode = R.GetHashCode();
-                hashCode = (hashCode * 397) ^ G.GetHashCode();
-                hashCode = (hashCode * 397) ^ B.GetHashCode();
-                hashCode = (hashCode * 397) ^ A.GetHashCode();
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(R, G, B, A);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Color(R:{R},G:{G},B:{B},A:{A})";
         }
 

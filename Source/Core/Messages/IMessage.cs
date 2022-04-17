@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Coorth {
     
@@ -11,13 +12,13 @@ namespace Coorth {
     public interface IResponse : IMessage {
     }
     
-    [Message, StoreContract]
+    [Message, DataContract]
     public sealed partial class ErrorMessage : IResponse {
         
-        [StoreMember(1)]
+        [DataMember(Order = 1)]
         public int ErrorCode { get; private set; }
         
-        [StoreMember(2)]
+        [DataMember(Order = 2)]
         public string ErrorInfo { get; private set; }
 
         public ErrorMessage(int errorCode, string errorInfo) {

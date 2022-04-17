@@ -17,7 +17,7 @@ namespace Coorth {
         
         private readonly Dictionary<int, ArchetypeDefinition> links = new Dictionary<int, ArchetypeDefinition>();
 
-        private int reusing = 0;
+        private int reusing;
         
         public readonly int Flag;
 
@@ -183,7 +183,7 @@ namespace Coorth {
 
         #region ToString
 
-        private string toString;
+        private string? toString;
         
         public string GetComponentNames() {
             if (toString != null) {

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Coorth {
-    public interface IBlackboard<in TKey> {
+    public interface IBlackboard<in TKey> where TKey : notnull {
+        int Count { get; }
+        int GetCount<TValue>();
         bool Has<TValue>(TKey key);
         TValue Get<TValue>(TKey key);
         ref TValue Ref<TValue>(TKey key);
@@ -11,12 +14,12 @@ namespace Coorth {
         bool Remove<TValue>(TKey key);
     }
     
-    public class Blackboard<TKey> : IBlackboard<TKey> {
+    public class Blackboard<TKey> : IBlackboard<TKey> where TKey : notnull {
 
         private readonly Dictionary<Type, IGroup> groups = new Dictionary<Type, IGroup>();
+        public IReadOnlyDictionary<Type, IGroup> Groups => groups;
 
         private readonly Dictionary<TKey, int> indices = new Dictionary<TKey, int>();
-
         public IReadOnlyDictionary<TKey, int> Indices => indices;
 
         public int Count => indices.Count;
@@ -55,7 +58,7 @@ namespace Coorth {
             return ref group.Ref(index);
         }
         
-        public bool TryGet<TValue>(TKey key, out TValue value) {
+        public bool TryGet<TValue>(TKey key, [MaybeNullWhen(false)] out TValue value) {
             if (!indices.TryGetValue(key, out var index)) {
                 value = default;
                 return false;
@@ -98,8 +101,8 @@ namespace Coorth {
             indices.Clear();
         }
 
-        private interface IGroup {
-            
+        public interface IGroup {
+            int Count { get; }
         }
         
         public class Group<TValue> : IGroup {

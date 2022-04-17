@@ -29,6 +29,7 @@ namespace Coorth {
 
         #endregion
 
+        
         #region Read Write Entity
 
         public void ReadEntity(SerializeReader reader, EntityId entityId) {
@@ -58,7 +59,7 @@ namespace Coorth {
             writer.BeginDict(typeof(Type), typeof(IComponent), context.Count);
             foreach (var pair in context.Components) {
                 var componentGroup = GetComponentGroup(pair.Key);
-                writer.WriteKey(componentGroup.Type);
+                writer.WriteKey<Type>(componentGroup.Type);
                 componentGroup.WriteComponent(writer, pair.Value);
             }
             writer.EndDict();
@@ -97,6 +98,7 @@ namespace Coorth {
         
         #endregion
 
+        
         #region Read Write Archetype
 
         public Archetype ReadArchetype(SerializeReader reader) {
@@ -124,7 +126,7 @@ namespace Coorth {
             writer.BeginList<Type>(archetype.Definition.ComponentCount);
             foreach (var typeId in archetype.Definition.Types) {
                 var componentGroup = GetComponentGroup(typeId);
-                writer.WriteValue<Type>(componentGroup.Type);
+                writer.WriteValue(componentGroup.Type);
             }
             writer.EndList();
             writer.EndScope();
@@ -132,6 +134,7 @@ namespace Coorth {
         
         #endregion
 
+        
         #region Read Write Group
 
         public List<Entity> ReadEntitiesByArchetype(SerializeReader reader) {
@@ -143,6 +146,7 @@ namespace Coorth {
         }
 
         #endregion
+        
         
         #region Read Write Sandbox
 

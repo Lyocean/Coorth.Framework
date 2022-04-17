@@ -28,7 +28,7 @@ namespace Coorth {
             return context.Ref;
         }
         
-        public T CreateProxy<T>(ActorId id, string name) {
+        public T? CreateProxy<T>(ActorId id, string name) {
             var proxy = TypeBinding.Create<T>();
             name = string.IsNullOrEmpty(name) ? id.ToShortString() : name;
             var context = new RemoteContext(id, this, new ActorPath(Name + "/" + name));

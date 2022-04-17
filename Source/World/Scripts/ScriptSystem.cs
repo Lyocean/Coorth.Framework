@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth {
-    [System, StoreContract("AECBF415-F47B-4833-8C1D-504E033F34E0")]
+    [System, DataContract, Guid("AECBF415-F47B-4833-8C1D-504E033F34E0")]
     public class ScriptSystem : SystemBase {
 
         public EventDispatcher GetDispatcher() => this.Dispatcher;

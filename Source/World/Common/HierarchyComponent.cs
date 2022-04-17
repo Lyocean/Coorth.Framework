@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Common {
-    [Component, StoreContract("C30A217A-4660-402A-A993-BA4820389F0B")]
+    [Component, DataContract, Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
     public struct HierarchyComponent : IComponent {
         
         public Entity Entity { get; private set; }
@@ -13,12 +15,11 @@ namespace Coorth.Common {
         private EntityId parentId;
 
         private int count;
-        
+        public int Count => count;
+
         private EntityId headId, tailId;
 
         private EntityId prevId, nextId;
-        
-        public int Count => count;
         
         public Entity ParentEntity => Sandbox.GetEntity(parentId);
 

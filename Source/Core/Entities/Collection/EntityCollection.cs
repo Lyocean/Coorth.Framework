@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
 namespace Coorth {
@@ -35,7 +34,7 @@ namespace Coorth {
                         try {
                             Current = sandbox.GetEntity(entityIndex);
                         }
-                        catch (Exception e) {
+                        catch {
                             LogUtil.Error($"index:{index}, entityIndex:{entityIndex}");
                             throw;
                         }

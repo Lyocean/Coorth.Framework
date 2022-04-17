@@ -11,23 +11,23 @@ namespace Coorth.Serializes {
 
         #region Static
 
-        private static readonly ConcurrentDictionary<Type, ObjectSerializer> serializers = new ConcurrentDictionary<Type, ObjectSerializer>();
+        private static readonly ConcurrentDictionary<Type, ObjectSerializer?> serializers = new();
 
-        public static ObjectSerializer Get(Type type) {
+        public static ObjectSerializer? Get(Type type) {
             return serializers.GetOrAdd(type, createAction);
         }
 
         private static readonly Func<Type, ObjectSerializer> createAction = Create;
 
-        private static ObjectSerializer Create(Type type) {
-            if (type.IsDefined(typeof(StoreContractAttribute))) {
-                return new ObjectSerializer(type, type.GetCustomAttribute<StoreContractAttribute>());
-            }
+        private static ObjectSerializer? Create(Type type) {
+            // if (type.IsDefined(typeof(DataContractAttribute))) {
+            //     return new ObjectSerializer(type, type.GetCustomAttribute<DataContractAttribute>()!);
+            // }
             if (type.IsDefined(typeof(DataContractAttribute))) {
-                return new ObjectSerializer(type, type.GetCustomAttribute<DataContractAttribute>());
+                return new ObjectSerializer(type, type.GetCustomAttribute<DataContractAttribute>()!);
             }
             if (type.IsDefined(typeof(SerializableAttribute))) {
-                return new ObjectSerializer(type, type.GetCustomAttribute<SerializableAttribute>());
+                return new ObjectSerializer(type, type.GetCustomAttribute<SerializableAttribute>()!);
             }
             return null;
         }
@@ -41,10 +41,10 @@ namespace Coorth.Serializes {
         private readonly MemberSerializer[] members;
         public IReadOnlyList<MemberSerializer> Members => members;
 
-        public ObjectSerializer(Type type, StoreContractAttribute attribute) {
-            this.Type = type;
-            this.members = this.InitMembers();
-        }
+        // public ObjectSerializer(Type type, DataContractAttribute attribute) {
+        //     this.Type = type;
+        //     this.members = this.InitMembers();
+        // }
 
         public ObjectSerializer(Type type, DataContractAttribute attribute) {
             this.Type = type;
@@ -82,10 +82,10 @@ namespace Coorth.Serializes {
         }
 
         private static bool AddMember(ICollection<MemberSerializer> list, Type memberType, MemberInfo memberInfo, bool isDefaultSerialize) {
-            if (memberInfo.IsDefined(typeof(IgnoreDataMemberAttribute)) || memberInfo.IsDefined(typeof(StoreIgnoreAttribute)) || memberInfo.IsDefined(typeof(NonSerializedAttribute))) {
+            if (memberInfo.IsDefined(typeof(IgnoreDataMemberAttribute)) || memberInfo.IsDefined(typeof(DataIgnoreAttribute)) || memberInfo.IsDefined(typeof(NonSerializedAttribute))) {
                 return false;
             }
-            var markByAttribute = memberInfo.IsDefined(typeof(StoreMemberAttribute)) || memberInfo.IsDefined(typeof(DataMemberAttribute));
+            var markByAttribute = memberInfo.IsDefined(typeof(DataMemberAttribute));
             if (!isDefaultSerialize && ! markByAttribute) {
                 return false;
             }
@@ -117,7 +117,7 @@ namespace Coorth.Serializes {
         }
 
         public override object Read(SerializeReader reader, object value) {
-            // Debug.Log($"================>Read:{Type}");
+            LogUtil.Debug($"================>Read:{Type}");
             var scope = Type.IsClass ? SerializeScope.Class : SerializeScope.Struct;
             reader.BeginScope(Type, scope);
             value ??= Activator.CreateInstance(Type);
@@ -142,14 +142,14 @@ namespace Coorth.Serializes {
         private MemberSerializer(MemberInfo memberInfo, Serializer serializer) {
             this.memberInfo = memberInfo;
             this.serializer = serializer;
-            var store = memberInfo.GetCustomAttribute<StoreMemberAttribute>();
+            var store = memberInfo.GetCustomAttribute<DataMemberAttribute>();
             if (store != null) {
                 name = store.Name;
-                Index = store.Index;
+                Index = store.Order;
                 IsRequire = store.IsRequired;
                 return;
             }
-            var data = memberInfo.GetCustomAttribute<DataMemberAttribute>();
+            var data = memberInfo.GetCustomAttribute<System.Runtime.Serialization.DataMemberAttribute>();
             if (data != null) {
                 name = data.Name;
                 Index = data.Order;
@@ -193,8 +193,8 @@ namespace Coorth.Serializes {
                     return new MemberSerializer(memberInfo, serializer);
                 }
             }
-            if (memberType.IsDefined(typeof(StoreMemberAttribute)) || 
-                memberType.IsDefined(typeof(DataContractAttribute)) || 
+            if (memberType.IsDefined(typeof(DataMemberAttribute)) || 
+                memberType.IsDefined(typeof(System.Runtime.Serialization.DataContractAttribute)) || 
                 memberType.IsDefined(typeof(SerializableAttribute))) {
                 
                 serializer = ObjectSerializer.Get(memberType);

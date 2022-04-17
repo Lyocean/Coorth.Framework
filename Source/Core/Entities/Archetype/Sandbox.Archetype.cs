@@ -6,7 +6,7 @@ namespace Coorth {
         
         private readonly Dictionary<int, List<ArchetypeDefinition>> archetypes = new Dictionary<int, List<ArchetypeDefinition>>();
 
-        private ArchetypeDefinition emptyArchetype;
+        private readonly ArchetypeDefinition emptyArchetype;
 
         private readonly Dictionary<int, List<ArchetypeGroup>> componentToGroups = new Dictionary<int, List<ArchetypeGroup>>();
 
@@ -16,7 +16,6 @@ namespace Coorth {
 
         private void InitArchetypes(int indexCapacity, int chunkCapacity) {
             ArchetypeCapacity = (indexCapacity, chunkCapacity);
-            emptyArchetype = new ArchetypeDefinition(this);
         }
 
         private void ClearArchetypes() {
@@ -77,8 +76,8 @@ namespace Coorth {
             }
 
             for (var i = 0; i < archetype.Types.Length; i++) {
-                int typeId = archetype.Types[i];
-                if (componentToGroups.TryGetValue(typeId, out List<ArchetypeGroup> list)) {
+                var typeId = archetype.Types[i];
+                if (componentToGroups.TryGetValue(typeId, out var list)) {
                     foreach (var archetypeGroup in list) {
                         archetypeGroup.Match(archetype);
                     }

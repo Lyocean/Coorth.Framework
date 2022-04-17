@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Coorth {
     public ref struct TempList<T>  {
@@ -78,14 +77,13 @@ namespace Coorth {
         }
         
         public Span<T> AsSpan() {
-            return new Span<T>(array);
+            return new Span<T>(array, 0, count);
         }
         
         public void Clear() {
             if(array != null) {
                 ArrayPool<T>.Shared.Return(array, true);
             }
-            array = null;
         }
 
         public void Dispose() => Clear();

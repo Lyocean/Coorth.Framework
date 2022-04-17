@@ -114,10 +114,10 @@
         
         public static ref T Set<T>(this Entity entity, T defaultValue) where T : IComponent, new() {
             if (entity.Has<T>()) {
-                entity.Modify<T>(defaultValue);
+                entity.Modify(defaultValue);
             }
             else {
-                entity.Add<T>(defaultValue);
+                entity.Add(defaultValue);
             }
             return ref entity.Get<T>();
         }
@@ -188,7 +188,7 @@
         }
         
         public static Entity With<T>(this Entity entity, T component) where T: IComponent {
-            entity.Add<T>(component);
+            entity.Add(component);
             return entity;
         }
 

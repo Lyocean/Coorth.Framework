@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 
 namespace Coorth {
     public abstract partial class SystemBase {
-        
+
+        #region Subscribe
+
         /// <summary>
         /// 订阅事件
         /// </summary>
@@ -16,20 +18,6 @@ namespace Coorth {
             return subscription;
         }
         
-        // protected SystemSubscription<TEvent> Subscribe2<TEvent>(TEvent e) {
-        //     var subscription = new SystemSubscription<TEvent>(this, Dispatcher);
-        //     subscriptions.Add(subscription);
-        //     Collector.Add(subscription);
-        //     return subscription;
-        // }
-        
-        //
-        // protected SystemSubscription<TEvent> Subscribe2<TEvent, TKey>(TKey key) where TEvent : IKeyable<TKey> {
-        //     var subscription = new SystemSubscription<TEvent>(this, Dispatcher);
-        //     return subscription;
-        // }
-        //
-
         internal void RemoveReaction<T>(SystemSubscription<T> subscription) {
             subscriptions.Remove(subscription);
         }
@@ -60,35 +48,133 @@ namespace Coorth {
         protected void Subscribe<TEvent>(Func<TEvent, ValueTask> action) {
             Subscribe<TEvent>().OnEvent(action);
         }
+
+        #endregion
         
+        
+        #region Lifecycle
+        
+        /// <summary>
+        /// 当添加组件时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentAdd<T>(EventActionR<Entity, T> action) where T : IComponent {
             Subscribe<EventComponentAdd<T>>(_ => action(_.Entity, ref _.Get()));
         }
         
+        /// <summary>
+        /// 当添加组件时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentAdd<T>(EventActionR<T> action) where T : IComponent {
             Subscribe<EventComponentAdd<T>>(_ => action(ref _.Get()));
         }
 
+        /// <summary>
+        /// 组件初始化
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
+        protected void OnComponentSetup<T>(EventActionR<Entity, T> action) where T : IComponent {
+            OnComponentAdd(action);
+            foreach (var (entity, _) in Sandbox.GetComponents<T>()) {
+                action(entity, ref entity.Get<T>());
+            }
+        }
+        
+        /// <summary>
+        /// 组件初始化
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
+        protected void OnComponentSetup<T>(EventActionR<T> action) where T : IComponent {
+            OnComponentAdd(action);
+            foreach (var (entity, _) in Sandbox.GetComponents<T>()) {
+                action(ref entity.Get<T>());
+            }
+        }
+        
+        /// <summary>
+        /// 组件清理
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
+        protected void OnComponentClear<T>(EventActionR<Entity, T> action) where T : IComponent {
+             OnComponentRemove(action);
+             Managed.Add(new DisposeAction(() => {
+                 foreach (var (entity, _) in Sandbox.GetComponents<T>()) {
+                    action(entity, ref entity.Get<T>());
+                 }
+             }));
+        }
+
+        /// <summary>
+        /// 组件清理
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
+        protected void OnComponentClear<T>(EventActionR<T> action) where T : IComponent {
+            OnComponentRemove(action);
+            Managed.Add(new DisposeAction(() => {
+                foreach (var (entity, _) in Sandbox.GetComponents<T>()) {
+                    action(ref entity.Get<T>());
+                }
+            }));
+        }
+        
+        /// <summary>
+        /// 当组件移除时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentRemove<T>(EventActionR<Entity, T> action) where T : IComponent {
             Subscribe<EventComponentRemove<T>>(_ => action(_.Entity, ref _.Get()));
         }
         
+        /// <summary>
+        /// 当组件移除时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentRemove<T>(EventActionR<T> action) where T : IComponent {
             Subscribe<EventComponentRemove<T>>(_ => action(ref _.Get()));
         }
-        
+
+        /// <summary>
+        /// 当组件变更时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentModify<T>(EventActionR<Entity, T> action) where T : IComponent {
             Subscribe<EventComponentModify<T>>(_ => action(_.Entity, ref _.Get()));
         }
         
+        /// <summary>
+        /// 当组件变更时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentModify<T>(EventActionR<T> action) where T : IComponent {
             Subscribe<EventComponentModify<T>>(_ => action(ref _.Get()));
         }
         
+        /// <summary>
+        /// 当组件Enable变化时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentEnable<T>(EventActionR<Entity, bool, T> action) where T : IComponent {
             Subscribe<EventComponentEnable<T>>(_ => action(_.Entity, _.IsEnable, ref _.Get()));
         }
         
+        /// <summary>
+        /// 当组件Enable变化时
+        /// </summary>
+        /// <param name="action">响应函数</param>
+        /// <param name="isEnable">Enable</param>
+        /// <typeparam name="T">组件</typeparam>
         protected void OnComponentEnable<T>(EventActionR<Entity, T> action, bool isEnable) where T : IComponent {
             Subscribe<EventComponentEnable<T>>(_ => {
                 if (_.IsEnable == isEnable) {
@@ -96,6 +182,11 @@ namespace Coorth {
                 }
             });
         }
+        
+        #endregion
+
+        
+        #region ForEach
 
         /// <summary>
         /// 订阅事件TEvent，并在收到事件后遍历所有TComponent组件
@@ -103,7 +194,7 @@ namespace Coorth {
         /// <typeparam name="TEvent">事件</typeparam>
         /// <typeparam name="TComponent">组件</typeparam>
         /// <param name="action">响应函数</param>
-        protected  void ForEach<TEvent, TComponent>(Action<TEvent, TComponent> action) where TComponent: IComponent {
+        protected void ForEach<TEvent, TComponent>(Action<TEvent, TComponent> action) where TComponent: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
         
@@ -162,8 +253,13 @@ namespace Coorth {
         protected void ForEach<TEvent, TComponent1, TComponent2, TComponent3>(Action<TEvent, Entity, TComponent1, TComponent2, TComponent3> action) where TComponent1 : class, IComponent where TComponent2: class, IComponent where TComponent3: IComponent {
             Subscribe<TEvent>().ForEach(action);
         }
+
+        #endregion
+
         
-        private void MatchSystem<T>(Action<T> onAdd, Action<T> onRemove) where T : SystemBase {
+        #region System
+
+        private void MatchSystem<T>(Action<T>? onAdd, Action<T>? onRemove) where T : SystemBase {
             if (onAdd != null) {
                 var system = Sandbox.GetSystem<T>();
                 if (system != null) {
@@ -185,10 +281,10 @@ namespace Coorth {
         protected void Associate<TSystem, TChild>() where  TSystem : SystemBase  where TChild : SystemBase, new() {
             var system = Sandbox.GetSystem<TSystem>();
             if (system != null) {
-                system.Parent.AddSystem<TChild>();
+                system.Parent?.AddSystem<TChild>();
             }
-            Subscribe<EventSystemAdd<TChild>>(s => s.System.Parent.AddSystem<TChild>());
-            Subscribe<EventSystemRemove<TChild>>(s => s.System.Parent.RemoveSystem<TChild>());
+            Subscribe<EventSystemAdd<TChild>>(s => s.System.Parent?.AddSystem<TChild>());
+            Subscribe<EventSystemRemove<TChild>>(s => s.System.Parent?.RemoveSystem<TChild>());
         }
         
         protected void Associate<TSystem1, TSystem2, TChild>() where TSystem1 : SystemBase where TSystem2 : SystemBase where TChild : SystemBase, new() {
@@ -196,23 +292,29 @@ namespace Coorth {
             var system2 = Sandbox.GetSystem<TSystem2>();
 
             if (system1 != null && system2 != null) {
-                system2.Parent.AddSystem<TChild>();
+                system2.Parent?.AddSystem<TChild>();
             }
             Subscribe<EventSystemAdd<TSystem1>>(_ => {
                 var system = Sandbox.GetSystem<TSystem2>();
                 if (system !=null) {
-                    system.Parent.AddSystem<TChild>();
+                    system.Parent?.AddSystem<TChild>();
                 }
             });
             Subscribe<EventSystemAdd<TSystem2>>(e => {
                 var system = e.System;
                 if (Sandbox.HasSystem<TSystem1>()) {
-                    system.Parent.AddSystem<TChild>();
+                    system.Parent?.AddSystem<TChild>();
                 }
             });
             Subscribe<EventSystemRemove<TSystem1>>(e => e.Sandbox.RemoveSystem<TChild>());
             Subscribe<EventSystemRemove<TSystem2>>(e => e.Sandbox.RemoveSystem<TChild>());
         }
+
+
+        #endregion
+
+        
+        #region Other
 
         protected void MatchComponents<T1, T2>(Action<T1, T2> action) where T1: IComponent where T2: IComponent {
             var components = Sandbox.GetComponents<T1, T2>();
@@ -244,7 +346,7 @@ namespace Coorth {
             });
         }
         
-        protected void MatchComponent<T>(Action<T> onAdd, Action<T> onRemove) where T : IComponent {
+        protected void MatchComponent<T>(Action<T>? onAdd, Action<T>? onRemove) where T : IComponent {
             if (onAdd != null) {
                 var components = Sandbox.GetComponents<T>();
                 foreach (var (_, component) in components) {
@@ -258,7 +360,7 @@ namespace Coorth {
             }
         }
         
-        protected void OnMatch(Action<Entity> onAdd, Action<Entity> onRemove) {
+        protected void OnMatch(Action<Entity>? onAdd, Action<Entity>? onRemove) {
             if (onAdd != null) {
                 var entities = Sandbox.GetEntities();
                 foreach (var entity in entities) {
@@ -281,6 +383,8 @@ namespace Coorth {
             Subscribe<EventEntityRemove>(e => action(e.Entity, true));
         }
         
-        public delegate bool RemoveCondition<TEvent, TComponent>(in TEvent e, in Entity entity, in TComponent component);
+
+        #endregion
+
     }
 }

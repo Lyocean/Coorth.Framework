@@ -7,10 +7,10 @@ namespace Coorth {
         long AgentId { get; set; }
     }
 
-    [Message, Serializable, StoreContract("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
+    [Message, Serializable, DataContract, Guid("EE4B3E99-DFE0-4018-8913-096E8D2DA193")]
     public class MessageCreateEntity : IMessage {
         
-        [StoreMember(1)] public long AgentId { get; set; }
+        [DataMember(Order = 1)] public long AgentId { get; set; }
 
         public MessageCreateEntity(long agentId) {
             this.AgentId = agentId;
@@ -18,7 +18,7 @@ namespace Coorth {
         
     }
     
-    [Message, Serializable, StoreContract("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
+    [Message, Serializable, DataContract, Guid("4A917442-CB5B-4831-AA70-4C0FD23EF5AD")]
     public class MessageDestroyEntity : IMessage {
         public readonly long AgentId;
 
@@ -28,11 +28,11 @@ namespace Coorth {
     }
 
     public abstract class AgentMessage : IAgentMessage {
-        [DataMember(Order = 100)]
+        [System.Runtime.Serialization.DataMember(Order = 100)]
         public long AgentId { get; set; }
     }
     
-    [Message, DataContract, Guid("BF941AEC-CD7F-499B-AC33-7A269D931FFC")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("BF941AEC-CD7F-499B-AC33-7A269D931FFC")]
     public class MessageAddComponent : AgentMessage {
         
         public readonly Type ComponentType;
@@ -43,7 +43,7 @@ namespace Coorth {
         
     }
     
-    [Message, DataContract, Guid("832D4F79-78ED-455A-9039-16658514D071")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("832D4F79-78ED-455A-9039-16658514D071")]
     public class MessageRemoveComponent : AgentMessage {
         public readonly Type ComponentType;
         
@@ -52,7 +52,7 @@ namespace Coorth {
         }
     }
     
-    [Message, DataContract, Guid("C1E7F0FC-CBE1-4AFC-9EF5-DE7C9B031B0D")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("C1E7F0FC-CBE1-4AFC-9EF5-DE7C9B031B0D")]
     public class MessageModifyComponent : AgentMessage {
         public readonly Type ComponentType;
         
@@ -61,7 +61,7 @@ namespace Coorth {
         }
     }
 
-    [Message, DataContract, Guid("A71CF508-C3F1-403D-9636-0FFC9A993FE2")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("A71CF508-C3F1-403D-9636-0FFC9A993FE2")]
     public class MessageAddSystem : IMessage {
         public readonly Type ParentType;
         public readonly Type SystemType;
@@ -73,7 +73,7 @@ namespace Coorth {
 
     }
     
-    [Message, DataContract, Guid("1B594CBC-B17A-484D-BB98-4580936EC240")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("1B594CBC-B17A-484D-BB98-4580936EC240")]
     public class MessageRemoveSystem : IMessage {
         public readonly Type SystemType;
 
@@ -84,7 +84,7 @@ namespace Coorth {
 
     }
     
-    [Message, DataContract, Guid("AD68BF37-CAB7-4665-BE30-CF1D13AAE75C")]
+    [Message, System.Runtime.Serialization.DataContract, Guid("AD68BF37-CAB7-4665-BE30-CF1D13AAE75C")]
     public class MessageActiveSystem : IMessage {
         public readonly Type SystemType;
         public readonly bool IsActive;

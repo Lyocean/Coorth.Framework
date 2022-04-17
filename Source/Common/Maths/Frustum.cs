@@ -2,9 +2,10 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
+    [DataContract, Guid("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Frustum : IEquatable<Frustum>, IBounding {
         
@@ -90,13 +91,13 @@ namespace Coorth.Maths {
             return ContainmentType.Contains;
         }
 
-        public bool Equals(Frustum other) {
+        public readonly bool Equals(Frustum other) {
             return Near.Equals(other.Near) && Far.Equals(other.Far) 
                 && Left.Equals(other.Left) && Right.Equals(other.Right) 
                 && Top.Equals(other.Top) && Bottom.Equals(other.Bottom);
         }
         
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Frustum other && Equals(other);
         }
         
@@ -108,13 +109,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                return (Near.GetHashCode() * 397) ^ (Far.GetHashCode() * 397) ^ (Left.GetHashCode() * 397) ^ (Right.GetHashCode() * 397) ^ (Top.GetHashCode() * 397) ^ (Bottom.GetHashCode() * 397);      
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(Near, Far, Left, Right, Top, Bottom);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Frustum(Near:{Near},Far:{Far},Left:{Left},Right:{Right},Top:{Top},Bottom:{Bottom})";
         }
     }

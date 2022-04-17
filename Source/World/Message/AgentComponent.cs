@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Coorth {
     [Component]
-    [Serializable, StoreContract("E3863A56-B271-4B67-BB8F-9DCD6CEAC2F1")]
+    [Serializable, DataContract, Guid("E3863A56-B271-4B67-BB8F-9DCD6CEAC2F1")]
     public class AgentComponent : Component {
         
         public long AgentId { get; private set; }

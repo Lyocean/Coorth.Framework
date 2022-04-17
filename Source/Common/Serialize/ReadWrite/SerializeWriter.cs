@@ -22,7 +22,7 @@ namespace Coorth {
         //Tag, Key, Value
         public abstract void WriteTag(string name, int index);
 
-        public virtual void WriteKey<TKey>(in TKey key) {
+        public virtual void WriteKey<TKey>(in TKey key) where TKey : notnull {
             // UnityEngine.Debug.Log($"WriteKey:{key}");
             var type = typeof(TKey);
             if (type.IsPrimitive) {
@@ -33,6 +33,10 @@ namespace Coorth {
                 }
             } else if (type.IsEnum) {
                 WriteEnum(key);
+                return;
+            } else if (key is Type t) {
+                WriteType(t);
+                return;
             }
             throw new NotSupportedException(type.ToString());
         }
@@ -61,7 +65,7 @@ namespace Coorth {
             throw new NotSupportedException(typeof(T).ToString());
         }
         //Object
-        public virtual void WriteObject(Type type, object value) {
+        public virtual void WriteObject(Type type, object? value) {
             //LogUtil.Debug($"WriteObject:{type}");
             if (value == null) {
                 return;
@@ -128,7 +132,7 @@ namespace Coorth {
 
         public abstract void WriteType(Type value);
 
-        public abstract void WriteEnum<T>(T value);
+        public abstract void WriteEnum<T>(T value) where T : notnull;
 
         #endregion
 
@@ -150,7 +154,7 @@ namespace Coorth {
             EndList();
         }
         
-        public void WriteDict<TK, TV>(IDictionary<TK, TV> dict) {
+        public void WriteDict<TK, TV>(IDictionary<TK, TV>? dict) where TK : notnull {
             if(dict == null){
                 BeginDict<TK, TV>(0);
                 EndDict();
@@ -164,7 +168,7 @@ namespace Coorth {
             EndDict();
         }
         
-        public void WriteDict<TK, TV>(IReadOnlyDictionary<TK, TV> dict) {
+        public void WriteDict<TK, TV>(IReadOnlyDictionary<TK, TV>? dict) where TK : notnull {
             if(dict == null){
                 BeginDict<TK, TV>(0);
                 EndDict();

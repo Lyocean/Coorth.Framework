@@ -28,7 +28,7 @@ namespace Coorth {
             
             private Func<ServiceLocator, object> provider;
             
-            private volatile object instance;
+            private volatile object? instance;
             
             public ServiceBinding(ServiceLocator l, Type t) {
                 this.locator = l;

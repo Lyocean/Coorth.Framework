@@ -3,13 +3,16 @@ using System.Collections.Generic;
 
 namespace Coorth {
     public abstract partial class SystemBase {
-        
-        public Type Key { get; private set; }
-        
-        public SystemBase Parent { get; private set; }
 
-        private Dictionary<Type, SystemBase> children;
-        public IReadOnlyDictionary<Type, SystemBase> Children => children;
+#nullable disable
+        public Type Key { get; private set; }
+#nullable enable
+        
+        public SystemBase? Parent { get; private set; }
+
+        private static readonly Dictionary<Type, SystemBase> empty = new();
+        private Dictionary<Type, SystemBase>? children;
+        public IReadOnlyDictionary<Type, SystemBase> Children => children ?? empty;
         
         public int ChildCount => children?.Count ?? 0;
 
@@ -23,21 +26,21 @@ namespace Coorth {
 
         protected Disposables Actives;
 
-        protected ref Disposables Collector => ref (IsActive ? ref Actives :  ref Managed);
+        protected ref Disposables Collector => ref (IsActive ? ref Actives : ref Managed);
 
         private void AddChild(Type key, SystemBase child) {
             child.Parent?.RemoveChild(child.Key);
-            child.Parent = (SystemBase) this;
+            child.Parent = this;
             
             children ??= new Dictionary<Type, SystemBase>();
             children.Add(key, child);
             child.Key = key;
 
-            OnChildAdd(key, child);
+            OnChildAdd();
             child.OnAdd();
         }
 
-        private void OnChildAdd(Type key, SystemBase value) {
+        private void OnChildAdd() {
         }
 
         private bool RemoveChild(Type key) {
@@ -49,14 +52,14 @@ namespace Coorth {
             }
             
             child.OnRemove();
-            OnChildRemove(key, child);
+            OnChildRemove(child);
             child.Managed.Clear();
 
             child.Parent = default;
             return children.Remove(key);
         }
 
-        private void OnChildRemove(Type key, SystemBase child) {
+        private void OnChildRemove(SystemBase child) {
             child.subscriptions.Clear();
             child.ClearSystems();
         }
@@ -79,7 +82,7 @@ namespace Coorth {
                 OnDeActive(); 
                 Actives.Clear();
             }
-            if (Children == null) {
+            if (children == null) {
                 return;
             }
             foreach (var pair in children) {

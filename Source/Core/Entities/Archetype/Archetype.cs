@@ -53,18 +53,12 @@ namespace Coorth {
             return Equals(Definition, other.Definition) && Equals(Sandbox, other.Sandbox);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj is Archetype other && Equals(other);
         }
 
         public override int GetHashCode() {
-#if NET5_0_OR_GREATER
             return HashCode.Combine(Definition, Sandbox);
-#else
-            int hash1 = Definition != null ? Definition.GetHashCode() : 0;
-            int hash2 = Sandbox != null ? Sandbox.GetHashCode() : 0;
-            return hash1 * 397 + hash2;
-#endif
         }
 
         public override string ToString() {

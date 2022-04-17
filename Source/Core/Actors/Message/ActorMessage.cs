@@ -2,16 +2,16 @@
 using System.Runtime.Serialization;
 
 namespace Coorth {
-    [Serializable, DataContract]
+    [Serializable, System.Runtime.Serialization.DataContract]
     public class ActorMessage : IMessage {
 
-        [DataMember(Order = 0)]
+        [System.Runtime.Serialization.DataMember(Order = 0)]
         public readonly ActorId Sender;
         
-        [DataMember(Order = 1)]
+        [System.Runtime.Serialization.DataMember(Order = 1)]
         public readonly ActorId Target;
         
-        [DataMember(Order = 2)]
+        [System.Runtime.Serialization.DataMember(Order = 2)]
         public readonly IMessage Message;
 
         public ActorMessage(ActorId target, ActorId sender, IMessage message) {
@@ -25,16 +25,16 @@ namespace Coorth {
         }
     }
     
-    [Serializable, DataContract]
+    [Serializable, System.Runtime.Serialization.DataContract]
     public class ActorRequest : IRequest {
         
-        [DataMember(Order = 0)]
+        [System.Runtime.Serialization.DataMember(Order = 0)]
         public readonly ActorId Sender;
         
-        [DataMember(Order = 1)]
+        [System.Runtime.Serialization.DataMember(Order = 1)]
         public readonly ActorId Target;
         
-        [DataMember(Order = 2)]
+        [System.Runtime.Serialization.DataMember(Order = 2)]
         public readonly IRequest Request;
         
         public ActorRequest(ActorId target, ActorId sender, IRequest request) {
@@ -42,16 +42,16 @@ namespace Coorth {
         }
     }
     
-    [Serializable, DataContract]
+    [Serializable, System.Runtime.Serialization.DataContract]
     public class ActorResponse : IResponse {
         
-        [DataMember(Order = 0)]
+        [System.Runtime.Serialization.DataMember(Order = 0)]
         public readonly ActorId Sender;
         
-        [DataMember(Order = 1)]
+        [System.Runtime.Serialization.DataMember(Order = 1)]
         public readonly ActorId Target;
         
-        [DataMember(Order = 2)]
+        [System.Runtime.Serialization.DataMember(Order = 2)]
         public readonly IResponse Response;
         
         public ActorResponse(ActorId target, ActorId sender, IResponse response) {

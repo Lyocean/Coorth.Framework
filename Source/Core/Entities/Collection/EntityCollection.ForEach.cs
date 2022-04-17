@@ -1,8 +1,6 @@
-
 using System;
 
 namespace Coorth {
-    
     public readonly partial struct EntityCollection {
 
         #region Component1

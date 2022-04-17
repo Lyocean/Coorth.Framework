@@ -22,8 +22,8 @@ namespace Coorth {
                 }
             }, onLoaded);
         }
-
-        public static IEnumerable<Type> GetTypeOfBase<T>(Func<Type, bool> filter = null) {
+        
+        public static IEnumerable<Type> GetTypeOfBase<T>(Func<Type, bool>? filter = null) {
             var types = AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes());
             return filter != null 
                 ? types.Where(t => filter(t) && typeof(T).IsAssignableFrom(t)) 
@@ -32,7 +32,7 @@ namespace Coorth {
         
         public static IEnumerable<Type> GetTypesWithAttribute<T>(IEnumerable<Assembly> assemblies) {
             return assemblies
-                .SelectMany((assembly, i) => assembly.GetTypes())
+                .SelectMany((assembly, _) => assembly.GetTypes())
                 .Where(t => t.IsDefined(typeof(T), false));
         }
         
@@ -47,7 +47,7 @@ namespace Coorth {
                 return type.Name;
             }
             if (type.IsArray) {
-                return $"{GetDisplayName(type.GetElementType())}[]";
+                return $"{GetDisplayName(type.GetElementType()!)}[]";
             }
             if (type.IsGenericType) {
                 var definition = type.GetGenericTypeDefinition();

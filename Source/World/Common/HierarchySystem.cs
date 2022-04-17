@@ -1,5 +1,8 @@
-﻿namespace Coorth.Common {
-    [System, StoreContract("5600578A-FE02-49E4-8ED3-2819BA1BA789")]
+﻿using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
+
+namespace Coorth.Common {
+    [System, DataContract, Guid("5600578A-FE02-49E4-8ED3-2819BA1BA789")]
     public class HierarchySystem : SystemBase {
         protected override void OnAdd() {
             Sandbox.BindComponent<HierarchyComponent>();

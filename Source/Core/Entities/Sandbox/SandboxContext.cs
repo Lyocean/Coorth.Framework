@@ -8,7 +8,7 @@ namespace Coorth {
         public int MainThreadId { get; private set; }
         
         public void Startup(Thread mainThread) {
-            MainThread = Thread.CurrentThread;
+            MainThread = mainThread;
             MainThreadId = MainThread.ManagedThreadId;
         }
     }

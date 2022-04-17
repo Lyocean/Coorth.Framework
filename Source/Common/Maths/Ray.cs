@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("9DB02E7C-732B-42F3-A762-FF847927A2BA")]
+    [DataContract, Guid("9DB02E7C-732B-42F3-A762-FF847927A2BA")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Ray: IEquatable<Ray> {
         
@@ -16,11 +17,11 @@ namespace Coorth.Maths {
             this.Direction = direction;
         }
 
-        public bool Equals(Ray other) {
+        public readonly bool Equals(Ray other) {
             return Position.Equals(other.Position) && Direction.Equals(other.Direction);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Ray other && Equals(other);
         }
 
@@ -32,13 +33,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                return (Position.GetHashCode() * 397) ^ Direction.GetHashCode();
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(Position, Direction);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Ray(Position:{Position},Direction:{Direction})";
         }
     }

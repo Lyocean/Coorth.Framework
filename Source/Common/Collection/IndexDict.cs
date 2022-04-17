@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Coorth {
@@ -9,22 +10,15 @@ namespace Coorth {
         private Entry[] values;
 
         private int count;
-
-        private int capacity;
-
         public int Count => count;
 
+        private int capacity;
         public int Capacity => capacity;
         
         public IndexDict(int size = 4) {
             this.count = 0;
-
             this.capacity = 2;
-
-            while (this.capacity < size) {
-                this.capacity <<= 1;
-            }
-            
+            while (this.capacity < size) { this.capacity <<= 1; }
             this.values = new Entry[capacity];
         }
 
@@ -144,7 +138,7 @@ namespace Coorth {
             return false;
         }
 
-        public bool TryGetValue(int key, out T value) {
+        public bool TryGetValue(int key, [MaybeNullWhen(false)]out T value) {
             //var position = key % values.Length;
             var position = key & (capacity - 1);
             do {

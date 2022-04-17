@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("1FFE09DA-3C3D-4D67-A3FB-E3DA6EA413E5")]
+    [DataContract, Guid("1FFE09DA-3C3D-4D67-A3FB-E3DA6EA413E5")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct TransformTRS : IEquatable<TransformTRS> {
         
@@ -29,11 +30,11 @@ namespace Coorth.Maths {
 
         public static TransformTRS Identity => new TransformTRS(Vector3.Zero);
 
-        public bool Equals(TransformTRS other) {
+        public readonly bool Equals(TransformTRS other) {
             return Position.Equals(other.Position) && Rotation.Equals(other.Rotation) && Scale.Equals(other.Scale);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is TransformTRS other && Equals(other);
         }
 
@@ -45,16 +46,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = Position.GetHashCode();
-                hashCode = (hashCode * 397) ^ Rotation.GetHashCode();
-                hashCode = (hashCode * 397) ^ Scale.GetHashCode();
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(Position, Rotation, Scale);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Transform(Position:{Position},Rotation:{Rotation},Scale:{Scale})";
         }
     }

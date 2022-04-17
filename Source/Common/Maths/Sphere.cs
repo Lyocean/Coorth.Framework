@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("82EF8D53-2DE2-401E-A910-DAC37A03A46F")]
+    [DataContract, Guid("82EF8D53-2DE2-401E-A910-DAC37A03A46F")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Sphere : IEquatable<Sphere>, IBounding {
         
@@ -16,18 +17,16 @@ namespace Coorth.Maths {
             this.Radius = radius;
         }
         
-        public bool Equals(Sphere other) {
+        public readonly bool Equals(Sphere other) {
             return Center.Equals(other.Center) && Radius.Equals(other.Radius);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Sphere other && Equals(other);
         }
 
-        public override int GetHashCode() {
-            unchecked {
-                return (Center.GetHashCode() * 397) ^ Radius.GetHashCode();
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(Center, Radius);
         }
 
         public static bool operator ==(Sphere left, Sphere right) {
@@ -38,7 +37,7 @@ namespace Coorth.Maths {
             return !(left == right);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Sphere(Center:{Center}, Radius:{Radius})";
         }
     }

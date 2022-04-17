@@ -2,7 +2,7 @@
 using System.Runtime.Serialization;
 
 namespace Coorth {
-    [Serializable, DataContract]
+    [Serializable, System.Runtime.Serialization.DataContract]
     public readonly struct ActorPath : IEquatable<ActorPath> {
         public readonly string Address;
         public readonly string Parent;
@@ -63,8 +63,8 @@ namespace Coorth {
             return (path.Parent, path.Name);
         }
         
-        public override bool Equals(object obj) {
-            return obj != null && obj is ActorPath path  && this.Equals(path);
+        public override bool Equals(object? obj) {
+            return obj is ActorPath path && this.Equals(path);
         }
 
         public static bool operator ==(ActorPath a, ActorPath b) {

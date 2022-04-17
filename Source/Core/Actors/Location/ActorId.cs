@@ -2,10 +2,10 @@
 using System.Runtime.Serialization;
 
 namespace Coorth {
-    [Serializable, DataContract]
+    [Serializable, System.Runtime.Serialization.DataContract]
     public readonly struct ActorId : IEquatable<ActorId> {
         
-        [DataMember(Order = 1)]
+        [System.Runtime.Serialization.DataMember(Order = 1)]
         public readonly Guid Id;
 
         public bool IsNull => Id == Guid.Empty;
@@ -20,7 +20,7 @@ namespace Coorth {
 
         public static bool operator !=(ActorId a, ActorId b) { return !a.Equals(b); }
 
-        public override bool Equals(object obj) { return obj is ActorId actorId && actorId.Equals(this); }
+        public override bool Equals(object? obj) { return obj is ActorId actorId && actorId.Equals(this); }
 
         public override int GetHashCode() { return Id.GetHashCode(); }
 
@@ -28,7 +28,7 @@ namespace Coorth {
 
         public string ToShortString() { return Id.ToString(); }
         
-        [Serializer(typeof(ActorId))]
+        [DataSerializer(typeof(ActorId))]
         private class Serializer : Serializer<ActorId> {
             public override void Write(SerializeWriter writer, in ActorId value) {
                 writer.WriteValue(value.Id);

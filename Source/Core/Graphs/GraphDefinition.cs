@@ -12,6 +12,12 @@ namespace Coorth {
 
         public int MaxPortEdgeCount => 16;
         
+        public NodeHandle<T> Create<T>(T node) where T : NodeDefinition {
+            nodes.Add(node.Id, node);
+            node.Setup(this);
+            return new NodeHandle<T>(node.Id);
+        }
+        
         public NodeHandle<T> Create<T>() where T : NodeDefinition, new() {
             var node = new T();
             nodes.Add(node.Id, node);

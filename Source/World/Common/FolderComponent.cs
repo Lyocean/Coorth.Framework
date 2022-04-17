@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Common {
-    [Component, StoreContract("4276C354-293B-4554-9B9E-7C224CEB6B56")]
+    [Component, DataContract, Guid("4276C354-293B-4554-9B9E-7C224CEB6B56")]
     public class FolderComponent : Component {
         
-        private readonly List<EntityFolder> folders = new List<EntityFolder>();
+        private readonly List<EntityFolder> folders = new();
         
-        private readonly Dictionary<string, EntityFolder> name2Folder = new Dictionary<string, EntityFolder>();
+        private readonly Dictionary<string, EntityFolder> name2Folder = new();
         
-        private readonly Dictionary<EntityId, EntityFolder> id2Folder = new Dictionary<EntityId, EntityFolder>();
+        private readonly Dictionary<EntityId, EntityFolder> id2Folder = new();
 
         private void ValidateEntity(Entity entity) {
             if (!ReferenceEquals(entity.Sandbox, this.Sandbox)) {
@@ -18,7 +20,7 @@ namespace Coorth.Common {
         }
         
         public void AddFolder(string name) {
-            var folder = new EntityFolder();
+            var folder = new EntityFolder(name);
             folders.Add(folder);
             name2Folder.Add(name, folder);
         }
@@ -81,6 +83,10 @@ namespace Coorth.Common {
         private class EntityFolder {
             public string Name;
             public readonly HashSet<EntityId> Entities = new HashSet<EntityId>();
+
+            public EntityFolder(string name) {
+                Name = name;
+            }
         }
     }
 }

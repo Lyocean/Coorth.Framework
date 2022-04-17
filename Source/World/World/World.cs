@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Coorth.Common;
 
 namespace Coorth {
     public class World : Disposable, ISupportInitialize {
@@ -34,9 +35,9 @@ namespace Coorth {
 
         public readonly string Name;
 
-        public readonly ServiceLocator Services;
+        public ServiceLocator Services => App.Services;
 
-        public readonly EventDispatcher Dispatcher;
+        public EventDispatcher Dispatcher => App.Dispatcher;
         
         public ActorRuntime Actors => App.Actors;
 
@@ -51,12 +52,11 @@ namespace Coorth {
             }
 
             this.Name = config.Name ?? $"World_{Index}";
-            this.Dispatcher = new EventDispatcher();
-            this.Services = new ServiceLocator(this.Dispatcher);
             this.App = app;
             
-            this.App.Managers.AddChild(this.Services);
-            this.App.Dispatcher.AddChild(this.Dispatcher);
+            // this.Services = App.Managers;
+            // this.App.Services.AddChild(this.Services);
+            // this.App.Dispatcher.AddChild(this.Dispatcher);
 
             this.ActorDomain = this.Actors.CreateDomain<LocalDomain>();
             this.Module = module;
@@ -66,7 +66,7 @@ namespace Coorth {
         public void SetActive(bool active) {
             for (var i = 0; i < sandboxes.Count; i++) {
                 var sandbox = sandboxes[i];
-                sandbox.RootSystem.SetActive(active);
+                sandbox.SetActive(active);
             }
         }
         
@@ -77,8 +77,9 @@ namespace Coorth {
 
         public Sandbox CreateSandbox(SandboxConfig config) {
             var dispatcher = new EventDispatcher();
-            Dispatcher.AddChild(dispatcher);
             var sandbox = new Sandbox(config, Services, dispatcher);
+            Dispatcher.AddChild(sandbox.Dispatcher);
+            sandbox.Singleton<SandboxComponent>().Setup(this);
             sandbox.Singleton<WorldComponent>().Setup(this);
             return sandbox;
         }

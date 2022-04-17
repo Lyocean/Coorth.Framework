@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("15AA0458-A548-473F-8934-9F2EDF30AE87")]
+    [DataContract, Guid("15AA0458-A548-473F-8934-9F2EDF30AE87")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Range : IEquatable<Range> {
 
@@ -28,7 +29,7 @@ namespace Coorth.Maths {
             Max = Math.Max(this.Max, other.Max);
         }
 
-        public ContainmentType Contains(in Range other) {
+        public readonly ContainmentType Contains(in Range other) {
             if (this.Max < other.Min || this.Min > other.Max) {
                 return ContainmentType.Disjoint;
             }
@@ -38,11 +39,11 @@ namespace Coorth.Maths {
             return ContainmentType.Intersects;
         }
 
-        public bool Equals(Range other) {
+        public readonly bool Equals(Range other) {
             return Min.Equals(other.Min) && Max.Equals(other.Max);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Range other && Equals(other);
         }
 
@@ -54,13 +55,11 @@ namespace Coorth.Maths {
             return !(left == right);
         }
         
-        public override int GetHashCode() {
-            unchecked {
-                return (Min.GetHashCode() * 397) ^ Max.GetHashCode();
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(Min, Max);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Range(Min:{Min},Max:{Max})";
         }
     }

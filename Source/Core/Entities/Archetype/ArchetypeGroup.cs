@@ -8,9 +8,9 @@ namespace Coorth {
 
         public readonly EntityMatcher Matcher;
 
-        private readonly HashSet<ArchetypeDefinition> archetypes = new HashSet<ArchetypeDefinition>();
+        private readonly HashSet<ArchetypeDefinition> archetypes = new();
 
-        private ArchetypeDefinition[] archetypeArray;
+        private ArchetypeDefinition[]? archetypeArray;
 
         internal ArchetypeDefinition[] Archetypes => archetypeArray ?? archetypes.ToArray();
 
@@ -20,10 +20,11 @@ namespace Coorth {
         }
 
         internal void Match(ArchetypeDefinition archetype) {
-            if (Matcher.Match(Sandbox, archetype)) {
-                if (archetypes.Add(archetype)) {
-                    archetypeArray = null;
-                }
+            if (!Matcher.Match(Sandbox, archetype)) {
+                return;
+            }
+            if (archetypes.Add(archetype)) {
+                archetypeArray = null;
             }
         }
     }

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 
 namespace Coorth.Maths {
-    [StoreContract("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
+    [DataContract, Guid("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
     [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
     public struct Cuboid : IEquatable<Cuboid>, IBounding {
         
@@ -21,25 +21,25 @@ namespace Coorth.Maths {
 
         public float D;
 
-        public Vector3 Position => new Vector3(X, Y, Z);
+        public readonly Vector3 Position => new Vector3(X, Y, Z);
 
-        public Vector3 Size => new Vector3(W, H, D);
+        public readonly Vector3 Size => new Vector3(W, H, D);
 
-        public Vector3 Center => new Vector3(X + W * 0.5f, Y + H * 0.5f, Z + D * 0.5f);
+        public readonly Vector3 Center => new Vector3(X + W * 0.5f, Y + H * 0.5f, Z + D * 0.5f);
 
-        public Vector3 Min => Position;
+        public readonly Vector3 Min => Position;
 
-        public float MinX => X;
+        public readonly float MinX => X;
         
-        public float MinY => Y;
+        public readonly float MinY => Y;
 
-        public float MinZ => Z;
+        public readonly float MinZ => Z;
 
-        public float MaxX => X + W;
+        public readonly float MaxX => X + W;
         
-        public float MaxY => Y + H;
+        public readonly float MaxY => Y + H;
 
-        public float MaxZ => Z + D;
+        public readonly float MaxZ => Z + D;
         
         public Vector3 Max => new Vector3(X + W, Y + H, Z + D);
 
@@ -54,7 +54,7 @@ namespace Coorth.Maths {
             this.D = Math.Abs(max.Z - min.Z);
         }
 
-        public bool Intersects(in Cuboid other) {
+        public readonly bool Intersects(in Cuboid other) {
             return (MinX <= other.MaxX && other.MinX <= MaxX) &&
                    (MinY <= other.MaxY && other.MinY <= MaxY) &&
                    (MinZ <= other.MaxZ && other.MinZ <= MaxZ);
@@ -109,25 +109,17 @@ namespace Coorth.Maths {
             return ContainmentType.Intersects;
         }
         
-        public bool Equals(Cuboid other) {
+        public readonly bool Equals(Cuboid other) {
             return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && W.Equals(other.W) &&
                    H.Equals(other.H) && D.Equals(other.D);
         }
 
-        public override bool Equals(object obj) {
+        public override readonly bool Equals(object? obj) {
             return obj is Cuboid other && Equals(other);
         }
 
-        public override int GetHashCode() {
-            unchecked {
-                var hashCode = X.GetHashCode();
-                hashCode = (hashCode * 397) ^ Y.GetHashCode();
-                hashCode = (hashCode * 397) ^ Z.GetHashCode();
-                hashCode = (hashCode * 397) ^ W.GetHashCode();
-                hashCode = (hashCode * 397) ^ H.GetHashCode();
-                hashCode = (hashCode * 397) ^ D.GetHashCode();
-                return hashCode;
-            }
+        public override readonly int GetHashCode() {
+            return HashCode.Combine(X, Y, Z, W, H, D);
         }
 
         public static bool operator ==(Cuboid left, Cuboid right) {
@@ -138,7 +130,7 @@ namespace Coorth.Maths {
             return !(left == right);
         }
 
-        public override string ToString() {
+        public override readonly string ToString() {
             return $"Cuboid(Center:{Center}, Size:{Size})";
         }
     }

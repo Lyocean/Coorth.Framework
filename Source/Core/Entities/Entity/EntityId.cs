@@ -43,7 +43,7 @@ namespace Coorth {
             return Index == other.Index && Version == other.Version;
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object? obj) {
             return obj != null && Equals((EntityId) obj);
         }
 
