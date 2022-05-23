@@ -1,6 +1,6 @@
-﻿namespace Coorth.Maths {
-    public enum TransformSpace {
-        World,
-        Local
-    }
+﻿namespace Coorth.Maths; 
+
+public enum TransformSpace {
+    World,
+    Local
 }

@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace Coorth {
-    public class NotBindException : Exception {
-        
-        public NotBindException() {}
+namespace Coorth; 
 
-        public NotBindException(Type type) : base(type.ToString()) {
-        }
+public class NotBindException : Exception {
+        
+    public NotBindException() {}
+
+    public NotBindException(Type type) : base(type.ToString()) {
     }
 }

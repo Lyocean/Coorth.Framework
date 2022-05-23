@@ -4,117 +4,75 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace Coorth.Maths {
-    [DataContract, Guid("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
-    [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Frustum : IEquatable<Frustum>, IBounding {
-        
-        public Plane Near;
-        
-        public Plane Far;
-        
-        public Plane Left;
-        
-        public Plane Right;
-        
-        public Plane Top;
-        
-        public Plane Bottom;
+namespace Coorth.Maths; 
 
-        public Frustum(Plane near, Plane far, Plane left, Plane right, Plane top, Plane bottom) {
-            this.Near   = near;
-            this.Far    = far;
-            this.Left   = left;
-            this.Right  = right;
-            this.Top    = top;
-            this.Bottom = bottom;
-        }
+[DataContract, Guid("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+public record struct Frustum(Plane Near, Plane Far, Plane Left, Plane Right, Plane Top, Plane Bottom) {
         
-        public Frustum(ref Matrix4x4 matrix) {
-            this.Left   = Plane.Normalize(new Plane(matrix.M14 + matrix.M11, matrix.M24 + matrix.M21, matrix.M34 + matrix.M31, matrix.M44 + matrix.M41));
-            this.Right  = Plane.Normalize(new Plane(matrix.M14 - matrix.M11, matrix.M24 - matrix.M21, matrix.M34 - matrix.M31, matrix.M44 - matrix.M41));
-            
-            this.Top    = Plane.Normalize(new Plane(matrix.M14 - matrix.M12, matrix.M24 - matrix.M22, matrix.M34 - matrix.M32, matrix.M44 - matrix.M42));
-            this.Bottom = Plane.Normalize(new Plane(matrix.M14 + matrix.M12, matrix.M24 + matrix.M22, matrix.M34 + matrix.M32, matrix.M44 + matrix.M42));
-            
-            this.Near   = Plane.Normalize(new Plane(matrix.M13, matrix.M23, matrix.M33, matrix.M43));
-            this.Far    = Plane.Normalize(new Plane(matrix.M14 - matrix.M13, matrix.M24 - matrix.M23, matrix.M34 - matrix.M33, matrix.M44 - matrix.M43));
-        }
+    public Plane Near = Near;
+        
+    public Plane Far = Far;
+        
+    public Plane Left = Left;
+        
+    public Plane Right = Right;
+        
+    public Plane Top = Top;
+        
+    public Plane Bottom = Bottom;
 
-        public readonly Plane this[int index] {
-            get {
-                return index switch {
-                    0 => Near,
-                    1 => Far,
-                    2 => Left,
-                    3 => Right,
-                    4 => Top,
-                    5 => Bottom,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-            }
-        }
+    public Frustum(ref Matrix4x4 matrix) : this(Plane.Normalize(new Plane(matrix.M13, matrix.M23, matrix.M33, matrix.M43)), Plane.Normalize(new Plane(matrix.M14 - matrix.M13, matrix.M24 - matrix.M23, matrix.M34 - matrix.M33, matrix.M44 - matrix.M43)), Plane.Normalize(new Plane(matrix.M14 + matrix.M11, matrix.M24 + matrix.M21, matrix.M34 + matrix.M31, matrix.M44 + matrix.M41)), Plane.Normalize(new Plane(matrix.M14 - matrix.M11, matrix.M24 - matrix.M21, matrix.M34 - matrix.M31, matrix.M44 - matrix.M41)), Plane.Normalize(new Plane(matrix.M14 - matrix.M12, matrix.M24 - matrix.M22, matrix.M34 - matrix.M32, matrix.M44 - matrix.M42)), Plane.Normalize(new Plane(matrix.M14 + matrix.M12, matrix.M24 + matrix.M22, matrix.M34 + matrix.M32, matrix.M44 + matrix.M42))) {
+    }
 
-        public readonly bool Intersects(in Sphere sphere) {
-            return Contains(in sphere) != ContainmentType.Disjoint;
-        }
-        
-        public readonly bool Intersects(in Vector3 center, in float radius) {
-            return InternalContains(in center, in radius) != ContainmentType.Disjoint;
-        }
-        
-        // public readonly bool Intersects(in Cuboid cuboid) {
-        //     //TODO
-        //     throw new NotImplementedException();
-        // }
-        
-        public readonly ContainmentType Contains(in Sphere sphere) {
-            return InternalContains(in sphere.Center, in sphere.Radius);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private readonly ContainmentType InternalContains(in Vector3 center, in float radius) {
-            var number = 0;
-            for (var i = 0; i < 6; i++) {
-                var plane = this[i];
-                float value = plane.Normal.X * center.X + plane.Normal.Y * center.Y + plane.Normal.Z * center.Z + plane.D;
-                if (value > radius) {
-                    return ContainmentType.Disjoint;
-                }
-                if (value < 0f - radius) {
-                    number++;
-                }
-            }
-            if (number != 6) {
-                return ContainmentType.Intersects;
-            }
-            return ContainmentType.Contains;
-        }
-
-        public readonly bool Equals(Frustum other) {
-            return Near.Equals(other.Near) && Far.Equals(other.Far) 
-                && Left.Equals(other.Left) && Right.Equals(other.Right) 
-                && Top.Equals(other.Top) && Bottom.Equals(other.Bottom);
-        }
-        
-        public override readonly bool Equals(object? obj) {
-            return obj is Frustum other && Equals(other);
-        }
-        
-        public static bool operator ==(Frustum left, Frustum right) {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Frustum left, Frustum right) {
-            return !(left == right);
-        }
-        
-        public override readonly int GetHashCode() {
-            return HashCode.Combine(Near, Far, Left, Right, Top, Bottom);
-        }
-
-        public override readonly string ToString() {
-            return $"Frustum(Near:{Near},Far:{Far},Left:{Left},Right:{Right},Top:{Top},Bottom:{Bottom})";
+    public readonly Plane this[int index] {
+        get {
+            return index switch {
+                0 => Near,
+                1 => Far,
+                2 => Left,
+                3 => Right,
+                4 => Top,
+                5 => Bottom,
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
     }
+
+    public readonly bool Intersects(in Sphere sphere) {
+        return Contains(in sphere) != ContainmentType.Disjoint;
+    }
+        
+    public readonly bool Intersects(in Vector3 center, in float radius) {
+        return InternalContains(in center, in radius) != ContainmentType.Disjoint;
+    }
+        
+    // public readonly bool Intersects(in Cuboid cuboid) {
+    //     //TODO
+    //     throw new NotImplementedException();
+    // }
+        
+    public readonly ContainmentType Contains(in Sphere sphere) {
+        return InternalContains(in sphere.Center, in sphere.Radius);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private readonly ContainmentType InternalContains(in Vector3 center, in float radius) {
+        var number = 0;
+        for (var i = 0; i < 6; i++) {
+            var plane = this[i];
+            float value = plane.Normal.X * center.X + plane.Normal.Y * center.Y + plane.Normal.Z * center.Z + plane.D;
+            if (value > radius) {
+                return ContainmentType.Disjoint;
+            }
+            if (value < 0f - radius) {
+                number++;
+            }
+        }
+        if (number != 6) {
+            return ContainmentType.Intersects;
+        }
+        return ContainmentType.Contains;
+    }
+    
 }

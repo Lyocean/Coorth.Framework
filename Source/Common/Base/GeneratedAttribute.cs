@@ -1,7 +1,7 @@
 ﻿using System;
 
-namespace Coorth {
-    public class GeneratedAttribute : Attribute {
-        
-    }
+namespace Coorth; 
+
+[AttributeUsage(AttributeTargets.Class| AttributeTargets.Struct)]
+public class GeneratedAttribute : Attribute {
 }

@@ -3,50 +3,15 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace Coorth.Maths {
-    [DataContract, Guid("2B22E356-FF59-422D-8177-5E4841405314")]
-    [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-    public struct Capsule : IEquatable<Capsule> {
-        
-        public Vector3 Center;
-        
-        public float Radius;
-        
-        public float Height;
-        
-        public Capsule(Vector3 center, float height, float radius) {
-            this.Center = center;
-            this.Height = height;
-            this.Radius = radius;
-        }
+namespace Coorth.Maths; 
 
-        public readonly bool Equals(Capsule other) {
-            return Center.Equals(other.Center) && Radius.Equals(other.Radius) && Height.Equals(other.Height);
-        }
-
-        public override readonly bool Equals(object? obj) {
-            return obj is Capsule other && Equals(other);
-        }
-
-        public override readonly int GetHashCode() {
-            unchecked {
-                var hashCode = Center.GetHashCode();
-                hashCode = (hashCode * 397) ^ Radius.GetHashCode();
-                hashCode = (hashCode * 397) ^ Height.GetHashCode();
-                return hashCode;
-            }
-        }
+[DataContract, Guid("2B22E356-FF59-422D-8177-5E4841405314")]
+[Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
+public record struct Capsule(Vector3 Center, float Height, float Radius) {
+    
+    public Vector3 Center = Center;
+    
+    public float Radius = Radius;
         
-        public static bool operator ==(Capsule left, Capsule right) {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(Capsule left, Capsule right) {
-            return !(left == right);
-        }
-        
-        public override readonly string ToString() {
-            return $"Capsule(Center:{Center}, Height:{Height}, Radius:{Radius})";
-        }
-    }
+    public float Height = Height;
 }

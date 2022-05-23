@@ -1,0 +1,138 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ include file="Collection.ttinclude"#>
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace Coorth.Framework;
+<#
+const int COUNT = 3;
+var variants = GetActionVariants();
+    
+for (var count = 1; count <= COUNT; count++) {
+    var templates = GetTemplates(count);
+    var constraints = GetConstraints(count);
+    var components = GetCompParams(count);
+#>
+
+#region Component<#=count#>
+    
+public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(Entity, <#=templates#>)> <#=constraints#> {
+
+<#=GetList2(1, count, 1, "private readonly ComponentGroup<T", "> group",";\n")#>
+
+    internal ComponentCollection(Sandbox sandbox) {
+<#=GetList2(1, count, 2, "this.group", " = sandbox.GetComponentGroup<T",">();\n")#>
+    }
+ 
+<# 
+    foreach(var variant in variants) {
+        for (int index = 0; index <= count; index++) {
+            if (variant.IsAction && index > 0) {
+                continue;
+            }
+#>
+
+    public void ForEach<#= variant.GetEventTemplate(true) #>(<#= variant.GetEventParameter() #><#= variant.GetActionTemplate(index) #><#= templates #>> action) {
+<# if(variant.HasEntity || count >= 2) { #>
+        var sandbox = group1.Sandbox;
+<# } #>
+        for(var i = group1.separate; i< group1.Count; i++) {
+            ref var component1 = ref group1.Get(i);
+<# if(variant.HasEntity || count >= 2) { #>
+            ref var context = ref sandbox.GetContext(group1.GetEntityIndex(i));
+<# } #>
+<#for(var j = 2; j <= count; j++) {#>
+            if (!context.TryGet(group<#=j#>.TypeId, out var componentIndex<#=j#>)) {
+                continue;
+            }
+            ref var component<#=j#> = ref group<#=j#>.Get(componentIndex<#=j#>);
+<#}#>
+            action(<#=variant.GetActionParameter(count, index)#>);
+        }
+    }
+<#
+    }
+} 
+#>
+<#
+    var groups = GetList1(1, count, "group", "", ", ");
+#>
+
+    public Enumerator GetEnumerator() => new Enumerator(<#=groups#>);
+
+    IEnumerator<(Entity, <#=templates#>)> IEnumerable<(Entity, <#=templates#>)>.GetEnumerator() => new Enumerator(<#=groups#>);
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public struct Enumerator : IEnumerator<(Entity, <#=templates#>)> {
+<#=GetList2(1, count, 2, "private readonly ComponentGroup<T", "> group",";\n")#>
+        private int index;
+        private (Entity, <#=templates#>) current;
+        
+        internal Enumerator(<#=GetList3(1, count, "ComponentGroup<T", "> group", "", ", ")#>) {
+<#=GetList2(1, count, 3, "this.group", " = group",";\n")#>
+            index = group1.separate;
+            current = default;
+        }
+
+        public bool MoveNext() {
+            var sandbox = group1.Sandbox;
+            while (index < group1.Count) {
+                var component1 = group1.components[index];
+                var entityIndex = group1.GetEntityIndex(index);
+                if(entityIndex < 0){
+                    continue;
+                }
+                ref var context = ref sandbox.GetContext(entityIndex);
+<#for(var i = 2; i <= count; i++) {#>
+                if (!context.TryGet(group<#=i#>.TypeId, out var componentIndex<#=i#>)) {
+                    continue;
+                }
+                var component<#=i#> = group<#=i#>.Get(componentIndex<#=i#>);
+<#}#>
+                current = (context.GetEntity(sandbox), <#=components#>);
+                index++;
+                return true;
+            }
+
+            return false;
+        }
+
+        public void Reset() {
+            index = group1.separate;
+            current = default;
+        }
+
+        public (Entity, <#=templates#>) Current => current;
+
+        object IEnumerator.Current => Current;
+
+        public void Dispose() {
+        }
+
+    }
+}
+    
+#endregion
+
+<#  
+    }
+#>
+
+    public static class ComponentCollectionExtension {
+<# 
+    for (var count = 2; count <= COUNT; count++) {
+        var templates = GetList1(1, count, "T", "",", ");
+        var constraints = GetList1(1, count, "where T", " : IComponent"," ");
+#>
+
+         public static ComponentCollection<<#=templates#>> GetComponents<<#=templates#>>(this Sandbox sandbox) <#=constraints#> {
+             return new ComponentCollection<<#=templates#>>(sandbox);
+         }   
+<#  
+}
+#>
+}

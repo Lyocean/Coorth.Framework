@@ -1,0 +1,66 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Collection.ttinclude"#>
+using System;
+
+namespace Coorth.Framework;
+    
+public partial class SystemSubscription<TEvent> {
+<# 
+const int COUNT = 3;
+var variants = GetActionVariants();
+    
+for (var count = 1; count <= COUNT; count++) {
+    var templates = GetTemplates(count);
+    var constraints = GetConstraints(count);
+#>
+
+    #region Component<#=count#>
+
+<#
+    foreach (var variant in variants) {
+        for (int index = 0; index <= count; index++) {
+            if (variant.IsAction && index > 0) {
+                continue;
+            }
+            var actionName = variant.GetActionTemplate(index) + templates + ">";
+#>
+    public void ForEach<<#=templates#>>(<#= actionName #> action) <#= constraints #> {
+<# for(var i =1; i<= count;i++) { #>
+        _Include<T<#=i#>>();
+<#}#>
+<#if(count == 1) {#>
+        OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+            ComponentCollection<T1> components = Sandbox.GetComponents<T1>();
+            components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
+        });
+<#} else if(count <= 3) {#>
+<#if(count == 2) {#>
+        if (Sandbox.GetBinding<T1>().HasDependency<T2>()) {
+<#} else if(count == 3) {#>
+        if (Sandbox.GetBinding<T1>().HasDependency<T2>() && Sandbox.GetBinding<T1>().HasDependency<T3>()) {
+<#} else {#>
+        throw new NotImplementException();
+<#}#>
+            EntityMatcher entityMatcher = (new EntityMatcher()).Include<<#=templates#>>();
+            OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+                EntityCollection entities = Sandbox.GetEntities(entityMatcher);
+                entities.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
+            });
+        } else {
+            OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
+                ComponentCollection<<#=templates#>> components = Sandbox.GetComponents<<#=templates#>>();
+                components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
+            });
+        }
+<#}#>
+    }
+
+<#
+        }
+    }
+#>
+    #endregion
+<#
+}
+#>
+}

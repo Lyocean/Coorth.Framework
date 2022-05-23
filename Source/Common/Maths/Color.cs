@@ -3,195 +3,187 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
-namespace Coorth.Maths {
-    [DataContract, Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
-    [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
-    public partial struct Color : IEquatable<Color> {
-        
-        public float R;
-        
-        public float G;
-        
-        public float B;
-        
-        public float A;
+namespace Coorth.Maths; 
 
+[DataContract, Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
+[Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
+public partial struct Color : IEquatable<Color> {
+    
+    public float R;
+        
+    public float G;
+        
+    public float B;
+        
+    public float A;
 
-        public Color(float rgb, float alpha = 1f) {
-            this.R = this.G = this.B = rgb;
-            this.A = alpha;
-        }
+    public Color(float rgb, float alpha = 1f) {
+        R = G = B = rgb;
+        A = alpha;
+    }
         
-        public Color(float r, float g, float b, float a = 1f) {
-            this.R = r;
-            this.G = g;
-            this.B = b;
-            this.A = a;
-        }
+    public Color(float r, float g, float b, float a = 1f) {
+        R = r;
+        G = g;
+        B = b;
+        A = a;
+    }
         
-        public Color(int r, int g, int b, int a = 255) {
-            this.R = r / 255.0f;
-            this.G = g / 255.0f;
-            this.B = b / 255.0f;
-            this.A = a / 255.0f;
-        }
+    public Color(int r, int g, int b, int a = 255) {
+        R = r / 255.0f;
+        G = g / 255.0f;
+        B = b / 255.0f;
+        A = a / 255.0f;
+    }
         
-        public Color(byte r, byte g, byte b, byte alpha = 255) {
-            this.R = r / 255.0f;
-            this.G = g / 255.0f;
-            this.B = b / 255.0f;
-            this.A = alpha / 255.0f;
-        }
+    public Color(byte r, byte g, byte b, byte alpha = 255) {
+        R = r / 255.0f;
+        G = g / 255.0f;
+        B = b / 255.0f;
+        A = alpha / 255.0f;
+    }
         
-        public Color(Vector4 value) {
-            this.R = value.X;
-            this.G = value.Y;
-            this.B = value.Z;
-            this.A = value.W;
-        }
+    public Color(Vector4 value) {
+        R = value.X;
+        G = value.Y;
+        B = value.Z;
+        A = value.W;
+    }
         
-        public Color(Vector3 value, float alpha = 1f) {
-            this.R = value.X;
-            this.G = value.Y;
-            this.B = value.Z;
-            this.A = alpha;
+    public Color(Vector3 value, float alpha = 1f) {
+        R = value.X;
+        G = value.Y;
+        B = value.Z;
+        A = alpha;
+    }
+    
+    public Color(ReadOnlySpan<float> values) {
+        R = values[0];
+        G = values[1];
+        B = values[2];
+        A = values[3];
+    }
+    
+    public Color(float[] values, int index = 0) {
+        if (values == null) {
+            throw new ArgumentNullException(nameof(values));
         }
+        if (values.Length != index + 4) {
+            throw new ArgumentOutOfRangeException(nameof(values));
+        }
+        this.R = values[index];
+        this.G = values[index+1];
+        this.B = values[index+2];
+        this.A = values[index+3];
+    }
+    
+    public readonly float[] ToArray() => new[] { R, G, B, A };
 
-        #if NET5_0_OR_GREATER
+    public Color(int value) {
+        R = ((value >> 24) & 255) / 255.0f;
+        G = ((value >> 16) & 255) / 255.0f;
+        B = ((value >> 8) & 255) / 255.0f;
+        A = (value & 255) / 255.0f;
+    }
+        
+    public static explicit operator int(Color value) {
+        return ((byte)(value.R * 255) << 24) | ((byte)(value.G * 255) << 16) | ((byte)(value.B * 255) << 8) | (byte)(value.B * 255);
+    }
+        
+    public static explicit operator Color(int value) {
+        return new Color(value);
+    }
+        
+    public Color(long value) {
+        R = ((value >> 48) & 255) / 255.0f;
+        G = ((value >> 32) & 255) / 255.0f;
+        B = ((value >> 16) & 255) / 255.0f;
+        A = (value & 255) / 255.0f;
+    }
+        
+    public static explicit operator long(Color value) {
+        var r = (long) (value.R * 255) << 48;
+        var g = (long) (value.G * 255) << 32;
+        var b = (long) (value.B * 255) << 16;
+        var a = (long) (value.A * 255);
+        return r | g | b | a;
+    }
+        
+    public static explicit operator Color(long value) {
+        return new Color(value);
+    }
 
-        public Color(Span<float> values) {
-            this.R = values[0];
-            this.G = values[1];
-            this.B = values[2];
-            this.A = values[3];
-        }
-        
-        #endif
-        
-        public Color(float[] values, int index = 0) {
-            if (values == null) {
-                throw new ArgumentNullException(nameof(values));
+    public float this[int index] {
+        readonly get {
+            switch (index) {
+                case 0: return R;
+                case 1: return G;
+                case 2: return B;
+                case 3: return A;
             }
-            if (values.Length != index + 4) {
-                throw new ArgumentOutOfRangeException(nameof(values));
-            }
-            this.R = values[index];
-            this.G = values[index+1];
-            this.B = values[index+2];
-            this.A = values[index+3];
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
-        
-        public readonly float[] ToArray() {
-            return new[] { this.R, this.G, this.B, this.A };
+        set {
+            switch (index) {
+                case 0: R = value; break;
+                case 1: G = value; break;
+                case 2: B = value; break;
+                case 3: A = value; break;
+            } 
+            throw new ArgumentOutOfRangeException(nameof(index));
         }
-        
-        public Color(int value) {
-            this.R = ((value >> 24) & 255) / 255.0f;
-            this.G = ((value >> 16) & 255) / 255.0f;
-            this.B = ((value >> 8) & 255) / 255.0f;
-            this.A = (value & 255) / 255.0f;
-        }
-        
-        public static explicit operator int(Color value) {
-            return ((byte)(value.R * 255) << 24) | ((byte)(value.G * 255) << 16) | ((byte)(value.B * 255) << 8) | (byte)(value.B * 255);
-        }
-        
-        public static explicit operator Color(int value) {
-            return new Color(value);
-        }
-        
-        public Color(long value) {
-            R = ((value >> 48) & 255) / 255.0f;
-            G = ((value >> 32) & 255) / 255.0f;
-            B = ((value >> 16) & 255) / 255.0f;
-            A = (value & 255) / 255.0f;
-        }
-        
-        public static explicit operator long(Color value) {
-            var r = (long) (value.R * 255) << 48;
-            var g = (long) (value.G * 255) << 32;
-            var b = (long) (value.B * 255) << 16;
-            var a = (long) (value.A * 255);
-            return r | g | b | a;
-        }
-        
-        public static explicit operator Color(long value) {
-            return new Color(value);
-        }
+    }
 
-        public float this[int index] {
-            readonly get {
-                switch (index) {
-                    case 0: return this.R;
-                    case 1: return this.G;
-                    case 2: return this.B;
-                    case 3: return this.A;
-                }
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-            set {
-                switch (index) {
-                    case 0: this.R = value; break;
-                    case 1: this.G = value; break;
-                    case 2: this.B = value; break;
-                    case 3: this.A = value; break;
-                } 
-                throw new ArgumentOutOfRangeException(nameof(index));
-            }
-        }
-
-        public Vector3 RGB() => new Vector3(R, G, B);
+    public Vector3 RGB() => new Vector3(R, G, B);
         
-        public readonly bool Equals(Color other) {
-            return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
-        }
+    public readonly bool Equals(Color other) {
+        return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
+    }
 
-        public override readonly bool Equals(object? obj) {
-            return obj is Color other && Equals(other);
-        }
+    public readonly override bool Equals(object? obj) {
+        return obj is Color other && Equals(other);
+    }
 
-        public static bool operator ==(Color left, Color right) {
-            return left.Equals(right);
-        }
+    public static bool operator ==(Color left, Color right) {
+        return left.Equals(right);
+    }
 
-        public static bool operator !=(Color left, Color right) {
-            return !(left == right);
-        }
+    public static bool operator !=(Color left, Color right) {
+        return !(left == right);
+    }
         
-        public override readonly int GetHashCode() {
-            return HashCode.Combine(R, G, B, A);
-        }
+    public readonly override int GetHashCode() {
+        return HashCode.Combine(R, G, B, A);
+    }
 
-        public override readonly string ToString() {
-            return $"Color(R:{R},G:{G},B:{B},A:{A})";
-        }
-
+    public readonly override string ToString() {
+        return $"Color(R:{R},G:{G},B:{B},A:{A})";
+    }
         
-        public readonly string ToHexString() {
+    public readonly string ToHexString() {
             
-            void GetHexChar(float v, out char lChar, out char rChar) {
-                var lValue = ((int)(v * 255))/16;
-                var rValue = ((int)(v * 255))%16;
-                if (lValue < 10) {
-                    lChar = (char)('0' + lValue);
-                }
-                else {
-                    lChar = (char)('A' + (lValue - 10));
-                }
-                if (rValue < 10) {
-                    rChar = (char)('0' + rValue);
-                }
-                else {
-                    rChar = (char)('A' + (rValue - 10));
-                }
+        void GetHexChar(float v, out char lChar, out char rChar) {
+            var lValue = ((int)(v * 255))/16;
+            var rValue = ((int)(v * 255))%16;
+            if (lValue < 10) {
+                lChar = (char)('0' + lValue);
             }
-
-            GetHexChar(R, out var rl, out var rr);
-            GetHexChar(G, out var gl, out var gr);
-            GetHexChar(B, out var bl, out var br);
-            GetHexChar(A, out var al, out var ar);
-
-            return $"{rl}{rr}{gl}{gr}{bl}{br}{al}{ar}";
+            else {
+                lChar = (char)('A' + (lValue - 10));
+            }
+            if (rValue < 10) {
+                rChar = (char)('0' + rValue);
+            }
+            else {
+                rChar = (char)('A' + (rValue - 10));
+            }
         }
+
+        GetHexChar(R, out var rl, out var rr);
+        GetHexChar(G, out var gl, out var gr);
+        GetHexChar(B, out var bl, out var br);
+        GetHexChar(A, out var al, out var ar);
+
+        return $"{rl}{rr}{gl}{gr}{bl}{br}{al}{ar}";
     }
 }

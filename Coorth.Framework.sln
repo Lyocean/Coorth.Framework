@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coorth.Framework.Runtime", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coorth.Framework.Tests", "Tests\Coorth.Framework.Tests.csproj", "{73E3E1D7-6726-4C00-AF2F-1F2D18AE2E3E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Coorth.Framework.Benchmark", "Benchmark\Coorth.Framework.Benchmark.csproj", "{15B3E676-456B-417A-ABB9-79F635D56BBB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{73E3E1D7-6726-4C00-AF2F-1F2D18AE2E3E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73E3E1D7-6726-4C00-AF2F-1F2D18AE2E3E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73E3E1D7-6726-4C00-AF2F-1F2D18AE2E3E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15B3E676-456B-417A-ABB9-79F635D56BBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15B3E676-456B-417A-ABB9-79F635D56BBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15B3E676-456B-417A-ABB9-79F635D56BBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15B3E676-456B-417A-ABB9-79F635D56BBB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

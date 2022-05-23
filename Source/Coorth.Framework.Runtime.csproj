@@ -5,12 +5,14 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
-        <LangVersion>10.0</LangVersion>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="System.Memory" Version="4.5.4" />
         <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+        <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
+        <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
         <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
     </ItemGroup>
 
@@ -29,6 +31,26 @@
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
       </None>
+      <None Update="Source\Core\Entities\Collection\ComponentCollection.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+      </None>
+      <None Update="Source\Core\Entities\Collection\SystemSubscription.ForEachs.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+      </None>
+      <None Update="Framework\Entities\Collection\ComponentCollection.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+      </None>
+      <None Update="Framework\Entities\Collection\EntityCollection.ForEach.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>EntityCollection.ForEach.cs</LastGenOutput>
+      </None>
+      <None Update="Framework\Entities\Collection\SystemSubscription.ForEachs.tt">
+        <Generator>TextTemplatingFileGenerator</Generator>
+        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -41,6 +63,12 @@
         <DependentUpon>EntityCollection.tt</DependentUpon>
       </Compile>
       <Compile Update="Core\Entities\Collection\SystemSubscription.ForEachs.cs">
+        <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Framework\Entities\Collection\ComponentCollection.cs">
+        <DependentUpon>ComponentCollection.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Framework\Entities\Collection\SystemSubscription.ForEachs.cs">
         <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
       </Compile>
     </ItemGroup>
