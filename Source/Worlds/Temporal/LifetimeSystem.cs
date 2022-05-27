@@ -6,7 +6,7 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[System, DataContract, Guid("FB93ADDC-FF8B-4686-A079-50188F7EB575")]
+[System, Guid("FB93ADDC-FF8B-4686-A079-50188F7EB575")]
 public class LifetimeSystem : SystemBase {
         
     private readonly List<Entity> entities = new();

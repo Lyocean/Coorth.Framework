@@ -7,7 +7,8 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[Component, DataContract, Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
+[Serializable, DataContract]
+[Component, Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
 public struct HierarchyComponent : IComponent {
         
     public Entity Entity { get; private set; }
@@ -27,9 +28,9 @@ public struct HierarchyComponent : IComponent {
 
     public ref HierarchyComponent ParentHierarchy => ref Sandbox.GetComponent<HierarchyComponent>(parentId);
 
-    public EnumerableEntities GetChildrenEntities() => new EnumerableEntities(this.Entity.Sandbox, headId);
+    public EnumerableEntities GetChildrenEntities() => new(Entity.Sandbox, headId);
     
-    public EnumerableHierarchies GetChildrenHierarchies() => new EnumerableHierarchies(this.Entity.Sandbox, headId);
+    public EnumerableHierarchies GetChildrenHierarchies() => new(Entity.Sandbox, headId);
     
     public void OnSetup(Entity entity) => Entity = entity;
 
@@ -68,15 +69,15 @@ public struct HierarchyComponent : IComponent {
     private void _AddChild(ref HierarchyComponent hierarchy) {
         count++;
         hierarchy.parentId = this.Entity.Id;
-        if (this.tailId.IsNull) {
-            this.headId = hierarchy.Entity.Id;
-            this.tailId = this.headId;
+        if (tailId.IsNull) {
+            headId = hierarchy.Entity.Id;
+            tailId = headId;
         }
         else {
-            ref var tailHierarchy = ref Sandbox.GetComponent<HierarchyComponent>(this.tailId);
-            hierarchy.prevId = this.tailId;
+            ref var tailHierarchy = ref Sandbox.GetComponent<HierarchyComponent>(tailId);
+            hierarchy.prevId = tailId;
             tailHierarchy.nextId = hierarchy.Entity.Id;
-            this.tailId = hierarchy.Entity.Id;
+            tailId = hierarchy.Entity.Id;
         }
     }
     
@@ -114,11 +115,11 @@ public struct HierarchyComponent : IComponent {
         count++;
         child.parentId = this.Entity.Id;
         if (count == 1) {
-            this.headId = child.Entity.Id;
-            this.tailId = this.headId;
+            headId = child.Entity.Id;
+            tailId = headId;
         }
         else {
-            var id = this.headId;
+            var id = headId;
             ref var prev = ref Sandbox.GetComponent<HierarchyComponent>(id);
             ref var next = ref Sandbox.GetComponent<HierarchyComponent>(prev.nextId);
             while (position > 0) {
@@ -139,7 +140,7 @@ public struct HierarchyComponent : IComponent {
         if (position < 0 || position > count) {
             throw new ArgumentOutOfRangeException();
         }
-        var id = this.headId;
+        var id = headId;
         ref var hierarchy = ref Sandbox.GetComponent<HierarchyComponent>(id);
         for (var i = 1; i < position; i++) {
             id = hierarchy.nextId;
@@ -208,11 +209,11 @@ public struct HierarchyComponent : IComponent {
     }
 
     public void SetParent(in Entity parent) {
-        if (parent.Id == this.parentId) {
+        if (parent.Id == parentId) {
             return;
         }
-        if (!this.parentId.IsNull) {
-            ref var oldParentHierarchy = ref Sandbox.GetComponent<HierarchyComponent>(this.parentId);
+        if (!parentId.IsNull) {
+            ref var oldParentHierarchy = ref Sandbox.GetComponent<HierarchyComponent>(parentId);
             oldParentHierarchy._RemoveChild(ref this);
         }
         ref var newParentHierarchy = ref parent.Offer<HierarchyComponent>();
@@ -274,9 +275,9 @@ public struct HierarchyComponent : IComponent {
             return true;
         }
 
-        public void Reset() { currentId = headId; this.nextId = headId; }
+        public void Reset() { currentId = headId; nextId = headId; }
 
-        public Entity Current => new Entity(sandbox, currentId);
+        public Entity Current => new(sandbox, currentId);
 
         object IEnumerator.Current => Current;
 
@@ -292,7 +293,7 @@ public struct HierarchyComponent : IComponent {
             this.headId = headId;
         }
             
-        public EntityEnumerator GetEnumerator() => new EntityEnumerator(sandbox, headId);
+        public EntityEnumerator GetEnumerator() => new(sandbox, headId);
             
         IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
 
@@ -308,7 +309,7 @@ public struct HierarchyComponent : IComponent {
             this.headId = headId;
         }
             
-        public HierarchyEnumerator GetEnumerator() => new HierarchyEnumerator(sandbox, headId);
+        public HierarchyEnumerator GetEnumerator() => new(sandbox, headId);
 
         IEnumerator<ComponentPtr<HierarchyComponent>> IEnumerable<ComponentPtr<HierarchyComponent>>.GetEnumerator() => GetEnumerator();
 

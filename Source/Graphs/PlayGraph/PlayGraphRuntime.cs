@@ -1,4 +1,7 @@
-﻿namespace Coorth.Graphs; 
+﻿using System;
+using System.Diagnostics;
+
+namespace Coorth.Graphs; 
 
 public class PlayGraphRuntime<TContext> {
 
@@ -11,6 +14,25 @@ public class PlayGraphRuntime<TContext> {
         DataNodes = dataNodes;
     }
 
+    public virtual void Compile() {
+        
+    }
+
+    [Conditional("DEBUG")]
+    private void ValidateOutputs(int id, int[] indexes) {
+        foreach (var index in indexes) {
+            var dataNode = ValidateAndGetData(index);
+            if (dataNode.WriterIndex != id) {
+                throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
+
+    private ref DataNodeRuntime<TContext> ValidateAndGetData(int index) {
+        ref var dataNode = ref DataNodes[index];
+        return ref dataNode;
+    }
+
     public void Execute(TContext context) {
         for (int i = 0, count = PassNodes.Length; i < count; i++) {
             ref var passNode = ref PassNodes[i];
@@ -18,6 +40,7 @@ public class PlayGraphRuntime<TContext> {
                 ExecuteNode(ref passNode, context);
             }
         }
+
     }
     
     protected virtual void ExecuteNode(ref PassNodeRuntime<TContext> node, TContext context) {
@@ -42,4 +65,6 @@ public class PlayGraphRuntime<TContext> {
             dataNode.Definition.ReleaseAfter(context);
         }
     }
+
+    
 }

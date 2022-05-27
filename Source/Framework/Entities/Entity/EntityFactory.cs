@@ -6,7 +6,7 @@ public abstract class EntityFactory {
 
     public Archetype Archetype { get; private set; }
 
-    public EntityFactory(Sandbox sandbox) {
+    protected EntityFactory(Sandbox sandbox) {
         Sandbox = sandbox;
     }
     

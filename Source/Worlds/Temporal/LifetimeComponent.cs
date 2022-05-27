@@ -14,7 +14,7 @@ public struct LifetimeComponent : IComponent {
 
     public int FrameCount;
         
-    internal Func<Entity, bool>? Condition;
+    internal readonly Func<Entity, bool>? Condition;
         
     public LifetimeComponent(TimeSpan duration) {
         Mode = LifetimeMode.Countdown;

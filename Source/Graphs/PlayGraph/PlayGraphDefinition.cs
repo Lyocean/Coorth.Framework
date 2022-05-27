@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using Coorth.Framework;
 
-namespace Coorth.Graphs; 
+namespace Coorth.Graphs;
 
+//TODO: PlayGraph
 public class PlayGraphDefinition<TContext> : GraphDefinition {
 
     public HashSet<DataNodeDefinition<TContext>> DataNodes = new();

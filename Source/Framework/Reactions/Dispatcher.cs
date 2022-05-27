@@ -115,6 +115,8 @@ public sealed partial class Dispatcher : Disposable {
 
 public sealed partial class Dispatcher<TContext> : Disposable {
     
+    public static readonly Dispatcher<TContext> Root = new();
+
     private readonly Dispatcher<TContext>? parent;
 
     private readonly List<Dispatcher<TContext>> children = new();

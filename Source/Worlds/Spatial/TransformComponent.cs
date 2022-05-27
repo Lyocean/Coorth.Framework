@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Numerics;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using Coorth.Maths;
 using Coorth.Framework;
-using IComponent = Coorth.Framework.IComponent;
 
 namespace Coorth.Worlds; 
 
-[Component, DataContract, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
+[Serializable, DataContract]
+[Component, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
 public class TransformComponent : IComponent, IHierarchyNode {
 
     #region Hierarchy
@@ -105,7 +103,7 @@ public class TransformComponent : IComponent, IHierarchyNode {
                 UpdateLocalMatrix();
             } break;
             default:
-                throw new InvalidEnumArgumentException();
+                throw new ArgumentException(attach.ToString());
         }
         MarkFlag(TransformFlags.Position | TransformFlags.Rotation | TransformFlags.Scaling, true);
         UpdateWorldMatrix();
@@ -478,64 +476,5 @@ public class TransformComponent : IComponent, IHierarchyNode {
     }
         
     #endregion
-        
-    #region Enumerator
-        
-    public struct TransformEnumerator : IEnumerator<ComponentPtr<TransformComponent>> {
-        private HierarchyComponent.EntityEnumerator hierarchies;
-        private Entity current;
-            
-        public TransformEnumerator(Entity entity) {
-            this.hierarchies = entity.Offer<HierarchyComponent>().GetChildrenEntities().GetEnumerator();
-            this.current = Entity.Null;
-        }
-
-        public bool MoveNext() {
-            while (hierarchies.MoveNext()) {
-                current = hierarchies.Current;
-                if (!current.IsNull && current.Has<TransformComponent>()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void Reset() {
-            hierarchies.Reset();
-        }
-
-        public ComponentPtr<TransformComponent> Current => current.Ptr<TransformComponent>();
-
-        object IEnumerator.Current => Current;
-
-        public void Dispose() { }
-    }
-
-    public readonly struct EnumerableTransforms : IEnumerable<ComponentPtr<TransformComponent>> {
-        private readonly Entity entity;
-
-        public EnumerableTransforms(Entity entity) {
-            this.entity = entity;
-        }
-            
-        public TransformEnumerator GetEnumerator() => new TransformEnumerator(entity);
-
-        IEnumerator<ComponentPtr<TransformComponent>> IEnumerable<ComponentPtr<TransformComponent>>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
-
-
-    // [Flags]
-    // public enum TransformFlags {
-    //     Nothing = 0,
-    //     Position = 1,
-    //     Rotation = 1 << 1,
-    //     Scaling = 1 << 2,
-    // }
-        
-
-    #endregion
-
+    
 }
