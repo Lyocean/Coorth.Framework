@@ -1,5 +1,4 @@
-﻿using System;
-using Coorth.Framework;
+﻿using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 

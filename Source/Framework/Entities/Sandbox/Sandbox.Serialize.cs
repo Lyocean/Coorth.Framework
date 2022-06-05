@@ -9,7 +9,7 @@ public partial class Sandbox {
 
     #region Read Write Component
 
-    public void ReadComponent(ISerializeReader reader, in EntityId entityId, Type type) {
+    public void ReadComponent(SerializeReader reader, in EntityId entityId, Type type) {
         ref var context = ref GetContext(entityId.Index);
         var componentGroup = GetComponentGroup(type);
         if(context.TryGet(componentGroup.TypeId, out var componentIndex)) {
@@ -23,7 +23,7 @@ public partial class Sandbox {
         }
     }
         
-    public void WriteComponent(ISerializeWriter writer, in EntityId entityId, Type type) {
+    public void WriteComponent(SerializeWriter writer, in EntityId entityId, Type type) {
         ref var context = ref GetContext(entityId.Index);
         var componentGroup = GetComponentGroup(type);
         componentGroup.WriteComponent(writer, context[componentGroup.TypeId]);
@@ -34,7 +34,7 @@ public partial class Sandbox {
         
     #region Read Write Entity
 
-    public void ReadEntity(ISerializeReader reader, EntityId entityId) {
+    public void ReadEntity(SerializeReader reader, EntityId entityId) {
         reader.BeginScope(typeof(Entity), SerializeScope.Table);
         var count = reader.ReadField<int>(nameof(Entity.Count), 1);
         reader.ReadTag(nameof(EntityContext.Components), 2);
@@ -47,13 +47,13 @@ public partial class Sandbox {
         reader.EndScope();
     }
         
-    public Entity ReadEntity(ISerializeReader reader) {
+    public Entity ReadEntity(SerializeReader reader) {
         var entity = CreateEntity();
         ReadEntity(reader, entity.Id);
         return entity;
     }
 
-    public void WriteEntity(ISerializeWriter writer, in EntityId entityId) {
+    public void WriteEntity(SerializeWriter writer, in EntityId entityId) {
         writer.BeginScope(typeof(Entity), SerializeScope.Table);
         ref var context = ref GetContext(entityId.Index);
         writer.WriteField(nameof(Entity.Count), 1, context.Count);
@@ -68,7 +68,7 @@ public partial class Sandbox {
         writer.EndScope();
     }
 
-    public void WriteEntities(ISerializeWriter writer, IEnumerable<Entity> entities) {
+    public void WriteEntities(SerializeWriter writer, IEnumerable<Entity> entities) {
         var list = (entities as IList<Entity>) ?? entities.ToArray();
         writer.BeginList(typeof(Entity), list.Count);
         foreach (var entity in list) {
@@ -77,7 +77,7 @@ public partial class Sandbox {
         writer.EndList();
     }
 
-    public List<Entity> ReadEntities(ISerializeReader reader) {
+    public List<Entity> ReadEntities(SerializeReader reader) {
         reader.BeginList<Entity>(out var count);
         if (count >= 0) {
             var list = new List<Entity>(count);
@@ -103,7 +103,7 @@ public partial class Sandbox {
         
     #region Read Write Archetype
 
-    public Archetype ReadArchetype(ISerializeReader reader) {
+    public Archetype ReadArchetype(SerializeReader reader) {
         var builder = CreateArchetype();
         reader.BeginScope<Archetype>(SerializeScope.Table);
         reader.BeginList<Type>(out var count);
@@ -127,7 +127,7 @@ public partial class Sandbox {
         return builder.Compile();
     }
         
-    public void WriteArchetype(ISerializeWriter writer, Archetype archetype) {
+    public void WriteArchetype(SerializeWriter writer, Archetype archetype) {
         writer.BeginScope<Archetype>(SerializeScope.Table);
         writer.BeginList<Type>(archetype.Definition.ComponentCount);
         foreach (var typeId in archetype.Definition.Types) {
@@ -143,11 +143,11 @@ public partial class Sandbox {
         
     #region Read Write Group
 
-    public List<Entity> ReadEntitiesByArchetype(ISerializeReader reader) {
+    public List<Entity> ReadEntitiesByArchetype(SerializeReader reader) {
         throw new NotImplementedException();
     }
         
-    public void WriteEntitiesByArchetype(ISerializeWriter writer, IEnumerable<Entity> entities) {
+    public void WriteEntitiesByArchetype(SerializeWriter writer, IEnumerable<Entity> entities) {
         throw new NotImplementedException();
     }
 
@@ -156,11 +156,11 @@ public partial class Sandbox {
         
     #region Read Write Sandbox
 
-    public void ReadSandbox(ISerializeReader reader) {
+    public void ReadSandbox(SerializeReader reader) {
         throw new NotImplementedException();
     }
 
-    public void WriteSandbox(ISerializeWriter writer) {
+    public void WriteSandbox(SerializeWriter writer) {
         throw new NotImplementedException();
     }
         

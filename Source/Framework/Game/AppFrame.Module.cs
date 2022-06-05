@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Coorth.Framework;
@@ -28,8 +27,9 @@ public partial class AppFrame : IModuleContainer {
         Dispatcher.Dispatch(new EventModuleRemove(key, module));
     }
     
-    public TModule Bind<TModule>(TModule module) where TModule : Module, IModule {
-        return Bind<TModule, TModule>(module);
+    public TModule Bind<TModule>(TModule module) where TModule : IModule {
+        root.AddModule(typeof(TModule), (Module)(object)module);
+        return module;
     }
     
     public TKey Bind<TKey, TModule>(Func<AppFrame, TModule> func)  where TModule : Module, TKey where TKey : IModule {

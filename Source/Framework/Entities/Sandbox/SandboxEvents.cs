@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Coorth.Framework; 
+﻿namespace Coorth.Framework; 
 
 public interface ISandboxEvent : IEvent { }
 

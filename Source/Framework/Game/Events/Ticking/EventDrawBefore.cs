@@ -3,11 +3,11 @@
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventDrawBefore(TimeSpan DeltaTime, TimeSpan TotalTime, long FrameCount) : IEvent {
-    
-    public readonly TimeSpan DeltaTime = DeltaTime;
+public readonly record struct EventDrawBefore(TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : IEvent {
     
     public readonly TimeSpan TotalTime = TotalTime;
+
+    public readonly TimeSpan DeltaTime = DeltaTime;
     
     public readonly long FrameCount = FrameCount;
         

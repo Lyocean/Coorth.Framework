@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Framework;
+using Coorth.Tasks.Ticking;
 
 namespace Coorth.Worlds; 
 
@@ -29,90 +28,37 @@ public class DirectorSystem : SystemBase {
 
     private void OnStartup(EventSandboxStartup e) {
         var component = Singleton<DirectorComponent>();
-        component.Ticker.Setup(e.Setting);
+        // component.Ticker.Setup(e.Setting);
         // Sandbox.Context.Startup(Thread.CurrentThread);
         component.IsRunning = true;
     }
-        
+    
     private void OnRunTick(EventSandboxRunTick e) {
         var component = Singleton<DirectorComponent>();
-        component.Ticker.Setup(e.Setting);
-        var thread = new Thread(Run);
-        // Sandbox.Context.Startup(thread);
-        component.CompletionSource.Task.ContinueWith(_ => {
+        var ticking = new TaskTicking(Sandbox, Sandbox.Dispatcher, e.Setting);
+        var completion = new TaskCompletionSource<bool>();
+        var thread = ticking.RunInThread(completion);
+        completion.Task.ContinueWith(_ => {
             e.Completion.SetResult(Sandbox);
         });
-        thread.Start();
     }
-        
-    private void OnTicking(EventSandboxTicking e) {
-        var component = Singleton<DirectorComponent>();
-        if (Sandbox.IsDisposed || !component.IsRunning) {
-            return;
-        }
-        TickLoop(ref component.Ticker, ref component.Ticker.RemainingStepTime, e.DeltaTickTime);
-    }
+    
+    private void OnTicking(EventSandboxTicking e) { }
 
-    private void Run() {
-        var component = Singleton<DirectorComponent>();
-        if (Sandbox.IsDisposed || !component.IsRunning) {
-            return;
-        }
-        component.IsRunning = true;
-            
-        var lastTime = new DateTime(Stopwatch.GetTimestamp());
-        ref var frameStepTime = ref component.Ticker.RemainingStepTime;
-        while (!Sandbox.IsDisposed && component.IsRunning) {
-            var currentTime = new DateTime(Stopwatch.GetTimestamp());
-            var deltaTickTime = currentTime - lastTime;
-            TickLoop(ref component.Ticker, ref frameStepTime, deltaTickTime);
-            var remainingTime = component.Ticker.TickDeltaTime - deltaTickTime;
-            component.Ticker.WaitTime(remainingTime);
-            lastTime = currentTime;
-        }
-    }
-
-    private void TickLoop(ref TimeTicker ticker, ref TimeSpan frameStepTime, in TimeSpan deltaTickTime) {
-        //Step Update
-        frameStepTime += ticker.StepDeltaTime;
-        for (var i = 0; i < ticker.MaxStepPerFrame && frameStepTime >= TimeSpan.Zero; i++, frameStepTime -= ticker.StepDeltaTime) {
-            Sandbox.Execute(new EventStepUpdate(ticker.StepTotalTime, ticker.StepDeltaTime, ticker.TotalStepFrameCount));
-            ticker.StepUpdate();
-        }
-
-        //Tick Update
-        Sandbox.Execute(new EventTickUpdate(ticker.TickTotalTime, deltaTickTime, ticker.TotalTickFrameCount));
-        Sandbox.Execute(new EventLateUpdate(ticker.TickTotalTime, deltaTickTime, ticker.TotalTickFrameCount));
-        ticker.TickUpdate(deltaTickTime);
-    }
 }
 
 [Event]
-public readonly struct EventSandboxStartup : IEvent {
-        
-    public readonly TickSetting Setting;
-        
-    public EventSandboxStartup(TickSetting setting) {
-        this.Setting = setting;
-    }
+public readonly record struct EventSandboxStartup(TickSetting Setting) : IEvent {
+    public readonly TickSetting Setting = Setting;
 }
 
 [Event]
-public readonly struct EventSandboxRunTick : IEvent {
-    public readonly TickSetting Setting;
-    public readonly TaskCompletionSource<Sandbox> Completion;
-
-    public EventSandboxRunTick(TickSetting setting, TaskCompletionSource<Sandbox> completion) {
-        this.Setting = setting;
-        this.Completion = completion;
-    }
+public readonly record struct EventSandboxRunTick(TickSetting Setting, TaskCompletionSource<Sandbox> Completion) : IEvent {
+    public readonly TickSetting Setting = Setting;
+    public readonly TaskCompletionSource<Sandbox> Completion = Completion;
 }
 
 [Event]
-public readonly struct EventSandboxTicking : IEvent {
-    public readonly TimeSpan DeltaTickTime;
-
-    public EventSandboxTicking(TimeSpan deltaTickTime) {
-        DeltaTickTime = deltaTickTime;
-    }
+public readonly record struct EventSandboxTicking(TimeSpan DeltaTickTime) : IEvent {
+    public readonly TimeSpan DeltaTickTime = DeltaTickTime;
 }

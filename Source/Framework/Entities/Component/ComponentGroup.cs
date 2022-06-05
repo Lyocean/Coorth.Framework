@@ -28,9 +28,9 @@ internal interface IComponentGroup {
         
     int CloneComponent(in Entity entity, int componentIndex);
 
-    void ReadComponent(ISerializeReader reader, int componentIndex);
+    void ReadComponent(SerializeReader reader, int componentIndex);
 
-    void WriteComponent(ISerializeWriter writer, int componentIndex);
+    void WriteComponent(SerializeWriter writer, int componentIndex);
 
     ComponentPack PackComponent(Entity entity, int componentIndex);
 
@@ -227,12 +227,12 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
         return AddComponent(entity, ref targetComponent);
     }
 
-    public void ReadComponent(ISerializeReader reader, int componentIndex) {
+    public void ReadComponent(SerializeReader reader, int componentIndex) {
         ref var component = ref components[componentIndex];
         reader.ReadValue(out component);
     }
 
-    public void WriteComponent(ISerializeWriter writer, int componentIndex) {
+    public void WriteComponent(SerializeWriter writer, int componentIndex) {
         ref var component = ref components[componentIndex];
         writer.WriteValue(component);
     }

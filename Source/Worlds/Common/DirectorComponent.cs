@@ -4,12 +4,13 @@ using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Coorth.Framework;
 using Coorth.Logs;
+using Coorth.Tasks.Ticking;
 
 namespace Coorth.Worlds; 
 
 [Serializable, DataContract]
 [Component(Singleton = true), Guid("5A03F9B7-5CB3-4C20-BBFD-5A14AA09F13E")]
-public class DirectorComponent : ActorComponent {
+public class DirectorComponent : Component {
     
     public volatile bool IsRunning;
         
@@ -46,9 +47,5 @@ public class DirectorComponent : ActorComponent {
         
     public DateTime GetCurrentTime() {
         return DateTime.UtcNow + OffsetTime;
-    }
-
-    public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {
-        throw new NotImplementedException();
     }
 }

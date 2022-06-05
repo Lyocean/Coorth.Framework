@@ -3,15 +3,15 @@
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventDrawUpdate(TimeSpan Delta, TimeSpan Total, long FrameCount) : IEvent {
+public readonly record struct EventDrawUpdate(TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : IEvent {
     
-    public readonly TimeSpan Delta = Delta;
+    public readonly TimeSpan DeltaTime = DeltaTime;
     
-    public readonly TimeSpan Total = Total;
+    public readonly TimeSpan TotalTime = TotalTime;
     
     public readonly long FrameCount = FrameCount;
         
-    public float DeltaSeconds => (float)Delta.TotalSeconds;
+    public float DeltaSeconds => (float)DeltaTime.TotalSeconds;
 
-    public float TotalSeconds => (float)Total.TotalSeconds;
+    public float TotalSeconds => (float)TotalTime.TotalSeconds;
 }

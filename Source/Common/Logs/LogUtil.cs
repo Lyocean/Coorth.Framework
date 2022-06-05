@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using Coorth.Logs;
 
 namespace Coorth.Logs; 
 
@@ -25,6 +24,10 @@ public static class LogUtil {
 
     [Conditional("DEBUG")]
     public static void Debug(string module, string message, LogColor color) => Logger.Debug(module, message, color);
+
+    
+    public static void Trace(string message) => Logger.Trace(message);
+    public static void Trace(string message, LogColor color) => Logger.Log(LogLevel.Trace, message, color);
 
     public static void Info(string message) => Logger.Info(message);
     public static void Info(string module, string message) => Logger.Info(module, message);

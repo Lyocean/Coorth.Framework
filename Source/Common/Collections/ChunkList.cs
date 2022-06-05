@@ -11,15 +11,9 @@ public struct ChunkList<T> {
         
     public int Count;
         
-    private int ChunkCount {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => chunks.Count;
-    }
-        
-    private int Capacity {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ChunkCount * chunkCapacity;
-    }
+    private int ChunkCount { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => chunks.Count; }
+
+    private int Capacity { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ChunkCount * chunkCapacity; }
 
     public ChunkList(int indexCapacity, int chunkCapacity) {
         if (indexCapacity <= 0 || chunkCapacity <= 0) {

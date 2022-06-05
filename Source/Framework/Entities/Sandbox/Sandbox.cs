@@ -5,14 +5,12 @@ using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
-public partial class Sandbox : IDisposable {
+public partial class Sandbox : Disposable {
         
     public readonly string Name;
     
     public int Index { get; private set; }
-
-    public bool IsDisposed { get; private set; }
-
+    
     public readonly SandboxOptions Options;
 
     public readonly SandboxContext Context;
@@ -45,19 +43,15 @@ public partial class Sandbox : IDisposable {
             
         singleton = CreateEntity();
     }
-        
-    public void Dispose() {
-        if (IsDisposed) {
-            return;
-        }
+
+    protected override void OnDispose(bool dispose) {
         ClearEntities();
         ClearComponents();
         ClearSystems();
         ClearArchetypes();
-        IsDisposed = true;
         OnRemoveSandbox(this);
     }
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetService(Type serviceType) => Services.Get(serviceType);
 

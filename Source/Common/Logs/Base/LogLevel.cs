@@ -1,7 +1,7 @@
 ﻿namespace Coorth.Logs;
 
 public enum LogLevel {
-        
+    
     Trace = 0,
         
     Debug = 1,

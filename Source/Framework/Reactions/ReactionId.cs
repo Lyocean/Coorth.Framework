@@ -13,11 +13,11 @@ public readonly record struct ReactionId {
     private ReactionId(Guid id) => this.id = id;
 
     private class Serializer : Serializer<ReactionId> {
-        public override void Write(ISerializeWriter writer, in ReactionId value) {
+        public override void Write(SerializeWriter writer, in ReactionId value) {
             writer.WriteValue(value.id);
         }
 
-        public override ReactionId Read(ISerializeReader reader, ReactionId value) {
+        public override ReactionId Read(SerializeReader reader, ReactionId value) {
             return new ReactionId(reader.ReadValue<Guid>());
         }
     }

@@ -12,10 +12,14 @@ public class IdPool {
     private long lastSecond;
     
     private volatile int currentId;
+
+    //TODO: Id pool repeat
+    private bool canRepeat;
     
-    public IdPool(short poolId, Func<long> secondProvider) {
+    public IdPool(short poolId, Func<long> secondProvider, bool canRepeat) {
         this.poolId = poolId;
         this.secondProvider = secondProvider;
+        this.canRepeat = canRepeat;
     }
 
     public long Next() {

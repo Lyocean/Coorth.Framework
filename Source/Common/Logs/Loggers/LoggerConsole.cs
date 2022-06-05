@@ -3,7 +3,7 @@
 namespace Coorth.Logs; 
 
 public class LoggerConsole : Logger {
-
+    
     private static void LogHead(LogLevel level) {
         var time = DateTime.Now;
         switch (level) {

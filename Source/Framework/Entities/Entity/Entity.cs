@@ -82,9 +82,9 @@ public readonly record struct Entity(Sandbox Sandbox, EntityId Id) : IDisposable
         
     public void Dispose() => Sandbox.DestroyEntity(Id);
 
-    public void Write(ISerializeWriter writer) => Sandbox.WriteEntity(writer, Id);
+    public void Write(SerializeWriter writer) => Sandbox.WriteEntity(writer, Id);
         
-    public void Read(ISerializeReader reader) => Sandbox.ReadEntity(reader, Id);
+    public void Read(SerializeReader reader) => Sandbox.ReadEntity(reader, Id);
 
     public Entity CloneEntity() => Sandbox.CloneEntity(this);
     
@@ -92,11 +92,11 @@ public readonly record struct Entity(Sandbox Sandbox, EntityId Id) : IDisposable
     
     [Serializer(typeof(Entity))]
     private class Serializer : Serializer<Entity> {
-        public override void Write(ISerializeWriter writer, in Entity value) {
+        public override void Write(SerializeWriter writer, in Entity value) {
             value.Sandbox.WriteEntity(writer, value.Id);
         }
 
-        public override Entity Read(ISerializeReader reader, Entity value) {
+        public override Entity Read(SerializeReader reader, Entity value) {
             if (value.IsNull) {
                 var sandbox = reader.GetContext<Sandbox>();
                 value = sandbox.CreateEntity();

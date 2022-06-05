@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Coorth.Serialize; 
 
-public abstract class BaseSerializeReader : SerializeBase, ISerializeReader {
+public abstract partial class SerializeReader : SerializeBase {
     //Root
     public abstract void BeginRoot(Type type);
     public abstract void EndRoot();
@@ -16,10 +15,11 @@ public abstract class BaseSerializeReader : SerializeBase, ISerializeReader {
     //Dict
     public abstract void BeginDict(Type key, Type value, out int count);
     public abstract bool EndDict();
-    
     //Tag, Key, Value
     public abstract int ReadTag(string name, int index);
-
+    
+    // T? ReadField<T>(string name, int index);
+    
     public virtual TKey ReadKey<TKey>() where TKey: notnull {   
         var type = typeof(TKey);
         if (type.IsEnum) {
@@ -34,7 +34,7 @@ public abstract class BaseSerializeReader : SerializeBase, ISerializeReader {
         } 
         throw new NotSupportedException(type.ToString());
     }
-
+    
     public T? ReadValue<T>() {
         if (typeof(T).IsEnum) {
             return ReadEnum<T>();
@@ -46,41 +46,55 @@ public abstract class BaseSerializeReader : SerializeBase, ISerializeReader {
         throw new NotSupportedException(typeof(T).ToString());
     }
 
-    //Simple Type
-    protected abstract bool ReadBool();
+    public virtual object? ReadObject(Type type) {
+        var serializer = Serializers.GetSerializer(type);
+        if (serializer != null) {
+            return serializer.ReadObject(this, default);
+        }
+        throw new NotSupportedException(type.ToString());
+    }
 
-    protected abstract byte ReadByte();
+    // Types
+    
+    public abstract bool ReadBool();
 
-    protected abstract sbyte ReadSByte();
+    public abstract sbyte ReadInt8();
 
-    protected abstract short ReadShort();
+    public abstract short ReadInt16();
 
-    protected abstract ushort ReadUShort();
+    public abstract int ReadInt32();
 
-    protected abstract int ReadInt();
+    public abstract long ReadInt64();
 
-    protected abstract uint ReadUInt();
+    public abstract byte ReadUInt8();
 
-    protected abstract long ReadLong();
+    public abstract ushort ReadUInt16();
+    
+    public abstract uint ReadUInt32();
 
-    protected abstract ulong ReadULong();
+    public abstract ulong ReadUInt64();
 
-    protected abstract float ReadFloat();
+#if NET5_0_OR_GREATER
+    public virtual Half ReadFloat16() => (Half) ReadFloat32();
+#endif
 
-    protected abstract double ReadDouble();
+    public abstract float ReadFloat32();
 
-    protected abstract char ReadChar();
+    public abstract double ReadFloat64();
 
-    protected abstract string ReadString();
+    public abstract decimal ReadDecimal();
+    
+    public abstract char ReadChar();
 
-    protected abstract DateTime ReadDateTime();
+    public abstract string? ReadString();
 
-    protected abstract TimeSpan ReadTimeSpan();
+    public abstract DateTime ReadDateTime();
 
-    protected abstract Guid ReadGuid();
+    public abstract TimeSpan ReadTimeSpan();
 
-    protected abstract Type ReadType();
+    public abstract Guid ReadGuid();
 
-    protected abstract T ReadEnum<T>();
+    public abstract Type ReadType();
 
+    public abstract T ReadEnum<T>();
 }

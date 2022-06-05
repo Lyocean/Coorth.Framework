@@ -1,7 +1,4 @@
-﻿using System;
-using Coorth.Framework;
-
-namespace Coorth.Framework;
+﻿namespace Coorth.Framework;
 
 public sealed class ModuleRoot : Module {
 

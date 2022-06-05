@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Coorth.Framework;
 
 namespace Coorth.Framework;
 
@@ -23,6 +22,11 @@ public abstract partial class Module : IModule {
     public virtual ActorLocalDomain LocalDomain => Root.LocalDomain;
 
     protected Disposables Managed;
+
+    protected Disposables Actives;
+
+    protected ref Disposables Collector => ref (IsActive ? ref Actives : ref Managed);
+
 
     public TModule AddModule<TKey, TModule>(TModule module) where TModule : Module, TKey where TKey : IModule {
         var key = typeof(TKey);

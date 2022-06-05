@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Tasks; 
 
-public static class TaskJobExtension {
+public static class TaskExtension {
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Forget(this Task task) {

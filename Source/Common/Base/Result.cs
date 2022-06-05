@@ -2,39 +2,30 @@
 
 namespace Coorth; 
 
-public readonly struct Result {
+public readonly record struct Result {
         
     public readonly bool IsSuccess;
         
     public readonly string? Error;
         
     private Result(bool isSuccess) {
-        this.IsSuccess = isSuccess;
-        this.Error = null;
+        IsSuccess = isSuccess;
+        Error = null;
     }
         
     private Result(string error) {
-        this.IsSuccess = false;
-        this.Error = error;
+        IsSuccess = false;
+        Error = error;
     }
         
-    public static Result Success() {
-        return new Result(true);
-    }
+    public static Result Success() => new(true);
 
-    public static Result Failure(string error) {
-        return new Result(error);
-    }
-        
-    public static Result<T> Success<T>(T value) {
-        return Result<T>.Success(value);
-    }
+    public static Result Failure(string error) => new(error);
 
-    public static Result<T> Failure<T>(string error) {
-        return Result<T>.Failure(error);
-    }
+    public static Result<T> Success<T>(T value) => Result<T>.Success(value);
+
+    public static Result<T> Failure<T>(string error) => Result<T>.Failure(error);
 }
-    
     
 public readonly struct Result<T> {
         
@@ -67,17 +58,11 @@ public readonly struct Result<T> {
         Exception = e;
     }
         
-    public static Result<T> Success(T value) {
-        return new Result<T>(true, value);
-    }
+    public static Result<T> Success(T value) => new(true, value);
 
-    public static Result<T> Failure(string err) {
-        return new Result<T>(err);
-    }
-        
-    public static Result<T> Failure(Exception e) {
-        return new Result<T>(e);
-    }
+    public static Result<T> Failure(string err) => new(err);
+
+    public static Result<T> Failure(Exception e) => new(e);
 
     public string GetError() {
         if (Error != null) {

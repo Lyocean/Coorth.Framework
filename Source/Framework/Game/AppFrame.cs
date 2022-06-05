@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
-using Coorth.Framework;
 
 namespace Coorth.Framework;
 
@@ -36,6 +35,8 @@ public abstract partial class AppFrame : Disposable {
 
     private ILogger Logger { get; }
 
+    public event Action? OnTicking;
+    
     protected AppFrame(AppOptions options) {
         Guid = Guid.NewGuid();
         Id = options.Id;
@@ -100,8 +101,8 @@ public abstract partial class AppFrame : Disposable {
         if (IsDisposed || !isSetup) {
             return;
         }
+        OnTicking?.Invoke();
         Context.Synchronization.Invoke();
-        
     }
 
     public void Execute<T>(in T e) where T: notnull {
@@ -112,8 +113,7 @@ public abstract partial class AppFrame : Disposable {
         Dispatcher.Dispatch(e);
     }
 
-    protected virtual void OnExecute<T>(in T e) {
-    }
+    protected virtual void OnExecute<T>(in T e) { }
 
     public void Shutdown() {
         if (!IsRunning) {
@@ -126,16 +126,13 @@ public abstract partial class AppFrame : Disposable {
         isRunning = false;
     }
 
-    protected virtual void OnShutdown() {
-    }
+    protected virtual void OnShutdown() { }
 
     protected override void OnDispose(bool dispose) {
-        Logger.Error(nameof(OnDispose));
         Shutdown();
         OnDestroy();
         Apps.RemoveApp(this);
     }
 
-    protected virtual void OnDestroy() {
-    }
+    protected virtual void OnDestroy() { }
 }

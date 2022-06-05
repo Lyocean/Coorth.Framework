@@ -8,7 +8,7 @@ namespace Coorth.Framework;
 public partial class Sandbox {
         
     #region Common
-
+    
     private ChunkList<EntityContext> contexts;
 
     private int reusing = -1;
@@ -105,8 +105,6 @@ public partial class Sandbox {
     }
 
     public void CreateEntities(IList<Entity> list, int start, int count) => CreateEntities(emptyArchetype, list, start, count);
-
-
 
     public Entity Singleton() {
         if (singleton.IsNull) {

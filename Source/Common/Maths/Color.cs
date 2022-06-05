@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 
@@ -71,10 +72,10 @@ public partial struct Color : IEquatable<Color> {
         if (values.Length != index + 4) {
             throw new ArgumentOutOfRangeException(nameof(values));
         }
-        this.R = values[index];
-        this.G = values[index+1];
-        this.B = values[index+2];
-        this.A = values[index+3];
+        R = values[index];
+        G = values[index+1];
+        B = values[index+2];
+        A = values[index+3];
     }
     
     public readonly float[] ToArray() => new[] { R, G, B, A };
@@ -134,7 +135,9 @@ public partial struct Color : IEquatable<Color> {
         }
     }
 
-    public Vector3 RGB() => new Vector3(R, G, B);
+    public Span<float> Span => MemoryMarshal.CreateSpan(ref A, 4);
+
+    public Vector3 RGB() => new(R, G, B);
         
     public readonly bool Equals(Color other) {
         return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);

@@ -6,7 +6,8 @@ using Coorth.Framework;
 
 namespace Coorth.Tasks; 
 
-public static class TaskJobUtil {
+public static class TaskUtil {
+    
     private static Dispatcher Dispatcher => Dispatcher.Root;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

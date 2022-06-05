@@ -16,8 +16,8 @@ public partial class World : IWorldProxy {
 
     private SandboxCreateResponse OnReceive(SandboxCreateRequest request) {
         var sandbox = CreateSandbox(request.Name);
-        var director = sandbox.Singleton<DirectorComponent>();
-        return new SandboxCreateResponse(director.ActorId);
+        var actor = sandbox.Singleton<ActorComponent>();
+        return new SandboxCreateResponse(actor.ActorId);
     }
 
     private SandboxDestroyResponse OnReceive(SandboxDestroyRequest request) {
@@ -28,7 +28,7 @@ public partial class World : IWorldProxy {
         }
         return new SandboxDestroyResponse(false);
 
-        static ActorId GetId(Sandbox s) { return s.Singleton<DirectorComponent>().ActorId; }
+        static ActorId GetId(Sandbox s) { return s.Singleton<ActorComponent>().ActorId; }
     }
     
     public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {

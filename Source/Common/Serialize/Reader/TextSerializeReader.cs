@@ -3,24 +3,36 @@ using System.Runtime.Serialization;
 
 namespace Coorth.Serialize; 
 
-public abstract class TextSerializeReader : BaseSerializeReader {
-    protected override DateTime ReadDateTime() {
+public abstract class TextSerializeReader : SerializeReader {
+    public override DateTime ReadDateTime() {
         var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
         return DateTime.Parse(text);
     }
 
-    protected override TimeSpan ReadTimeSpan() {
+    public override TimeSpan ReadTimeSpan() {
         var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
         return TimeSpan.Parse(text);
     }
 
-    protected override Guid ReadGuid() {
+    public override Guid ReadGuid() {
         var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
         return Guid.Parse(text);
     }
 
-    protected override Type ReadType() {
+    public override Type ReadType() {
         var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
         var index = text.IndexOf(":", StringComparison.Ordinal);
         var content = text[(index + 1)..];
         if (text.StartsWith("Guid:")) {
@@ -38,8 +50,11 @@ public abstract class TextSerializeReader : BaseSerializeReader {
         throw new SerializationException($"[Serialize]: Unexpected type format: {text}.");
     }
 
-    protected override T ReadEnum<T>() {
+    public override T ReadEnum<T>() {
         var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
         return (T)Enum.Parse(typeof(T), text);
     }
 }

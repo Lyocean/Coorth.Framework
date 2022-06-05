@@ -5,7 +5,7 @@ namespace Coorth.Serialize;
 
 public abstract class SerializeBase {
     
-    private readonly Dictionary<Type, object> contexts = new Dictionary<Type, object>();
+    private readonly Dictionary<Type, object> contexts = new();
 
     protected string? error;
 

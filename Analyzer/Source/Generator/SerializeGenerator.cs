@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Coorth.Analyzer; 
 
-[Generator]
+// [Generator]
 public class SerializeGenerator : ISourceGenerator {
     public void Initialize(GeneratorInitializationContext context) {
     }
