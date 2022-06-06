@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Framework;
 using Coorth.Tasks.Ticking;
@@ -9,11 +10,18 @@ namespace Coorth.Worlds;
 
 [System, DataContract, Guid("32B3C700-5454-4C27-83A1-B6B94C6B386D")]
 public class DirectorSystem : SystemBase {
+
+    private CancellationTokenSource? cancellationTokenSource;
+    
     protected override void OnAdd() {
         Sandbox.BindComponent<DirectorComponent>();
         Subscribe<EventSandboxStartup>().OnEvent(OnStartup);
         Subscribe<EventSandboxRunTick>().OnEvent(OnRunTick);
         Subscribe<EventSandboxTicking>().OnEvent(OnTicking);
+    }
+
+    protected override void OnRemove() {
+        cancellationTokenSource?.Cancel();
     }
 
     protected override void OnActive() {
@@ -34,13 +42,11 @@ public class DirectorSystem : SystemBase {
     }
     
     private void OnRunTick(EventSandboxRunTick e) {
+        cancellationTokenSource = new();
         var component = Singleton<DirectorComponent>();
-        var ticking = new TaskTicking(Sandbox, Sandbox.Dispatcher, e.Setting);
-        var completion = new TaskCompletionSource<bool>();
-        var thread = ticking.RunInThread(completion);
-        completion.Task.ContinueWith(_ => {
-            e.Completion.SetResult(Sandbox);
-        });
+        var ticking = new TaskTicking(Sandbox.Dispatcher, e.Setting, cancellationTokenSource.Token);
+        var thread = ticking.RunInThread(cancellationTokenSource.Token);
+        ticking.OnComplete += () => e.Completion.SetResult(Sandbox);
     }
     
     private void OnTicking(EventSandboxTicking e) { }

@@ -22,6 +22,8 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     
     protected abstract ILogger Logger { get; }
 
+    private CancellationTokenSource cancellationTokenSource = new();
+
     protected GameHost(TApp app, TSetting setting) {
         App = app;
         Setting = setting;
@@ -55,11 +57,11 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
         OnStartup();
         App.Startup();
 
-        var ticking = new TaskTicking(this, Dispatcher.Root, setting);
+        var ticking = new TaskTicking(Dispatcher.Root, setting, cancellationTokenSource.Token);
         ticking.OnTicking += () => App.TickLoop();
-
+        
         try {
-            ticking.Run();
+            ticking.RunLoop();
         }
         catch (Exception e) {
             Logger.Error(e);
@@ -79,5 +81,8 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     
     protected virtual void OnShutdown() { }
 
-    protected virtual void OnDispose() => App.Dispose();
+    protected virtual void OnDispose() {
+        cancellationTokenSource.Cancel();
+        App.Dispose();
+    }
 }

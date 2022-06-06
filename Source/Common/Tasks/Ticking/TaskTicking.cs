@@ -2,85 +2,24 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Coorth.Framework;
 
 namespace Coorth.Tasks.Ticking; 
 
-public class TaskTicking : Disposable {
-    
-    private TimeTicker ticker;
+public class TaskTicking {
 
     private readonly Dispatcher dispatcher;
     
-    private readonly Disposable host;
+    private readonly TickSetting setting;
 
-    private bool IsRunning = false;
+    private CancellationToken cancellationToken;
 
-    private TaskCompletionSource<bool>? completion;
+    public int MaxStepPerFrame => setting.MaxStepPerFrame;
 
-    public event Action? OnTicking;
-    
-    public TaskTicking(Disposable host, Dispatcher dispatcher, TickSetting setting) {
-        this.host = host;
-        this.dispatcher = dispatcher;
-        this.ticker = new TimeTicker(setting);
-    }
+    public float StepFrameRate => setting.StepFrameRate;
 
-    public Thread RunInThread(TaskCompletionSource<bool> tcs) {
-        completion = tcs;
-        var thread = new Thread(Run);
-        thread.Start();
-        return thread;
-    }
-    
-    public void Run() {
-        IsRunning = true;
-        var lastTime = new DateTime(Stopwatch.GetTimestamp());
-        ref var frameStepTime = ref ticker.RemainingStepTime;
-        while (!IsDisposed && IsRunning && !host.IsDisposed) {
-            var currentTime = new DateTime(Stopwatch.GetTimestamp());
-            var deltaTickTime = currentTime - lastTime;
-            TickLoop(ref frameStepTime, in deltaTickTime);
-            OnTicking?.Invoke();
-            var remainingTime = ticker.TickDeltaTime - deltaTickTime;
-            ticker.WaitTime(remainingTime);
-            lastTime = currentTime;
-        }
-        completion?.SetResult(true);
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void TickLoop(ref TimeSpan frameStepTime, in TimeSpan deltaTickTime) {
-        //Step Update
-        frameStepTime += ticker.StepDeltaTime;
-        for (var i = 0; i < ticker.MaxStepPerFrame && frameStepTime >= TimeSpan.Zero; i++, frameStepTime -= ticker.StepDeltaTime) {
-            dispatcher.Dispatch(new EventStepUpdate(ticker.StepTotalTime, ticker.StepDeltaTime, ticker.TotalStepFrameCount));
-            ticker.StepUpdate();
-        }
+    public TimeSpan StepDeltaTime => setting.StepDeltaTime;
 
-        //Tick Update
-        dispatcher.Dispatch(new EventTickBefore(ticker.TickTotalTime, deltaTickTime, ticker.TotalTickFrameCount));
-        dispatcher.Dispatch(new EventTickUpdate(ticker.TickTotalTime, deltaTickTime, ticker.TotalTickFrameCount));
-
-        //Late Update
-        dispatcher.Dispatch(new EventLateUpdate(ticker.TickTotalTime, deltaTickTime, ticker.TotalTickFrameCount));
-
-        ticker.TickUpdate(deltaTickTime);
-    }
-}
-
-
-public struct TimeTicker {
-    //Step
-
-    public int MaxStepPerFrame => Setting.MaxStepPerFrame;
-
-    public float StepFrameRate => Setting.StepFrameRate;
-
-    public TimeSpan StepDeltaTime => Setting.StepDeltaTime;
-
-    public readonly TickSetting Setting;
 
     public TimeSpan StepTotalTime;
 
@@ -90,45 +29,94 @@ public struct TimeTicker {
 
     //Tick
 
-    public float TickFrameRate => Setting.TickFrameRate;
+    public float TickFrameRate => setting.TickFrameRate;
 
-    public TimeSpan TickDeltaTime => Setting.TickDeltaTime;
+    public TimeSpan TickDeltaTime => setting.TickDeltaTime;
 
     public TimeSpan TickTotalTime;
 
     public long TotalTickFrameCount;
 
-    public float TimeScale => Setting.TimeScale;
+    public float TimeScale => setting.TimeScale;
 
+    private DateTime startTime;
+    
+    public event Action? OnTicking;
+    
+    public event Action? OnComplete;
 
-    public TimeTicker(TickSetting setting) {
-        this.Setting = setting;
-        this.StepTotalTime = TimeSpan.Zero;
-        this.TotalStepFrameCount = 0;
-        this.RemainingStepTime = TimeSpan.Zero;
-        this.TickTotalTime = TimeSpan.Zero;
-        this.TotalTickFrameCount = 0;
+    public TaskTicking(Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
+        this.dispatcher = dispatcher;
+        this.setting = setting;
+        this.cancellationToken = cancellationToken;
+        StepTotalTime = TimeSpan.Zero;
+        TotalStepFrameCount = 0;
+        RemainingStepTime = TimeSpan.Zero;
+        TickTotalTime = TimeSpan.Zero;
+        TotalTickFrameCount = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void StepUpdate() {
-        TotalStepFrameCount++;
-        StepTotalTime += StepDeltaTime;
-    }
+    private static DateTime GetCurrentTime() => new(Stopwatch.GetTimestamp());
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void TickUpdate(in TimeSpan deltaTickTime) {
+    private TimeSpan TickLoop(ref DateTime lastTime) {
+        var currentTime = GetCurrentTime();
+        
+        var deltaTickTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        //Step Update
+        RemainingStepTime += StepDeltaTime;
+        for (var i = 0; i < MaxStepPerFrame && RemainingStepTime >= TimeSpan.Zero; i++, RemainingStepTime -= StepDeltaTime) {
+            dispatcher.Dispatch(new EventStepUpdate(StepTotalTime, StepDeltaTime, TotalStepFrameCount));
+            TotalStepFrameCount++;
+            StepTotalTime += StepDeltaTime;
+        }
+        
+        //Tick Update
+        dispatcher.Dispatch(new EventTickBefore(TickTotalTime, deltaTickTime, TotalTickFrameCount));
+        dispatcher.Dispatch(new EventTickUpdate(TickTotalTime, deltaTickTime, TotalTickFrameCount));
+
+        //Late Update
+        dispatcher.Dispatch(new EventLateUpdate(TickTotalTime, deltaTickTime, TotalTickFrameCount));
+        
+        OnTicking?.Invoke();
+
         TotalTickFrameCount++;
         TickTotalTime += deltaTickTime;
-    }
+        
+        Console.WriteLine($"Delta:{deltaTickTime.TotalMilliseconds}");
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void WaitTime(in TimeSpan remainingTime) {
-        if (remainingTime > TimeSpan.Zero) {
-            Thread.Sleep(remainingTime);
+        var remainingTime = TickDeltaTime - (GetCurrentTime() - currentTime);
+        return remainingTime;
+    }
+    
+    public Thread RunInThread(CancellationToken cancellation) {
+        cancellationToken = cancellation;
+        var thread = new Thread(RunLoop);
+        thread.Start();
+        return thread;
+    }
+    
+    public void RunLoop() {
+        startTime = GetCurrentTime();
+        var lastTime = startTime;
+        while (!cancellationToken.IsCancellationRequested) {
+            var remainingTime = TickLoop(ref lastTime);
+            WaitTime(remainingTime);
         }
-        else {
-            Thread.Sleep(0);
+        OnComplete?.Invoke();
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static void WaitTime(in TimeSpan remainingTime) {
+        if (remainingTime <= TimeSpan.Zero) {
+            return;
+        }
+        var nextTimeTicks = Stopwatch.GetTimestamp() + remainingTime.Ticks;
+        while (Stopwatch.GetTimestamp() < nextTimeTicks) {
+            Thread.Yield();
         }
     }
 }

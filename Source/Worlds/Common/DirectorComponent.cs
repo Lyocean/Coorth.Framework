@@ -14,8 +14,6 @@ public class DirectorComponent : Component {
     
     public volatile bool IsRunning;
         
-    public TimeTicker Ticker;
-        
     public readonly TaskCompletionSource<bool> CompletionSource = new();
 
     public TimeSpan OffsetTime = TimeSpan.Zero;
