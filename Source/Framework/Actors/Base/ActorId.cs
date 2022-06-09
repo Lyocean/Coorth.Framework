@@ -21,11 +21,11 @@ public readonly record struct ActorId(Guid Id) {
     [Serializer(typeof(ActorId))]
     private class Serializer : Serializer<ActorId> {
         
-        public override void Write(ISerializeWriter writer, in ActorId value) {
+        public override void Write(SerializeWriter writer, in ActorId value) {
             writer.WriteValue(value.Id);
         }
 
-        public override ActorId Read(ISerializeReader reader, ActorId value) {
+        public override ActorId Read(SerializeReader reader, ActorId value) {
             var guid = reader.ReadValue<Guid>();
             return new ActorId(guid);
         }
@@ -45,7 +45,7 @@ public readonly record struct ActorId(long Id) {
 
     public static ActorId Null => new(0);
 
-    private static IdPool idPool = new(0, DefaultSecondProvider, false); 
+    private static IdPool idPool = new(0, DefaultSecondProvider); 
 
     private static long DefaultSecondProvider() {
         var now = DateTime.UtcNow;
@@ -53,7 +53,7 @@ public readonly record struct ActorId(long Id) {
         return (long)(now - start).TotalSeconds;
     }
 
-    public static void Setup(short poolId, Func<long> secondGetter) => idPool = new IdPool(poolId, secondGetter, false);
+    public static void Setup(short poolId, Func<long> secondGetter) => idPool = new IdPool(poolId, secondGetter);
     
     [Serializer(typeof(ActorId))]
     private class Serializer : Serializer<ActorId> {

@@ -3,6 +3,7 @@
 namespace Coorth.Logs;
 
 public interface ILogger {
+
     LogScope BeginScope<T>();
     LogScope BeginScope(string name);
 

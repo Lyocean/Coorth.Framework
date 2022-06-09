@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Buffers;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Coorth; 
-
-// public enum BitPrecision {
-//     Bit16,
-//     Bit32,
-//     Bit64,
-// }
 
 
 public static class BitOpUtil {
@@ -34,27 +29,26 @@ public static class BitOpUtil {
         }
         writer.Write(span);
     }
+}
 
-    public static void Test() {
-        // Marshal
-        // MemoryMarshal
-        // SequenceMarshal
-        // CollectionsMarshal
-           //System.Buffers.SequenceReader<>
-        // ReadOnlySequence<>
-    }
+
+
+
+// public static void Test() {
+// Marshal
+// MemoryMarshal
+// SequenceMarshal
+// CollectionsMarshal
+//System.Buffers.SequenceReader<>
+// ReadOnlySequence<>
+// }
 //
 
-//     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-//     public static int RoundUpToPowerOf2(int value) {
-// #if NET5_0_OR_GREATER
-//         return (int)System.Numerics.BitOperations.RoundUpToPowerOf2((uint)value * 2);
-// #else
-//         var newSize = array.Length * 2;
-//         while (newSize < size) {
-//             newSize *= 2;
-//         }
-//         return newSize;
-// #endif
-//     }
-}
+
+
+
+// public enum BitPrecision {
+//     Bit16,
+//     Bit32,
+//     Bit64,
+// }

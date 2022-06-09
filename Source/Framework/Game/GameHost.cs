@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
+using Coorth.Tasks;
 using Coorth.Tasks.Ticking;
 
 namespace Coorth.Framework;
@@ -57,7 +58,8 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
         OnStartup();
         App.Startup();
 
-        var ticking = new TaskTicking(Dispatcher.Root, setting, cancellationTokenSource.Token);
+        
+        var ticking = new TickingTask(Infra.Get<ITaskManager>(), Dispatcher.Root, setting, cancellationTokenSource.Token);
         ticking.OnTicking += () => App.TickLoop();
         
         try {

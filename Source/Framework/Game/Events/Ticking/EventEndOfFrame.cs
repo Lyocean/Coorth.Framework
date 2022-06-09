@@ -1,10 +1,13 @@
 using System;
+using Coorth.Tasks.Ticking;
 
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventEndOfFrame(TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) {
+public readonly record struct EventEndOfFrame(ITickingContext TickingContext, TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) {
         
+    public readonly ITickingContext TickingContext = TickingContext;
+
     public readonly TimeSpan TotalTime = TotalTime;
 
     public readonly TimeSpan DeltaTime = DeltaTime;

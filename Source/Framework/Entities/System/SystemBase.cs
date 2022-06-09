@@ -159,5 +159,7 @@ public abstract partial class SystemBase : IDisposable {
         return TryGetSystem<T>() ?? AddSystem<T>();
     }
 
+    public SystemScope AsScope() => new(this);
+
     #endregion
 }

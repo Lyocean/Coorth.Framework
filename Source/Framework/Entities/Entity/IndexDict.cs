@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Coorth.Framework; 
 
@@ -35,7 +36,7 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
         capacity = segment.Count;
         data = segment;
     }
-
+    
     public T this[int index] {
         [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Get(index); 
         [MethodImpl(MethodImplOptions.AggressiveInlining)] set => Set(index, value);

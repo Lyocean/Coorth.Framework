@@ -1,10 +1,13 @@
 ﻿using System;
+using Coorth.Tasks.Ticking;
 
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventDrawBefore(TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : IEvent {
+public readonly record struct EventDrawBefore(ITickingContext TickingContext, TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : IEvent {
     
+    public readonly ITickingContext TickingContext = TickingContext;
+
     public readonly TimeSpan TotalTime = TotalTime;
 
     public readonly TimeSpan DeltaTime = DeltaTime;

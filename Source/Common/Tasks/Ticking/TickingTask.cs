@@ -3,10 +3,15 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Coorth.Framework;
+using Coorth.Platforms;
 
-namespace Coorth.Tasks.Ticking; 
+namespace Coorth.Tasks.Ticking;
 
-public class TaskTicking {
+public interface ITickingContext {
+    
+}
+
+public class TickingTask : ITickingContext {
 
     private readonly Dispatcher dispatcher;
     
@@ -39,13 +44,16 @@ public class TaskTicking {
 
     public float TimeScale => setting.TimeScale;
 
-    private DateTime startTime;
+    private TimeSpan startTime;
     
     public event Action? OnTicking;
     
     public event Action? OnComplete;
 
-    public TaskTicking(Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
+    private ITaskManager TaskManager { get; }
+
+    public TickingTask(ITaskManager taskManager, Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
+        this.TaskManager = taskManager;
         this.dispatcher = dispatcher;
         this.setting = setting;
         this.cancellationToken = cancellationToken;
@@ -57,29 +65,28 @@ public class TaskTicking {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static DateTime GetCurrentTime() => new(Stopwatch.GetTimestamp());
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TimeSpan TickLoop(ref DateTime lastTime) {
-        var currentTime = GetCurrentTime();
+    private TimeSpan TickLoop(ref TimeSpan lastTime) {
+        var currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         
         var deltaTickTime = currentTime - lastTime;
         lastTime = currentTime;
 
+        var tickingContext = this;
+        
         //Step Update
         RemainingStepTime += StepDeltaTime;
         for (var i = 0; i < MaxStepPerFrame && RemainingStepTime >= TimeSpan.Zero; i++, RemainingStepTime -= StepDeltaTime) {
-            dispatcher.Dispatch(new EventStepUpdate(StepTotalTime, StepDeltaTime, TotalStepFrameCount));
+            dispatcher.Dispatch(new EventStepUpdate(tickingContext, StepTotalTime, StepDeltaTime, TotalStepFrameCount));
             TotalStepFrameCount++;
             StepTotalTime += StepDeltaTime;
         }
         
         //Tick Update
-        dispatcher.Dispatch(new EventTickBefore(TickTotalTime, deltaTickTime, TotalTickFrameCount));
-        dispatcher.Dispatch(new EventTickUpdate(TickTotalTime, deltaTickTime, TotalTickFrameCount));
+        dispatcher.Dispatch(new EventTickBefore(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
+        dispatcher.Dispatch(new EventTickUpdate(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
 
         //Late Update
-        dispatcher.Dispatch(new EventLateUpdate(TickTotalTime, deltaTickTime, TotalTickFrameCount));
+        dispatcher.Dispatch(new EventLateUpdate(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
         
         OnTicking?.Invoke();
 
@@ -88,7 +95,7 @@ public class TaskTicking {
         
         Console.WriteLine($"Delta:{deltaTickTime.TotalMilliseconds}");
 
-        var remainingTime = TickDeltaTime - (GetCurrentTime() - currentTime);
+        var remainingTime = TickDeltaTime - (TimeSpan.FromTicks(Stopwatch.GetTimestamp()) - currentTime);
         return remainingTime;
     }
     
@@ -100,23 +107,15 @@ public class TaskTicking {
     }
     
     public void RunLoop() {
-        startTime = GetCurrentTime();
+        startTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         var lastTime = startTime;
         while (!cancellationToken.IsCancellationRequested) {
             var remainingTime = TickLoop(ref lastTime);
-            WaitTime(remainingTime);
+            if (remainingTime <= TimeSpan.Zero) {
+                continue;
+            }
+            TaskManager.Sleep(remainingTime, SleepOptions.Precision);
         }
         OnComplete?.Invoke();
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void WaitTime(in TimeSpan remainingTime) {
-        if (remainingTime <= TimeSpan.Zero) {
-            return;
-        }
-        var nextTimeTicks = Stopwatch.GetTimestamp() + remainingTime.Ticks;
-        while (Stopwatch.GetTimestamp() < nextTimeTicks) {
-            Thread.Yield();
-        }
     }
 }

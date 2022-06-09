@@ -43,7 +43,7 @@ public partial class AppFrame : IModuleContainer {
     }
     
     public TModule Bind<TKey, TModule>(TModule module) where TModule : Module, TKey where TKey : IModule {
-        root.AddModule(module);
+        root.AddModule<TKey>(module);
         return module;
     }
 

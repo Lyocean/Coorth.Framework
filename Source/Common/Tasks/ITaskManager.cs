@@ -1,12 +1,26 @@
-﻿using Coorth.Framework;
+﻿using System;
+using Coorth.Framework;
+using Coorth.Platforms;
 
-namespace Coorth.Tasks; 
+namespace Coorth.Tasks;
 
 [Manager]
 public interface ITaskManager : IManager {
     void Setup();
+    void Sleep(TimeSpan time, SleepOptions option);
 }
 
 public class TaskManager : Manager, ITaskManager {
+
+    private IPlatformManager PlatformManager { get; }
+
+    public TaskManager(IPlatformManager platformManager) {
+        PlatformManager = platformManager;
+    }
+    
     public void Setup() { }
+
+    public virtual void Sleep(TimeSpan time, SleepOptions option) {
+        PlatformManager.Sleep(time, option);
+    }
 }

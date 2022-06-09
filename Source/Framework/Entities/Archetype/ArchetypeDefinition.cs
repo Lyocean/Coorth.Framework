@@ -84,7 +84,6 @@ internal class ArchetypeDefinition {
     }
     
     //TODO: IndexDict 缓存池/共享内存
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void EntityCreate(ref EntityContext context) {
         context.LocalIndex = AddEntityIndex(context.Index);

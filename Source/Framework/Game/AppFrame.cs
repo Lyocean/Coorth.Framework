@@ -91,7 +91,7 @@ public abstract partial class AppFrame : Disposable {
         isRunning = true;
         root.SetActive(true);
         OnStartup();
-        Dispatcher.Dispatch(new EventStartup(MainThreadId));
+        Dispatcher.Dispatch(new EventGameStart(MainThreadId));
     }
 
     protected virtual void OnStartup() {
@@ -120,7 +120,7 @@ public abstract partial class AppFrame : Disposable {
             return;
         }
         Logger.Error(nameof(Shutdown));
-        Dispatcher.Dispatch(new EventShutdown());
+        Dispatcher.Dispatch(new EventGameClose());
         OnShutdown();
         root.SetActive(false);
         isRunning = false;

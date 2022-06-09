@@ -41,10 +41,10 @@ public abstract partial class Module : IModule {
         return module;
     }
         
-    public TModule AddModule<TModule>(TModule module) where TModule : Module {
+    public TModule AddModule<TModule>(Module module) {
         var type = typeof(TModule);
         AddChild(type, module);
-        return module;
+        return (TModule)(object)module;
     }
         
     public void AddModule(Type key, Module module) => AddChild(key, module);
@@ -73,4 +73,6 @@ public abstract partial class Module : IModule {
     public TModule OfferModule<TModule>() where TModule : Module, new() {
         return Children.TryGetValue(typeof(TModule), out var module) ? (TModule)module : AddModule<TModule>();
     }
+
+    public ModuleScope AsScope() => new ModuleScope(this);
 }

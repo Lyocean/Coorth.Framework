@@ -1,9 +1,12 @@
 using System;
+using Coorth.Tasks.Ticking;
 
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventLateUpdate(TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : ITickEvent {
+public readonly record struct EventLateUpdate(ITickingContext TickingContext, TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) : ITickEvent {
+
+    public readonly ITickingContext TickingContext = TickingContext;
 
     public readonly TimeSpan TotalTime = TotalTime;
 

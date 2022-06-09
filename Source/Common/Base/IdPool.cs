@@ -12,14 +12,15 @@ public class IdPool {
     private long lastSecond;
     
     private volatile int currentId;
-
-    //TODO: Id pool repeat
-    private bool canRepeat;
     
-    public IdPool(short poolId, Func<long> secondProvider, bool canRepeat) {
+    public IdPool(short poolId, Func<long> secondProvider) {
         this.poolId = poolId;
         this.secondProvider = secondProvider;
-        this.canRepeat = canRepeat;
+    }
+    
+    public IdPool(short poolId, int startYear) {
+        this.poolId = poolId;
+        this.secondProvider = () => DefaultSecondProvider(startYear);
     }
 
     public long Next() {
@@ -34,6 +35,12 @@ public class IdPool {
         var increment_part = Interlocked.Increment(ref currentId);
         var id = ((long) poolId << 48)| (lastSecond << 32) | (uint) increment_part;
         return id;
+    }
+    
+    private static long DefaultSecondProvider(int startYear) {
+        var now = DateTime.UtcNow;
+        var start = new DateTime(now.Year - startYear, 1, 1);
+        return (long)(now - start).TotalSeconds;
     }
     
 }

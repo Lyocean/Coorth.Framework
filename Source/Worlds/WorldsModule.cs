@@ -30,14 +30,14 @@ public class WorldsModule : Module, IWorldsModule {
 
     protected override void OnAdd() {
         base.OnAdd();
-        Subscribe<EventStartup>(OnStartup);
+        Subscribe<EventGameStart>(OnStartup);
     }
 
     protected override void OnSetup() {
         main = CreateWorld("World-Main");
     }
 
-    private void OnStartup(EventStartup e) {
+    private void OnStartup(EventGameStart e) {
         
     }
 
