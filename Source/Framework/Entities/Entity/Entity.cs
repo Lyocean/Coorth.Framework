@@ -70,6 +70,13 @@ public readonly record struct Entity(Sandbox Sandbox, EntityId Id) : IDisposable
 
     public bool Remove(Type type) => Sandbox.RemoveComponent(Id, type);
 
+    public bool TryRemove<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent {
+        if (Sandbox.TryGetComponent(Id, out component)) {
+            Sandbox.RemoveComponent<T>(Id);
+        }
+        return false;
+    }
+    
     public bool IsEnable<T>() where T : IComponent => Sandbox.IsComponentEnable<T>(in Id);
         
     public bool IsEnable(Type type) => Sandbox.IsComponentEnable(in Id, type);

@@ -112,7 +112,7 @@ public static class EntityExtension {
         return ref entity.Offer<T>();
     }
         
-    public static ref T Set<T>(this Entity entity, T defaultValue) where T : IComponent, new() {
+    public static ref T Set<T>(this Entity entity, T defaultValue) where T : IComponent {
         if (entity.Has<T>()) {
             entity.Modify(defaultValue);
         }
