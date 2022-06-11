@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
-using Coorth.Tasks;
+using Coorth.Platforms;
 using Coorth.Tasks.Ticking;
 
 namespace Coorth.Framework;
@@ -23,7 +23,7 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     
     protected abstract ILogger Logger { get; }
 
-    private CancellationTokenSource cancellationTokenSource = new();
+    private readonly CancellationTokenSource cancellationTokenSource = new();
 
     protected GameHost(TApp app, TSetting setting) {
         App = app;
@@ -58,8 +58,8 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
         OnStartup();
         App.Startup();
 
-        
-        var ticking = new TickingTask(Infra.Get<ITaskManager>(), Dispatcher.Root, setting, cancellationTokenSource.Token);
+        var platform = Infra.Get<IPlatformManager>();
+        var ticking = new TickingTask(platform, Dispatcher.Root, setting, cancellationTokenSource.Token);
         ticking.OnTicking += () => App.TickLoop();
         
         try {

@@ -50,10 +50,10 @@ public class TickingTask : ITickingContext {
     
     public event Action? OnComplete;
 
-    private ITaskManager TaskManager { get; }
+    private IPlatformManager PlatformManager { get; }
 
-    public TickingTask(ITaskManager taskManager, Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
-        this.TaskManager = taskManager;
+    public TickingTask(IPlatformManager platformManager, Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
+        this.PlatformManager = platformManager;
         this.dispatcher = dispatcher;
         this.setting = setting;
         this.cancellationToken = cancellationToken;
@@ -69,6 +69,9 @@ public class TickingTask : ITickingContext {
         var currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         
         var deltaTickTime = currentTime - lastTime;
+        
+        // Console.WriteLine($"Delta: {deltaTickTime.TotalMilliseconds}");
+        
         lastTime = currentTime;
 
         var tickingContext = this;
@@ -93,7 +96,7 @@ public class TickingTask : ITickingContext {
         TotalTickFrameCount++;
         TickTotalTime += deltaTickTime;
         
-        Console.WriteLine($"Delta:{deltaTickTime.TotalMilliseconds}");
+        Console.WriteLine($"DeltaTime:{deltaTickTime.TotalMilliseconds} ms");
 
         var remainingTime = TickDeltaTime - (TimeSpan.FromTicks(Stopwatch.GetTimestamp()) - currentTime);
         return remainingTime;
@@ -109,13 +112,16 @@ public class TickingTask : ITickingContext {
     public void RunLoop() {
         startTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         var lastTime = startTime;
-        while (!cancellationToken.IsCancellationRequested) {
-            var remainingTime = TickLoop(ref lastTime);
-            if (remainingTime <= TimeSpan.Zero) {
-                continue;
+        using (PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1))) {
+            while (!cancellationToken.IsCancellationRequested) {
+                var remainingTime = TickLoop(ref lastTime);
+                if (remainingTime <= TimeSpan.Zero) {
+                    continue;
+                }
+                PlatformManager.Sleep(remainingTime, SleepOptions.Precision);
             }
-            TaskManager.Sleep(remainingTime, SleepOptions.Precision);
         }
+
         OnComplete?.Invoke();
     }
 }

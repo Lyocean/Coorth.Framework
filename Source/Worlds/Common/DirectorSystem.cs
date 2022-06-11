@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Framework;
+using Coorth.Platforms;
 using Coorth.Tasks;
 using Coorth.Tasks.Ticking;
 
@@ -45,7 +46,7 @@ public class DirectorSystem : SystemBase {
     private void OnRunTick(EventSandboxRunTick e) {
         cancellationTokenSource = new();
         var component = Singleton<DirectorComponent>();
-        var ticking = new TickingTask(Sandbox.GetService<ITaskManager>(), Sandbox.Dispatcher, e.Setting, cancellationTokenSource.Token);
+        var ticking = new TickingTask(Sandbox.GetService<IPlatformManager>(), Sandbox.Dispatcher, e.Setting, cancellationTokenSource.Token);
         var thread = ticking.RunInThread(cancellationTokenSource.Token);
         ticking.OnComplete += () => e.Completion.SetResult(Sandbox);
     }
