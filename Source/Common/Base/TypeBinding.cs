@@ -67,7 +67,8 @@ public static class TypeBinding {
     public static void Bind<T, TImpl>() where TImpl : T, new(){
         BindingData<T>.Instance = new BindingData<T, TImpl>();
     }
-
+    
+    
     public static T Create<T>() {
         var instance = BindingData<T>.Create();
         return instance ?? Activator.CreateInstance<T>();
