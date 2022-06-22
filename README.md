@@ -125,9 +125,9 @@ var clone = entity.Clone();
 
 ```cs
 // Component Chunk Array
-+---------------+    +---------------+
-|   CompChunk   | -> |   CompChunk   | -> ...
-+---------------+    +---------------+
+// +---------------+    +---------------+
+// |   CompChunk   | -> |   CompChunk   | -> ...
+// +---------------+    +---------------+
 
 
 // Component Chunk
@@ -247,7 +247,5 @@ sandbox.Publish<string>("event_name");
 
 //订阅
 Subscribe<EventTickUpdate>().OnEvent((in e) => { /**/ });
-Subscribe<int>(12054).OnEvent((in e) => { /**/ });
-Subscribe<string>("event_name").OnEvent((in e) => { /**/ });
 
 ```

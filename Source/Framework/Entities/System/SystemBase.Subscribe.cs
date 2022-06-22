@@ -18,7 +18,7 @@ public abstract partial class SystemBase {
         Collector.Add(subscription);
         return subscription;
     }
-        
+ 
     internal void RemoveReaction<T>(SystemSubscription<T> subscription) where T : notnull {
         subscriptions.Remove(subscription);
     }
