@@ -7,19 +7,6 @@ using System.Runtime.InteropServices;
 namespace Coorth; 
 
 public static class TypeBinding {
-    private abstract class BindingData<T> {
-        public static BindingData<T>? Instance;
-        // public static Type? ImplType => Instance?.GetImplType();
-        protected abstract Type GetImplType();
-        protected abstract T CreateInstance();
-        public static T? Create() => Instance != null ? Instance.CreateInstance() : default;
-    }
-        
-    private class BindingData<T, TImpl> : BindingData<T> where TImpl : T {
-        protected override Type GetImplType() => typeof(TImpl);
-        protected override T CreateInstance() => Activator.CreateInstance<TImpl>();
-    }
-
     static TypeBinding() {
         Bind<bool>("37D16C45-4D44-4D06-8C16-9534A5C0131E");
             
@@ -62,16 +49,6 @@ public static class TypeBinding {
         if (guidAttribute != null) {
             Bind(type, guidAttribute.Value);
         }
-    }
-                
-    public static void Bind<T, TImpl>() where TImpl : T, new(){
-        BindingData<T>.Instance = new BindingData<T, TImpl>();
-    }
-    
-    
-    public static T Create<T>() {
-        var instance = BindingData<T>.Create();
-        return instance ?? Activator.CreateInstance<T>();
     }
 
     private static readonly ConcurrentDictionary<Type, Guid> type2Guids = new();
