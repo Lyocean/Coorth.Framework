@@ -17,4 +17,6 @@ public readonly record struct EntityId(int Index, int Version) {
     public static explicit operator long(EntityId id) => ((long) id.Version << sizeof(int)) | (uint) id.Index;
 
     public static explicit operator EntityId(long uid) => new(uid);
+
+    public override string ToString() => $"(Index:{Index}, Version:{Version})";
 }

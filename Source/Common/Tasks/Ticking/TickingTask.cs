@@ -96,7 +96,7 @@ public class TickingTask : ITickingContext {
         TotalTickFrameCount++;
         TickTotalTime += deltaTickTime;
         
-        Console.WriteLine($"DeltaTime:{deltaTickTime.TotalMilliseconds} ms");
+        // Console.WriteLine($"DeltaTime:{deltaTickTime.TotalMilliseconds} ms");
 
         var remainingTime = TickDeltaTime - (TimeSpan.FromTicks(Stopwatch.GetTimestamp()) - currentTime);
         return remainingTime;

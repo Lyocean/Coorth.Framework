@@ -1,7 +1,7 @@
 ﻿namespace Coorth.Framework; 
 
 [Event]
-public readonly struct EventEntityAdd {
+public readonly struct EventEntityCreate {
         
     public readonly Entity Entity;
         
@@ -9,14 +9,14 @@ public readonly struct EventEntityAdd {
 
     public Sandbox Sandbox => Entity.Sandbox;
 
-    internal EventEntityAdd(Entity entity) {
-        this.Entity = entity;
+    internal EventEntityCreate(Entity entity) {
+        Entity = entity;
     }
 }
 
 [Event]
-public readonly struct EventEntityRemove : ISandboxEvent {
-        
+public readonly struct EventEntityRemove {
+ 
     public readonly Entity Entity;
         
     public EntityId Id => Entity.Id;
@@ -24,6 +24,6 @@ public readonly struct EventEntityRemove : ISandboxEvent {
     public Sandbox Sandbox => Entity.Sandbox;
         
     internal EventEntityRemove(Entity entity) {
-        this.Entity = entity;
+        Entity = entity;
     }
 }

@@ -59,7 +59,7 @@ public partial class Sandbox {
         ref var context = ref CreateContext();
         archetype.EntityCreate(ref context);
         var entity = context.GetEntity(this);
-        Dispatch(new EventEntityAdd(entity));
+        Dispatch(new EventEntityCreate(entity));
         return entity;
     }
 
@@ -70,7 +70,7 @@ public partial class Sandbox {
         var archetype = srcContext.Archetype;
         archetype.EntityClone(ref srcContext, ref dstContext);
         var dstEntity = dstContext.GetEntity(this);
-        Dispatch(new EventEntityAdd(dstEntity));
+        Dispatch(new EventEntityCreate(dstEntity));
         return dstEntity;
     }
 

@@ -38,5 +38,5 @@ public static class LogUtil {
 
     public static void Error(string message) => Logger.Error(message);
 
-    public static void Exception<T>(T? e = null) where T : Exception => Logger.Error(e);
+    public static void Exception<T>(T? e = null) where T : Exception => Logger.Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
 }

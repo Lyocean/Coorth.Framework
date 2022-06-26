@@ -354,7 +354,7 @@ public abstract partial class SystemBase {
             foreach (var entity in entities) {
                 onAdd(entity);
             }
-            Subscribe<EventEntityAdd>(_ => onAdd(_.Entity));
+            Subscribe<EventEntityCreate>(_ => onAdd(_.Entity));
         }
 
         if (onRemove != null) {
@@ -367,7 +367,7 @@ public abstract partial class SystemBase {
         foreach (var entity in entities) {
             action(entity, true);
         }
-        Subscribe<EventEntityAdd>(e => action(e.Entity, true));
+        Subscribe<EventEntityCreate>(e => action(e.Entity, true));
         Subscribe<EventEntityRemove>(e => action(e.Entity, true));
     }
         

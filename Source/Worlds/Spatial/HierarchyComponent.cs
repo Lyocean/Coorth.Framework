@@ -86,7 +86,7 @@ public struct HierarchyComponent : IComponent {
     }
 
     public void AddChild(ref HierarchyComponent child) {
-        if (child.parentId == this.Entity.Id) {
+        if (child.parentId == Entity.Id) {
             return;
         }
         if (child.parentId.IsNotNull) {

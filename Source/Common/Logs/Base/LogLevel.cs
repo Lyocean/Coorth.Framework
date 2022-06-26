@@ -13,6 +13,4 @@ public enum LogLevel {
     Error = 4,
         
     Fatal = 5,
-        
-    None = 6,
 }

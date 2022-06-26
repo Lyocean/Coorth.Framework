@@ -31,32 +31,25 @@ public class LoggerConsole : Logger {
                 Console.Write($"[{time}][F]");
                 Console.ResetColor();
                 break;
-            default:
-                break;
         }
     }
         
-    public override void Log(LogLevel level, string? message, Exception? exception = null) {
-        if (level == LogLevel.None) {
-            return;
-        }
+    public override void Log(LogLevel level, string? message) {
         LogHead(level);
-        if (message != null) {
-            Console.WriteLine(message);
-        }
-        if (exception != null) {
-            Console.WriteLine(message);
-        }
+        Console.WriteLine(message ?? string.Empty);
     }
-        
+
     public override void Log(LogLevel level, string? message, LogColor color) {
-        if (level == LogLevel.None) {
-            return;
-        }
         LogHead(level);
         Console.ForegroundColor = (ConsoleColor)color;
         Console.Write(message);
         Console.ResetColor();
     }
-        
+
+    public override void Exception(LogLevel level, Exception e) {
+        LogHead(level);
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.Write(e.ToString());
+        Console.ResetColor();
+    }
 }

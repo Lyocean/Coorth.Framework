@@ -3,15 +3,15 @@
 namespace Coorth.Framework; 
 
 [Event]
-public readonly struct EventComponentAdd : ISandboxEvent {
-        
-    public Sandbox Sandbox => group.Sandbox;
+public readonly struct EventComponentAdd {
         
     public readonly EntityId Id;
         
     private readonly IComponentGroup group;
         
     private readonly int index;
+
+    public Sandbox Sandbox => group.Sandbox;
 
     public Entity Entity => Sandbox.GetEntity(Id);
 
@@ -29,15 +29,15 @@ public readonly struct EventComponentAdd : ISandboxEvent {
 }
 
 [Event]
-public readonly struct EventComponentAdd<T> : ISandboxEvent where T : IComponent {
-        
-    public Sandbox Sandbox => group.Sandbox;
+public readonly struct EventComponentAdd<T> where T : IComponent {
 
     public readonly EntityId Id;
         
     private readonly ComponentGroup<T> group;
         
     private readonly int index;
+
+    public Sandbox Sandbox => group.Sandbox;
 
     public Entity Entity => Sandbox.GetEntity(Id);
         
@@ -55,7 +55,7 @@ public readonly struct EventComponentAdd<T> : ISandboxEvent where T : IComponent
 }
 
 [Event]
-public readonly struct EventComponentModify : ISandboxEvent {
+public readonly struct EventComponentModify {
         
     public Sandbox Sandbox => group.Sandbox;
         
@@ -81,7 +81,7 @@ public readonly struct EventComponentModify : ISandboxEvent {
 }
 
 [Event]
-public readonly struct EventComponentModify<T> : ISandboxEvent where T : IComponent {
+public readonly struct EventComponentModify<T> where T : IComponent {
         
     public Sandbox Sandbox => group.Sandbox;
         
@@ -107,15 +107,15 @@ public readonly struct EventComponentModify<T> : ISandboxEvent where T : ICompon
 }
 
 [Event]
-public readonly struct EventComponentRemove : ISandboxEvent {
-        
-    public Sandbox Sandbox => group.Sandbox;
+public readonly struct EventComponentRemove {
         
     public readonly EntityId Id;
         
     private readonly IComponentGroup group;
         
     private readonly int index;
+    
+    public Sandbox Sandbox => group.Sandbox;
 
     public Type Type => group.Type;
         
@@ -133,15 +133,15 @@ public readonly struct EventComponentRemove : ISandboxEvent {
 }
 
 [Event]
-public readonly struct EventComponentRemove<T> : ISandboxEvent where T : IComponent {
-        
-    public Sandbox Sandbox => group.Sandbox;
-        
+public readonly struct EventComponentRemove<T> where T : IComponent {
+       
     public readonly EntityId Id;
         
     private readonly ComponentGroup<T> group;
         
     private readonly int index;
+    
+    public Sandbox Sandbox => group.Sandbox;
 
     public Entity Entity => Sandbox.GetEntity(Id);
         
@@ -159,7 +159,7 @@ public readonly struct EventComponentRemove<T> : ISandboxEvent where T : ICompon
 }
     
 [Event]
-public readonly struct EventComponentEnable<T> : ISandboxEvent where T : IComponent {
+public readonly struct EventComponentEnable<T> where T : IComponent {
         
     public Sandbox Sandbox => group.Sandbox;
         

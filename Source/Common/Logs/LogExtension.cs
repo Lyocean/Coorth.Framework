@@ -25,10 +25,10 @@ public static class LogExtension {
     public static void Error<T>(this ILogger logger, T value) => logger.Log(LogLevel.Error, value?.ToString() ?? "null");
     public static void Fatal<T>(this ILogger logger, T value) => logger.Log(LogLevel.Fatal, value?.ToString() ?? "null");
         
-    public static void Trace(this ILogger logger, Exception exception) => logger.Log(LogLevel.Trace, null, exception);
-    public static void Debug(this ILogger logger, Exception exception) => logger.Log(LogLevel.Debug, null, exception);
-    public static void Info(this ILogger logger, Exception exception) => logger.Log(LogLevel.Info, null, exception);
-    public static void Warn(this ILogger logger, Exception exception) => logger.Log(LogLevel.Warn, null, exception);
-    public static void Error(this ILogger logger, Exception exception) => logger.Log(LogLevel.Error, null, exception);
-    public static void Fatal(this ILogger logger, Exception exception) => logger.Log(LogLevel.Fatal, null, exception);
+    public static void Trace(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Trace, exception);
+    public static void Debug(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Debug, exception);
+    public static void Info(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Info, exception);
+    public static void Warn(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Warn, exception);
+    public static void Error(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Error, exception);
+    public static void Fatal(this ILogger logger, Exception exception) => logger.Exception(LogLevel.Fatal, exception);
 }
