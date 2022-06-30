@@ -17,7 +17,7 @@ public partial class Sandbox {
 
     internal static int ComponentTypeCount;
         
-    internal static readonly ConcurrentDictionary<Type, int> ComponentTypeIds = new ConcurrentDictionary<Type, int>();
+    internal static readonly ConcurrentDictionary<Type, int> ComponentTypeIds = new();
         
     private void InitComponents(int groupCapacity, int indexCapacity, int chunkCapacity) {
         componentCapacity = (indexCapacity, chunkCapacity);

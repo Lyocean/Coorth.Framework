@@ -1,6 +1,6 @@
 ﻿namespace Coorth.Framework; 
 
 [Event]
-public readonly record struct EventAppQuit {
-        
+public record EventAppQuit {
+    
 }

@@ -23,7 +23,6 @@ public sealed class ReactionEventAction<T> : Reaction<T> where T : notnull {
     }
 }
 
-
 public sealed class ReactionEventAction<TContext, T> : Reaction<TContext, T> where T : notnull {
     
     private readonly EventAction<TContext, T> action;

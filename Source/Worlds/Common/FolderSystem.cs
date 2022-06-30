@@ -11,7 +11,7 @@ public class FolderSystem : SystemBase {
     }
         
     protected override void OnActive() {
-        Subscribe<EventEntityRemove>(Execute);
+        Subscribe<EventEntityRemove>().OnEvent(Execute);
     }
 
     private void Execute(in EventEntityRemove e) {

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Threading.Tasks;
+using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
@@ -13,41 +13,21 @@ public abstract partial class SystemBase {
     /// <typeparam name="TEvent">事件</typeparam>
     /// <returns>订阅</returns>
     protected SystemSubscription<TEvent> Subscribe<TEvent>() where TEvent : notnull {
-        var subscription = new SystemSubscription<TEvent>(this, Dispatcher);
+        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, TaskJobScheduler.Sequence);
         subscriptions.Add(subscription);
         Collector.Add(subscription);
         return subscription;
     }
- 
+    
+    protected SystemSubscription<TEvent> Subscribe<TEvent>(TaskJobScheduler scheduler) where TEvent : notnull {
+        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, scheduler);
+        subscriptions.Add(subscription);
+        Collector.Add(subscription);
+        return subscription;
+    }
+    
     internal void RemoveReaction<T>(SystemSubscription<T> subscription) where T : notnull {
         subscriptions.Remove(subscription);
-    }
-
-    /// <summary>
-    /// 订阅事件TEvent
-    /// </summary>
-    /// <typeparam name="TEvent">事件</typeparam>
-    /// <param name="action">响应函数</param>
-    protected void Subscribe<TEvent>(Action<TEvent> action) where TEvent : notnull {
-        Subscribe<TEvent>().OnEvent(action);
-    }
-        
-    /// <summary>
-    /// 订阅事件TEvent
-    /// </summary>
-    /// <typeparam name="TEvent">事件</typeparam>
-    /// <param name="action">响应函数</param>
-    protected void Subscribe<TEvent>(EventAction<TEvent> action) where TEvent : notnull {
-        Subscribe<TEvent>().OnEvent(action);
-    }
-
-    /// <summary>
-    /// 订阅事件TEvent
-    /// </summary>
-    /// <typeparam name="TEvent">事件</typeparam>
-    /// <param name="action">响应函数</param>
-    protected void Subscribe<TEvent>(Func<TEvent, ValueTask> action) where TEvent : notnull {
-        Subscribe<TEvent>().OnEvent(action);
     }
 
     #endregion
@@ -61,7 +41,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentAdd<T>(EventActionR<Entity, T> action) where T : IComponent {
-        Subscribe<EventComponentAdd<T>>(_ => action(_.Entity, ref _.Get()));
+        Subscribe<EventComponentAdd<T>>().OnEvent(_ => action(_.Entity, ref _.Get()));
     }
         
     /// <summary>
@@ -70,7 +50,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentAdd<T>(EventActionR<T> action) where T : IComponent {
-        Subscribe<EventComponentAdd<T>>(_ => action(ref _.Get()));
+        Subscribe<EventComponentAdd<T>>().OnEvent(_ => action(ref _.Get()));
     }
 
     /// <summary>
@@ -131,7 +111,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentRemove<T>(EventActionR<Entity, T> action) where T : IComponent {
-        Subscribe<EventComponentRemove<T>>(_ => action(_.Entity, ref _.Get()));
+        Subscribe<EventComponentRemove<T>>().OnEvent(_ => action(_.Entity, ref _.Get()));
     }
         
     /// <summary>
@@ -140,7 +120,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentRemove<T>(EventActionR<T> action) where T : IComponent {
-        Subscribe<EventComponentRemove<T>>(_ => action(ref _.Get()));
+        Subscribe<EventComponentRemove<T>>().OnEvent(_ => action(ref _.Get()));
     }
 
     /// <summary>
@@ -149,7 +129,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentModify<T>(EventActionR<Entity, T> action) where T : IComponent {
-        Subscribe<EventComponentModify<T>>(_ => action(_.Entity, ref _.Get()));
+        Subscribe<EventComponentModify<T>>().OnEvent(_ => action(_.Entity, ref _.Get()));
     }
         
     /// <summary>
@@ -158,7 +138,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentModify<T>(EventActionR<T> action) where T : IComponent {
-        Subscribe<EventComponentModify<T>>(_ => action(ref _.Get()));
+        Subscribe<EventComponentModify<T>>().OnEvent(_ => action(ref _.Get()));
     }
         
     /// <summary>
@@ -167,7 +147,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentEnable<T>(EventActionR<Entity, bool, T> action) where T : IComponent {
-        Subscribe<EventComponentEnable<T>>(_ => action(_.Entity, _.IsEnable, ref _.Get()));
+        Subscribe<EventComponentEnable<T>>().OnEvent(_ => action(_.Entity, _.IsEnable, ref _.Get()));
     }
         
     /// <summary>
@@ -177,7 +157,7 @@ public abstract partial class SystemBase {
     /// <param name="isEnable">Enable</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentEnable<T>(EventActionR<Entity, T> action, bool isEnable) where T : IComponent {
-        Subscribe<EventComponentEnable<T>>(_ => {
+        Subscribe<EventComponentEnable<T>>().OnEvent(_ => {
             if (_.IsEnable == isEnable) {
                 action(_.Entity, ref _.Get());
             }
@@ -262,11 +242,11 @@ public abstract partial class SystemBase {
 
     protected void MatchSystem<T>(Action<T>? onAdd, Action<T>? onRemove) where T : SystemBase {
         if (onAdd != null) {
-            Subscribe<EventSystemAdd<T>>(_ => onAdd((T)_.System));
+            Subscribe<EventSystemAdd<T>>().OnEvent(_ => onAdd((T)_.System));
         }
 
         if (onRemove != null) {
-            Subscribe<EventSystemRemove<T>>(_ => onRemove((T)_.System));
+            Subscribe<EventSystemRemove<T>>().OnEvent(_ => onRemove((T)_.System));
         }
     }
         
@@ -278,25 +258,25 @@ public abstract partial class SystemBase {
     protected void Associate<TSystem, TChild>() where  TSystem : SystemBase  where TChild : SystemBase, new() {
         var system = Sandbox.GetSystem<TChild>();
         system.Parent.AddSystem<TChild>();
-        Subscribe<EventSystemAdd<TChild>>(s => s.System.Parent.AddSystem<TChild>());
-        Subscribe<EventSystemRemove<TChild>>(s => s.System.Parent.RemoveSystem<TChild>());
+        Subscribe<EventSystemAdd<TChild>>().OnEvent(s => s.System.Parent.AddSystem<TChild>());
+        Subscribe<EventSystemRemove<TChild>>().OnEvent(s => s.System.Parent.RemoveSystem<TChild>());
     }
     
     protected void Associate<TSystem1, TSystem2, TChild>() where TSystem1 : SystemBase where TSystem2 : SystemBase where TChild : SystemBase, new() {
         var system2 = Sandbox.GetSystem<TSystem2>();
         system2.Parent.AddSystem<TChild>();
-        Subscribe<EventSystemAdd<TSystem1>>(_ => {
+        Subscribe<EventSystemAdd<TSystem1>>().OnEvent(_ => {
             var system = Sandbox.GetSystem<TSystem2>();
             system.Parent.AddSystem<TChild>();
         });
-        Subscribe<EventSystemAdd<TSystem2>>(e => {
+        Subscribe<EventSystemAdd<TSystem2>>().OnEvent(e => {
             var system = e.System;
             if (Sandbox.HasSystem<TSystem1>()) {
                 system.Parent.AddSystem<TChild>();
             }
         });
-        Subscribe<EventSystemRemove<TSystem1>>(e => e.Sandbox.RemoveSystem<TChild>());
-        Subscribe<EventSystemRemove<TSystem2>>(e => e.Sandbox.RemoveSystem<TChild>());
+        Subscribe<EventSystemRemove<TSystem1>>().OnEvent(e => e.Sandbox.RemoveSystem<TChild>());
+        Subscribe<EventSystemRemove<TSystem2>>().OnEvent(e => e.Sandbox.RemoveSystem<TChild>());
     }
 
     #endregion
@@ -307,12 +287,12 @@ public abstract partial class SystemBase {
     protected void MatchComponents<T1, T2>(Action<T1, T2> action) where T1: IComponent where T2: IComponent {
         var components = Sandbox.GetComponents<T1, T2>();
         components.ForEach(action);
-        Subscribe<EventComponentAdd<T1>>(e => {
+        Subscribe<EventComponentAdd<T1>>().OnEvent(e => {
             if (e.Entity.TryGet<T2>(out var component)) {
                 action(e.Component, component);
             }
         });
-        Subscribe<EventComponentAdd<T2>>(e => {
+        Subscribe<EventComponentAdd<T2>>().OnEvent(e => {
             if (e.Entity.TryGet<T1>(out var component)) {
                 action(component, e.Component);
             }
@@ -322,12 +302,12 @@ public abstract partial class SystemBase {
     protected void MatchComponents<T1, T2>(EventActionR2<T1, T2> action) where T1: IComponent where T2: IComponent {
         var components = Sandbox.GetComponents<T1, T2>();
         components.ForEach(action);
-        Subscribe<EventComponentAdd<T1>>(e => {
+        Subscribe<EventComponentAdd<T1>>().OnEvent(e => {
             if (e.Entity.Has<T2>()) {
                 action(ref e.Get(), ref e.Entity.Get<T2>());
             }
         });
-        Subscribe<EventComponentAdd<T2>>(e => {
+        Subscribe<EventComponentAdd<T2>>().OnEvent(e => {
             if (e.Entity.Has<T1>()) {
                 action(ref e.Entity.Get<T1>(), ref e.Get());
             }
@@ -340,11 +320,11 @@ public abstract partial class SystemBase {
             foreach (var (_, component) in components) {
                 onAdd(component);
             }
-            Subscribe<EventComponentAdd<T>>(_ => onAdd(_.Component));
+            Subscribe<EventComponentAdd<T>>().OnEvent(_ => onAdd(_.Component));
         }
 
         if (onRemove != null) {
-            Subscribe<EventComponentRemove<T>>(_ => onRemove(_.Component));
+            Subscribe<EventComponentRemove<T>>().OnEvent(_ => onRemove(_.Component));
         }
     }
         
@@ -354,11 +334,11 @@ public abstract partial class SystemBase {
             foreach (var entity in entities) {
                 onAdd(entity);
             }
-            Subscribe<EventEntityCreate>(_ => onAdd(_.Entity));
+            Subscribe<EventEntityCreate>().OnEvent(_ => onAdd(_.Entity));
         }
 
         if (onRemove != null) {
-            Subscribe<EventEntityRemove>(_ => onRemove(_.Entity));
+            Subscribe<EventEntityRemove>().OnEvent(_ => onRemove(_.Entity));
         }
     }
         
@@ -367,8 +347,8 @@ public abstract partial class SystemBase {
         foreach (var entity in entities) {
             action(entity, true);
         }
-        Subscribe<EventEntityCreate>(e => action(e.Entity, true));
-        Subscribe<EventEntityRemove>(e => action(e.Entity, true));
+        Subscribe<EventEntityCreate>().OnEvent(e => action(e.Entity, true));
+        Subscribe<EventEntityRemove>().OnEvent(e => action(e.Entity, true));
     }
         
 

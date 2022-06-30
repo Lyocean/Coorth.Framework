@@ -172,6 +172,11 @@ public partial class Sandbox {
         return true;
     }
 
+    public SystemScope BeginScope<T>() where T : SystemBase, new() {
+        var system = AddSystem<T>();
+        return new SystemScope(system);
+    }
+
     #endregion
         
 }

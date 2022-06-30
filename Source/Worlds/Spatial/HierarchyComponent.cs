@@ -35,7 +35,7 @@ public struct HierarchyComponent : IComponent {
     public void OnSetup(Entity entity) => Entity = entity;
 
     public void OnClear() {
-        if (parentId.IsNotNull) {
+        if (parentId.IsNotNull && Sandbox.HasComponent<HierarchyComponent>(parentId)) {
             ref var hierarchy = ref Sandbox.GetComponent<HierarchyComponent>(parentId);
             hierarchy._RemoveChild(ref this);
             parentId = EntityId.Null;

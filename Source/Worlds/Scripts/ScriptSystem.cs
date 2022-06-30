@@ -17,12 +17,12 @@ public class ScriptSystem : SystemBase {
     protected override void OnAdd() {
         Sandbox.BindComponent<ScriptComponent>();
 
-        Subscribe<EventComponentAdd<ScriptComponent>>(Execute);
-        Subscribe<EventComponentRemove<ScriptComponent>>(Execute);
+        Subscribe<EventComponentAdd<ScriptComponent>>().OnEvent(Execute);
+        Subscribe<EventComponentRemove<ScriptComponent>>().OnEvent(Execute);
             
-        Subscribe<EventStepUpdate>(Execute);
-        Subscribe<EventTickUpdate>(Execute);
-        Subscribe<EventLateUpdate>(Execute);
+        Subscribe<EventStepUpdate>().OnEvent(Execute);
+        Subscribe<EventTickUpdate>().OnEvent(Execute);
+        Subscribe<EventLateUpdate>().OnEvent(Execute);
     }
 
     private void Execute(EventComponentAdd<ScriptComponent> e) {

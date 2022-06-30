@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
@@ -54,7 +55,12 @@ public sealed partial class Dispatcher : Disposable {
     public void Dispatch<T>(in T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                ((Reaction<T>)reaction).Execute(in e);
+                try {
+                    ((Reaction<T>)reaction).Execute(in e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {
@@ -70,7 +76,12 @@ public sealed partial class Dispatcher : Disposable {
     public void Dispatch(Type key, object e) {
         if (channels.TryGetValue(key, out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                ((IProcessor)reaction).Execute(key, e);
+                try {
+                    ((IProcessor)reaction).Execute(key, e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {
@@ -86,7 +97,12 @@ public sealed partial class Dispatcher : Disposable {
     public async ValueTask DispatchAsync<T>(T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                await ((Reaction<T>)reaction).ExecuteAsync(e);
+                try {
+                    await ((Reaction<T>)reaction).ExecuteAsync(e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         
@@ -103,7 +119,12 @@ public sealed partial class Dispatcher : Disposable {
     public async ValueTask DispatchAsync(Type key, object e) {
         if (channels.TryGetValue(key, out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                await ((IProcessor)reaction).ExecuteAsync(key, e);
+                try {
+                    await ((IProcessor)reaction).ExecuteAsync(key, e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {
@@ -165,7 +186,12 @@ public sealed partial class Dispatcher<TContext> : Disposable {
     public void Dispatch<T>(TContext context, in T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                ((Reaction<TContext, T>)reaction).Execute(context, in e);
+                try {
+                    ((Reaction<TContext, T>)reaction).Execute(context, in e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {
@@ -181,7 +207,12 @@ public sealed partial class Dispatcher<TContext> : Disposable {
     public void Dispatch(TContext context, Type key, object e) {
         if (channels.TryGetValue(key, out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                ((IProcessor<TContext>)reaction).Execute(context, key, e);
+                try {
+                    ((IProcessor<TContext>)reaction).Execute(context, key, e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {
@@ -197,8 +228,14 @@ public sealed partial class Dispatcher<TContext> : Disposable {
     public async ValueTask DispatchAsync<T>(TContext context, T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                await ((Reaction<TContext, T>)reaction).ExecuteAsync(context, e);
+                try {
+                    await ((Reaction<TContext, T>)reaction).ExecuteAsync(context, e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
+            
         }
         foreach (var child in children) {
             await child.DispatchAsync(context, e);
@@ -213,7 +250,12 @@ public sealed partial class Dispatcher<TContext> : Disposable {
     public async ValueTask DispatchAsync(TContext context, Type key, object e) {
         if (channels.TryGetValue(key, out var channel)) {
             foreach (var reaction in channel.Reactions) {
-                await ((IProcessor<TContext>)reaction).ExecuteAsync(context,key, e);
+                try {
+                    await ((IProcessor<TContext>)reaction).ExecuteAsync(context,key, e);
+                }
+                catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
             }
         }
         foreach (var child in children) {

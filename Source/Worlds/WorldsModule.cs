@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Coorth.Framework;
+using Coorth.Logs;
 
 namespace Coorth.Worlds;
 
@@ -34,7 +35,15 @@ public class WorldsModule : Module, IWorldsModule {
     }
 
     protected override void OnSetup() {
+        LogUtil.Error("World Create");
         main = CreateWorld("World-Main");
+    }
+
+    protected override void OnClear() {
+        LogUtil.Error("World Clear");
+
+        main?.Dispose();
+        main = null;
     }
 
     private void OnStartup(EventGameStart e) {

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
+using Coorth.Tasks;
 
 namespace Coorth.Framework;
 
@@ -14,8 +16,6 @@ public abstract partial class AppFrame : Disposable {
 
     /// <summary> App名称 </summary>
     public readonly string Name;
-    
-    public readonly AppContext Context;
 
     public readonly Dispatcher Dispatcher;
 
@@ -23,6 +23,8 @@ public abstract partial class AppFrame : Disposable {
 
     public readonly ActorsRuntime Actors;
 
+    public readonly ScheduleContext Schedule;
+    
     private bool isSetup;
         
     private bool isRunning;
@@ -30,22 +32,20 @@ public abstract partial class AppFrame : Disposable {
     /// <summary> App是否正在运行中 </summary>
     public bool IsRunning => isRunning && !IsDisposed;
 
-    /// <summary> App主线程Id </summary>
-    public int MainThreadId => Context.MainThread.ManagedThreadId;
-
     private ILogger Logger { get; }
 
     public event Action? OnTicking;
     
     protected AppFrame(AppOptions options) {
+        
         Guid = Guid.NewGuid();
         Id = options.Id;
         Name = !string.IsNullOrWhiteSpace(options.Name) ? options.Name : "App-Default";
         Logger = options.Logger;
 
-        Context = new AppContext(Thread.CurrentThread, Logger);
         Services = options.Services ?? Infra.Services.CreateChild();
         Dispatcher = options.Dispatcher ?? Dispatcher.Root;
+        Schedule = options.Schedule ?? new ScheduleContext(Thread.CurrentThread);
 
         Actors = new ActorsRuntime(Dispatcher);
         root = InitModules();
@@ -91,7 +91,7 @@ public abstract partial class AppFrame : Disposable {
         isRunning = true;
         root.SetActive(true);
         OnStartup();
-        Dispatcher.Dispatch(new EventGameStart(MainThreadId));
+        Dispatcher.Dispatch(new EventGameStart(Schedule));
     }
 
     protected virtual void OnStartup() {
@@ -102,7 +102,6 @@ public abstract partial class AppFrame : Disposable {
             return;
         }
         OnTicking?.Invoke();
-        Context.Synchronization.Invoke();
     }
 
     public void Execute<T>(in T e) where T: notnull {
@@ -119,7 +118,7 @@ public abstract partial class AppFrame : Disposable {
         if (!IsRunning) {
             return;
         }
-        Logger.Error(nameof(Shutdown));
+        Logger.Trace(nameof(Shutdown));
         Dispatcher.Dispatch(new EventGameClose());
         OnShutdown();
         root.SetActive(false);
@@ -131,6 +130,9 @@ public abstract partial class AppFrame : Disposable {
     protected override void OnDispose(bool dispose) {
         Shutdown();
         OnDestroy();
+        foreach (var key in modules.Keys.ToArray()) {
+            Remove(key);
+        }
         Apps.RemoveApp(this);
     }
 

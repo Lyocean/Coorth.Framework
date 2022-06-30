@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
+using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
-public partial class Sandbox : Disposable {
+public partial class Sandbox : IDisposable {
         
     public readonly string Name;
     
@@ -13,24 +15,28 @@ public partial class Sandbox : Disposable {
     
     public readonly SandboxOptions Options;
 
-    public readonly SandboxContext Context;
+    public readonly ScheduleContext Schedule;
 
     public readonly Dispatcher Dispatcher;
-
+    
     public readonly IServiceLocator Services;
 
     public readonly ILogger Logger;
         
-    public Sandbox(SandboxOptions? config = null) {
-        Options = config ?? SandboxOptions.Default;
-        Logger = config?.Logger ?? Coorth.Logs.Logger.Root;
+    private volatile int disposed;
+    public bool IsDisposed => disposed != 0;
+    
+    public Sandbox(SandboxOptions? options = null) {
+        LogUtil.Error("Create Sandbox");
+        Options = options ?? SandboxOptions.Default;
+        Logger = options?.Logger ?? Coorth.Logs.Logger.Root;
 
         OnCreateSandbox(this);
             
         Name = Options.Name;
-        Services = config?.Services ?? new ServiceLocator();
-        Dispatcher = config?.Dispatcher ?? Dispatcher.Root.CreateChild();
-        Context = new SandboxContext();
+        Services = options?.Services ?? new ServiceLocator();
+        Dispatcher = options?.Dispatcher ?? Dispatcher.Root.CreateChild();
+        Schedule = options?.Schedule ?? new ScheduleContext(Thread.CurrentThread);
 
         InitArchetypes(Options.ArchetypeCapacity.Index, Options.ArchetypeCapacity.Chunk);
         emptyArchetype = new ArchetypeDefinition(this);
@@ -44,14 +50,31 @@ public partial class Sandbox : Disposable {
         singleton = CreateEntity();
     }
 
-    protected override void OnDispose(bool dispose) {
+    public void Dispose() {
+        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
+            GC.SuppressFinalize(this);
+            OnDispose();
+        }
+    }
+    
+    ~Sandbox() {
+        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
+            Logger.Error("Sandbox is not disposed.");
+        }
+    }
+
+    private void OnDispose() {
+        if (!Schedule.IsMain) {
+            Logger.Error("Dispose can must be call in sandbox main thread.");
+            return;
+        }
         ClearEntities();
         ClearComponents();
         ClearSystems();
         ClearArchetypes();
         OnRemoveSandbox(this);
     }
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public object GetService(Type serviceType) => Services.Get(serviceType);
 

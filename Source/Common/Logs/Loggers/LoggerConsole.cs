@@ -4,6 +4,10 @@ namespace Coorth.Logs;
 
 public class LoggerConsole : Logger {
     
+    public LoggerConsole() { }
+    
+    public LoggerConsole(string name) { Name = name; }
+
     private static void LogHead(LogLevel level) {
         var time = DateTime.Now;
         switch (level) {

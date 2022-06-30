@@ -11,7 +11,7 @@ public partial class Module  {
 
     private Dictionary<Type, Module>? children;
     public IReadOnlyDictionary<Type, Module> Children => children ?? empty;
-        
+    
     public int ChildCount => children?.Count ?? 0;
 
     private bool isSetup;
@@ -27,21 +27,19 @@ public partial class Module  {
     private void AddChild(Type key, Module child) {
         children ??= new Dictionary<Type, Module>();
         children.Add(key, child);
-        child._OnAdd(key, this);
-    }
-
-    private void _OnAdd(Type key, Module parent) {
-        Key = key;
-        Parent = parent;
-        root = parent.Root;
-        OnAdd();
-        if (isSetup) {
+        
+        child.Key = key;
+        child.Parent = this;
+        child.root = Root;
+        App.OnAddModule(key, child);
+        child.OnAdd();
+        if (child.isSetup) {
             return;
         }
-        isSetup = true;
-        OnSetup();
+        child.isSetup = true;
+        child.OnSetup();
     }
-        
+  
     public void SetActive(bool active) {
         if (IsSelfActive == active) {
             return;
@@ -78,31 +76,28 @@ public partial class Module  {
         if (!children.TryGetValue(key, out var child)) {
             return false;
         }
-        child._OnRemove();
+        child.RemoveChildren();
+        App.OnRemoveModule(key, child);
+        
+        child.SetActive(false);
+        if (child.isSetup) {
+            child.isSetup = false;
+            child.OnClear();
+        }
+        child.OnRemove();
+        
+        child.SetActive(false);
+
+        child.Parent = null;
         return children.Remove(key);
     }
 
-    private void _OnRemove() {
-        SetActive(false);
-        OnRemove();
-        Clear();
-        Parent = default;
-    }
-
-    private void Clear() {
-        if (isSetup) {
-            isSetup = false;
-            OnClear();
-        }
-        RemoveAll();
-    }
-
-    public void RemoveAll() {
+    private void RemoveChildren() {
         if (children == null) {
             return;
         }
-        foreach (var (_, child) in children) {
-            child._OnRemove();
+        foreach (var (key, _) in children) {
+            RemoveChild(key);
         }
         children.Clear();
     }

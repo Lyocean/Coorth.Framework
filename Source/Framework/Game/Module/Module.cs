@@ -73,6 +73,10 @@ public abstract partial class Module : IModule {
     public TModule OfferModule<TModule>() where TModule : Module, new() {
         return Children.TryGetValue(typeof(TModule), out var module) ? (TModule)module : AddModule<TModule>();
     }
+}
 
-    public ModuleScope AsScope() => new ModuleScope(this);
+public static class ModuleExtension {
+    public static ModuleScope AsScope(this IModule module) {
+        return new ModuleScope((Module) module);
+    }
 }

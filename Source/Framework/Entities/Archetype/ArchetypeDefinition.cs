@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -82,7 +83,7 @@ internal class ArchetypeDefinition {
     public int GetEntity(int position) {
         return entities[position] - 1;
     }
-    
+
     //TODO: IndexDict 缓存池/共享内存
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void EntityCreate(ref EntityContext context) {

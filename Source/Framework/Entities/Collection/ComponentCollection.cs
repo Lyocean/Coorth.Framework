@@ -11,10 +11,8 @@ public readonly struct ComponentCollection<T1> : IEnumerable<(Entity, T1)> where
 
     private readonly ComponentGroup<T1> group1;
 
-
     internal ComponentCollection(Sandbox sandbox) {
         this.group1 = sandbox.GetComponentGroup<T1>();
-
     }
  
 

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Coorth.Logs;
 
 namespace Coorth.Framework;
 
-public partial class AppFrame : IModuleContainer {
+public partial class AppFrame {
         
     private readonly ModuleRoot root;
 
@@ -15,12 +16,13 @@ public partial class AppFrame : IModuleContainer {
         return module;
     }
 
-    void IModuleContainer.OnAddModule(Type key, Module module) {
+    internal void OnAddModule(Type key, Module module) {
+        LogUtil.Error($"OnAddModule:{key} - {module}");
         modules[key] = module;
         Dispatcher.Dispatch(new EventModuleAdd(key, module));
     }
     
-    void IModuleContainer.OnRemoveModule(Type key, Module module) {
+    internal void OnRemoveModule(Type key, Module module) {
         if (!modules.Remove(key)) {
             return;
         }
@@ -69,5 +71,11 @@ public partial class AppFrame : IModuleContainer {
     
     public bool Remove<TKey>() where TKey : IModule {
         return Remove(typeof(TKey));
+    }
+
+    public ModuleScope BeginScope<TKey, TModule>(out TModule instance) where TKey : IModule where TModule : Module, TKey {
+        var module = Activator.CreateInstance<TModule>();
+        instance = Bind<TKey, TModule>(module);
+        return new ModuleScope(module);
     }
 }

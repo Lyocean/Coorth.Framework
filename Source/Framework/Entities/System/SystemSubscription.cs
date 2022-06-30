@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
@@ -20,6 +21,8 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         
     private readonly Dispatcher dispatcher;
 
+    private readonly TaskJobScheduler scheduler;
+
     private Reaction<TEvent>? reaction;
 
     public Type EventType => typeof(TEvent);
@@ -36,9 +39,10 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         
     public IReadOnlyCollection<Type> ExcludeComponents => excludes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
         
-    public SystemSubscription(SystemBase system, Dispatcher dispatcher) {
+    public SystemSubscription(SystemBase system, Dispatcher dispatcher, TaskJobScheduler scheduler) {
         this.system = system;
         this.dispatcher = dispatcher;
+        this.scheduler = scheduler;
     }
         
     private void ValidateReaction() {
@@ -114,7 +118,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         _Include<T3>();
         return this;
     }
-       
+    
     public SystemSubscription<TEvent> Exclude<T>() where T : IComponent {
         matcher ??= new EntityMatcher();
         matcher.Exclude<T>();

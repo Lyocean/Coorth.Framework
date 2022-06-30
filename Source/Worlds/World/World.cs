@@ -63,15 +63,13 @@ public sealed partial class World : Actor, IDisposable {
         };
         var sandbox = new Sandbox(options);
         sandboxes.Add(sandbox);
-        sandbox.Singleton().Add(new DirectorComponent(this, logger));
         return sandbox;
     }
 
-
     public void Dispose() {
         Cosmos.Remove(this);
-        for (var i = 0; i < sandboxes.Count; i++) {
-            sandboxes[i].Dispose();
+        foreach (var sandbox in sandboxes) {
+            sandbox.Dispose();
         }
         sandboxes.Clear();
     }

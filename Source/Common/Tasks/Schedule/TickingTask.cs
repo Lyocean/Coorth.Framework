@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Coorth.Framework;
 using Coorth.Platforms;
 
@@ -12,18 +11,16 @@ public interface ITickingContext {
 }
 
 public class TickingTask : ITickingContext {
-
-    private readonly Dispatcher dispatcher;
     
-    private readonly TickSetting setting;
+    private TickSetting Setting { get; }
+    
+    private IPlatformManager PlatformManager { get; }
 
-    private CancellationToken cancellationToken;
+    public int MaxStepPerFrame => Setting.MaxStepPerFrame;
 
-    public int MaxStepPerFrame => setting.MaxStepPerFrame;
+    public float StepFrameRate => Setting.StepFrameRate;
 
-    public float StepFrameRate => setting.StepFrameRate;
-
-    public TimeSpan StepDeltaTime => setting.StepDeltaTime;
+    public TimeSpan StepDeltaTime => Setting.StepDeltaTime;
 
 
     public TimeSpan StepTotalTime;
@@ -34,29 +31,26 @@ public class TickingTask : ITickingContext {
 
     //Tick
 
-    public float TickFrameRate => setting.TickFrameRate;
+    public float TickFrameRate => Setting.TickFrameRate;
 
-    public TimeSpan TickDeltaTime => setting.TickDeltaTime;
+    public TimeSpan TickDeltaTime => Setting.TickDeltaTime;
 
     public TimeSpan TickTotalTime;
 
     public long TotalTickFrameCount;
 
-    public float TimeScale => setting.TimeScale;
+    public float TimeScale => Setting.TimeScale;
 
     private TimeSpan startTime;
-    
+
     public event Action? OnTicking;
-    
+
     public event Action? OnComplete;
 
-    private IPlatformManager PlatformManager { get; }
 
-    public TickingTask(IPlatformManager platformManager, Dispatcher dispatcher, TickSetting setting, CancellationToken cancellationToken) {
+    public TickingTask(IPlatformManager platformManager, TickSetting setting) {
         this.PlatformManager = platformManager;
-        this.dispatcher = dispatcher;
-        this.setting = setting;
-        this.cancellationToken = cancellationToken;
+        this.Setting = setting;
         StepTotalTime = TimeSpan.Zero;
         TotalStepFrameCount = 0;
         RemainingStepTime = TimeSpan.Zero;
@@ -65,7 +59,7 @@ public class TickingTask : ITickingContext {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TimeSpan TickLoop(ref TimeSpan lastTime) {
+    private TimeSpan TickLoop(ref TimeSpan lastTime, ScheduleContext schedule, Dispatcher dispatcher) {
         var currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         
         var deltaTickTime = currentTime - lastTime;
@@ -75,7 +69,7 @@ public class TickingTask : ITickingContext {
         lastTime = currentTime;
 
         var tickingContext = this;
-        
+
         //Step Update
         RemainingStepTime += StepDeltaTime;
         for (var i = 0; i < MaxStepPerFrame && RemainingStepTime >= TimeSpan.Zero; i++, RemainingStepTime -= StepDeltaTime) {
@@ -84,15 +78,18 @@ public class TickingTask : ITickingContext {
             StepTotalTime += StepDeltaTime;
         }
         
+        schedule.Execute();
+        
         //Tick Update
         dispatcher.Dispatch(new EventTickBefore(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
         dispatcher.Dispatch(new EventTickUpdate(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
 
         //Late Update
         dispatcher.Dispatch(new EventLateUpdate(tickingContext, TickTotalTime, deltaTickTime, TotalTickFrameCount));
-        
-        OnTicking?.Invoke();
 
+        OnTicking?.Invoke();
+        schedule.Execute();
+        
         TotalTickFrameCount++;
         TickTotalTime += deltaTickTime;
         
@@ -102,26 +99,18 @@ public class TickingTask : ITickingContext {
         return remainingTime;
     }
     
-    public Thread RunInThread(CancellationToken cancellation) {
-        cancellationToken = cancellation;
-        var thread = new Thread(RunLoop);
-        thread.Start();
-        return thread;
-    }
-    
-    public void RunLoop() {
+    public void RunLoop(ScheduleContext schedule, Dispatcher dispatcher) {
         startTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
         var lastTime = startTime;
-        using (PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1))) {
-            while (!cancellationToken.IsCancellationRequested) {
-                var remainingTime = TickLoop(ref lastTime);
-                if (remainingTime <= TimeSpan.Zero) {
-                    continue;
-                }
-                PlatformManager.Sleep(remainingTime, SleepOptions.Precision);
+        var cancellation = schedule.Cancellation;
+        using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));
+        while (!cancellation.IsCancellationRequested) {
+            var remainingTime = TickLoop(ref lastTime, schedule, dispatcher);
+            if (remainingTime <= TimeSpan.Zero) {
+                continue;
             }
+            PlatformManager.Sleep(remainingTime, SleepOptions.Precision);
         }
-
         OnComplete?.Invoke();
     }
 }

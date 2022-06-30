@@ -3,53 +3,29 @@
 namespace Coorth.Framework; 
 
 [Event]
-public readonly struct EventSystemAdd : ISandboxEvent {
-    public readonly Sandbox Sandbox;
-    public readonly Type Type;
-    public readonly SystemBase System;
-
-    public EventSystemAdd(Sandbox sandbox, Type type, SystemBase system) {
-        this.Sandbox = sandbox;
-        this.Type = type;
-        this.System = system;
-    }
+public record EventSystemAdd(Sandbox Sandbox, Type Type, SystemBase System) : ISandboxEvent {
+    public readonly Sandbox Sandbox = Sandbox;
+    public readonly Type Type = Type;
+    public readonly SystemBase System = System;
 }
 
 [Event]
-public readonly struct EventSystemAdd<T> : ISandboxEvent {
-    public readonly Sandbox Sandbox;
-    public readonly Type Type;
-    public readonly SystemBase System;
-
-    public EventSystemAdd(Sandbox sandbox, Type type, SystemBase system) {
-        this.Sandbox = sandbox;
-        this.Type = type;
-        this.System = system;
-    }
+public record EventSystemAdd<T>(Sandbox Sandbox, Type Type, SystemBase System) : ISandboxEvent {
+    public readonly Sandbox Sandbox = Sandbox;
+    public readonly Type Type = Type;
+    public readonly SystemBase System = System;
 }
 
 [Event]
-public readonly struct EventSystemRemove : ISandboxEvent {
-    public readonly Sandbox Sandbox;
-    public readonly Type Type;
-    public readonly SystemBase System;
-
-    public EventSystemRemove(Sandbox sandbox, Type type, SystemBase system) {
-        this.Sandbox = sandbox;
-        this.Type = type;
-        this.System = system;
-    }
+public record EventSystemRemove(Sandbox Sandbox, Type Type, SystemBase System) : ISandboxEvent {
+    public readonly Sandbox Sandbox = Sandbox;
+    public readonly Type Type = Type;
+    public readonly SystemBase System = System;
 }
 
 [Event]
-public readonly struct EventSystemRemove<T> : ISandboxEvent {
-    public readonly Sandbox Sandbox;
-    public readonly Type Type;
-    public readonly SystemBase System;
-
-    public EventSystemRemove(Sandbox sandbox, Type type, SystemBase system) {
-        this.Sandbox = sandbox;
-        this.Type = type;
-        this.System = system;
-    }
+public record EventSystemRemove<T>(Sandbox Sandbox, Type Type, SystemBase System) : ISandboxEvent {
+    public readonly Sandbox Sandbox = Sandbox;
+    public readonly Type Type = Type;
+    public readonly SystemBase System = System;
 }

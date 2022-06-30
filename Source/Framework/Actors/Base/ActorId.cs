@@ -53,7 +53,7 @@ public readonly record struct ActorId(long Id) {
         return (long)(now - start).TotalSeconds;
     }
 
-    public static void Setup(short poolId, Func<long> secondGetter) => idPool = new IdPool(poolId, secondGetter);
+    public static void Setup(ushort poolId, Func<long> secondGetter) => idPool = new IdPool(poolId, secondGetter);
     
     [Serializer(typeof(ActorId))]
     private class Serializer : Serializer<ActorId> {

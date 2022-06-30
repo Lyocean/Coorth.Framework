@@ -1,6 +1,6 @@
 namespace Coorth.Framework;
 
 [Event]
-public readonly struct EventGameClose {
+public record EventGameClose {
         
 }

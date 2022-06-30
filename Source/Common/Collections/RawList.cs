@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Coorth.Logs;
 
 namespace Coorth.Collections;
 
@@ -105,21 +106,27 @@ public struct RawList<T> : IEnumerable<T> {
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear() {
+        LogUtil.Error($"Clear, {Values.Length} | {Count}");
         Array.Clear(Values, 0, Count);
         Count = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T Alloc(int index) {
-        int size = Capacity;
-        if (index >= size) {
-            size = size == 0 ? 4 : size * 2;
-            do {
-                size *= 2;
-            } while (index >= size);
-            Array.Resize(ref Values, size);
+        if (index < Count) {
+            return ref Values[index];
         }
-        Count++;
+        var size = Values.Length;
+        if (index < size) {
+            Count = index + 1;
+            return ref Values[index];
+        }
+        size = size == 0 ? 4 : size * 2;
+        do {
+            size *= 2;
+        } while (index >= size);
+        Array.Resize(ref Values, size);
+        Count = index + 1;
         return ref Values[index];
     }
         

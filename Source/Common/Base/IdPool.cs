@@ -5,36 +5,45 @@ namespace Coorth;
 
 public class IdPool {
     
-    private readonly short poolId;
+    private readonly int head;
 
-    private readonly Func<long> secondProvider;
+    private readonly ushort id;
 
-    private long lastSecond;
+    private long second;
+
+    private volatile int current;
+
+    private readonly Func<long> provider;
     
-    private volatile int currentId;
-    
-    public IdPool(short poolId, Func<long> secondProvider) {
-        this.poolId = poolId;
-        this.secondProvider = secondProvider;
+    public IdPool(ushort id, Func<long> provider) {
+        this.head = sizeof(short) * 8;
+        this.id = id;
+        this.provider = provider;
     }
     
-    public IdPool(short poolId, int startYear) {
-        this.poolId = poolId;
-        this.secondProvider = () => DefaultSecondProvider(startYear);
+    public IdPool(ushort id, int startYear) {
+        this.head = sizeof(short) * 8;
+        this.id = id;
+        this.provider = () => DefaultSecondProvider(startYear);
+    }
+    
+    public IdPool(byte id, int startYear) {
+        this.head = sizeof(byte) * 8;
+        this.id = id;
+        this.provider = () => DefaultSecondProvider(startYear);
     }
 
     public long Next() {
-        if (currentId >= ushort.MaxValue) {
-            var currSecond = secondProvider();
-            if (currSecond <= Interlocked.Read(ref lastSecond)) {
-                SpinWait.SpinUntil(() => secondProvider() > Interlocked.Read(ref lastSecond));
+        if (current >= (1 << head - 1)) {
+            var currSecond = provider();
+            if (currSecond <= Interlocked.Read(ref second)) {
+                SpinWait.SpinUntil(() => provider() > Interlocked.Read(ref second));
             }
-            Interlocked.Increment(ref lastSecond);
-            currentId = 0;
+            Interlocked.Increment(ref second);
+            current = 0;
         }
-        var increment_part = Interlocked.Increment(ref currentId);
-        var id = ((long) poolId << 48)| (lastSecond << 32) | (uint) increment_part;
-        return id;
+        var increment = Interlocked.Increment(ref current);
+        return ((long) id << (64 - head)) | (second << (32 - head)) | (uint) increment;
     }
     
     private static long DefaultSecondProvider(int startYear) {
@@ -42,5 +51,4 @@ public class IdPool {
         var start = new DateTime(now.Year - startYear, 1, 1);
         return (long)(now - start).TotalSeconds;
     }
-    
 }

@@ -2,13 +2,13 @@
 
 public readonly ref struct ModuleScope {
     
-    private readonly Module module;
+    public readonly Module Module;
     
     public ModuleScope(Module value) {
-        module = value;
+        Module = value;
     }
 
-    public T Add<T>(Module value) where T : IModule => module.AddModule<T>(value);
+    public T Add<T>(Module value) where T : IModule => Module.AddModule<T>(value);
     
     public void Dispose() {
     }

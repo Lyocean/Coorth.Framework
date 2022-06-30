@@ -1,4 +1,5 @@
 ﻿using Coorth.Logs;
+using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
@@ -14,12 +15,14 @@ public record SandboxOptions {
 
     public (int Index, int Chunk) ComponentDataCapacity { get; set; } = (2, 128);
 
-    public IServiceLocator? Services { get; set; } = null;
+    public IServiceLocator? Services { get; set; }
     
-    public ILogger? Logger { get; set; } = null;
+    public ILogger? Logger { get; set; }
     
-    public Dispatcher? Dispatcher { get; set; } = null;
-    
+    public Dispatcher? Dispatcher { get; set; }
+
+    public ScheduleContext? Schedule { get; set; }
+
     public static SandboxOptions Default => new();
     
 }

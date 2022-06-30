@@ -1,15 +1,17 @@
-﻿using System.Collections;
+﻿using System.Buffers;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Coorth.Framework; 
 
 public readonly partial struct EntityCollection : IEnumerable<Entity> {
+    
     private readonly ArchetypeGroup archetypeGroup;
 
     public EntityCollection(ArchetypeGroup value) {
-        this.archetypeGroup = value;
+        archetypeGroup = value;
     }
-        
+    
     public struct Enumerator : IEnumerator<Entity> {
         private readonly Sandbox sandbox; 
         private readonly ArchetypeDefinition[] archetypes;
@@ -17,11 +19,11 @@ public readonly partial struct EntityCollection : IEnumerable<Entity> {
         private int index;
             
         public Enumerator(ArchetypeGroup archetypeGroup){
-            this.sandbox = archetypeGroup.Sandbox;
-            this.archetypes = archetypeGroup.Archetypes;
-            this.archetypeIndex = 0;
-            this.index = 0;
-            this.Current = Entity.Null;
+            sandbox = archetypeGroup.Sandbox;
+            archetypes = archetypeGroup.Archetypes;
+            archetypeIndex = 0;
+            index = 0;
+            Current = Entity.Null;
         }         
 
         public bool MoveNext() {

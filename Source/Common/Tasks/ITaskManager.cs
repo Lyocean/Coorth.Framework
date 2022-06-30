@@ -20,7 +20,6 @@ public class TaskManager : Manager, ITaskManager {
     
     public void Setup() { }
 
-    public virtual void Sleep(TimeSpan time, SleepOptions option) {
-        PlatformManager.Sleep(time, option);
-    }
+    public virtual void Sleep(TimeSpan time, SleepOptions option) => PlatformManager.Sleep(time, option);
+    
 }

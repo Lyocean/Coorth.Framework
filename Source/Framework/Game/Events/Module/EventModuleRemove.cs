@@ -3,7 +3,7 @@
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventModuleRemove(Type Key, Module Module) : IEvent {
+public record EventModuleRemove(Type Key, Module Module) : IEvent {
     
     public readonly Type Key = Key;
     
@@ -11,7 +11,7 @@ public readonly record struct EventModuleRemove(Type Key, Module Module) : IEven
 }
 
 [Event]
-public readonly record struct EventModuleRemove<TModule>(Type Key, TModule Module) : IEvent where TModule : Module {
+public record EventModuleRemove<TModule>(Type Key, TModule Module) : IEvent where TModule : Module {
     
     public readonly Type Key = Key;
     
