@@ -3,8 +3,7 @@
 namespace Coorth.Framework; 
 
 public sealed partial class SystemSubscription<TEvent> {
-
-    public SystemSubscription<TEvent> Match(EntityMatcher entityMatcher) {
+    private void _Match(EntityMatcher entityMatcher) {
         if (matcher != null) {
             throw new InvalidOperationException($"[SystemSubscription] Matcher has exists.");
         }
@@ -17,38 +16,13 @@ public sealed partial class SystemSubscription<TEvent> {
             var componentGroup = Sandbox.GetComponentGroup(typeId);
             _Exclude(componentGroup.Type);
         }
-        return this;
     }
         
     public void OnMatch(EntityMatcher entityMatcher, Action<TEvent, Entity> action) {
-        Match(entityMatcher);
-        OnEvent((in TEvent e) => {
+        _Match(entityMatcher);
+        OnEvent(e => {
             var entities = Sandbox.GetEntities(entityMatcher);
-            foreach (var entity in entities) {
-                action(e, entity);
-            }
-        });
-    }
-
-    public void OnMatch(EventAction<TEvent, Entity> action) {
-        if (this.matcher == null) {
-            throw new InvalidOperationException($"[SystemSubscription] Matcher has not exists.");
-        }
-        OnEvent((in TEvent e) => {
-            var entities = Sandbox.GetEntities(matcher);
-            foreach (Entity entity in entities) {
-                action(in e, in entity);
-            }
-        });
-    }
-        
-    public void OnMatch(EntityMatcher entityMatcher, EventAction<TEvent, Entity> action) {
-        Match(entityMatcher);
-        OnEvent((in TEvent e) => {
-            var entities = Sandbox.GetEntities(entityMatcher);
-            foreach (Entity entity in entities) {
-                action(in e, in entity);
-            }
+            entities.Execute(e, executor, action);
         });
     }
 }

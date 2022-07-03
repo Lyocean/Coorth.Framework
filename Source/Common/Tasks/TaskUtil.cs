@@ -54,4 +54,6 @@ public static class TaskUtil {
         }, tcs, timeout, true);
         return tcs.Task;
     }
+
+    public static TaskJob.YieldAwaitable Yield() => new();
 }

@@ -13,14 +13,14 @@ public abstract partial class SystemBase {
     /// <typeparam name="TEvent">事件</typeparam>
     /// <returns>订阅</returns>
     protected SystemSubscription<TEvent> Subscribe<TEvent>() where TEvent : notnull {
-        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, TaskJobScheduler.Sequence);
+        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, TaskExecutor.Sequence);
         subscriptions.Add(subscription);
         Collector.Add(subscription);
         return subscription;
     }
     
-    protected SystemSubscription<TEvent> Subscribe<TEvent>(TaskJobScheduler scheduler) where TEvent : notnull {
-        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, scheduler);
+    protected SystemSubscription<TEvent> Subscribe<TEvent>(TaskExecutor executor) where TEvent : notnull {
+        var subscription = new SystemSubscription<TEvent>(this, Dispatcher, executor);
         subscriptions.Add(subscription);
         Collector.Add(subscription);
         return subscription;
@@ -29,7 +29,7 @@ public abstract partial class SystemBase {
     internal void RemoveReaction<T>(SystemSubscription<T> subscription) where T : notnull {
         subscriptions.Remove(subscription);
     }
-
+    
     #endregion
         
         

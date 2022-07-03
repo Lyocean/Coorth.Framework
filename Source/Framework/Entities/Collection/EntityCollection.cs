@@ -1,6 +1,8 @@
-﻿using System.Buffers;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
@@ -11,7 +13,19 @@ public readonly partial struct EntityCollection : IEnumerable<Entity> {
     public EntityCollection(ArchetypeGroup value) {
         archetypeGroup = value;
     }
-    
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Execute<T>(T e, TaskExecutor executor, Action<T, Entity> action) {
+        var sandbox = archetypeGroup.Sandbox;
+        foreach (var archetype in archetypeGroup.Archetypes) {
+            executor.For((e, archetype, sandbox), 0, archetype.EntityCount,(state, i) => {
+                var index = state.archetype.GetEntity(i);
+                var entity = state.sandbox.GetEntity(index);
+                action(state.e, entity);
+            });
+        }
+    }
+
     public struct Enumerator : IEnumerator<Entity> {
         private readonly Sandbox sandbox; 
         private readonly ArchetypeDefinition[] archetypes;

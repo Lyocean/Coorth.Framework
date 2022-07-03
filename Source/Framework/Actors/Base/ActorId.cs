@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.Serialization;
 using Coorth.Serialize;
 
 namespace Coorth.Framework;

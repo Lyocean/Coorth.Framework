@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Coorth.Framework;
+using Coorth.Logs;
 using Coorth.Platforms;
 
 namespace Coorth.Tasks.Ticking;
@@ -46,11 +48,10 @@ public class TickingTask : ITickingContext {
     public event Action? OnTicking;
 
     public event Action? OnComplete;
-
-
+    
     public TickingTask(IPlatformManager platformManager, TickSetting setting) {
-        this.PlatformManager = platformManager;
-        this.Setting = setting;
+        PlatformManager = platformManager;
+        Setting = setting;
         StepTotalTime = TimeSpan.Zero;
         TotalStepFrameCount = 0;
         RemainingStepTime = TimeSpan.Zero;
@@ -59,8 +60,14 @@ public class TickingTask : ITickingContext {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static TimeSpan GetCurrentTime() {
+        var tickFrequency = (double) TimeSpan.TicksPerSecond / Stopwatch.Frequency;
+        return TimeSpan.FromTicks(unchecked((long)(Stopwatch.GetTimestamp() * tickFrequency)));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TimeSpan TickLoop(ref TimeSpan lastTime, ScheduleContext schedule, Dispatcher dispatcher) {
-        var currentTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
+        var currentTime = GetCurrentTime();
         
         var deltaTickTime = currentTime - lastTime;
         
@@ -95,15 +102,15 @@ public class TickingTask : ITickingContext {
         
         // Console.WriteLine($"DeltaTime:{deltaTickTime.TotalMilliseconds} ms");
 
-        var remainingTime = TickDeltaTime - (TimeSpan.FromTicks(Stopwatch.GetTimestamp()) - currentTime);
+        var remainingTime = TickDeltaTime - (GetCurrentTime() - currentTime);
         return remainingTime;
     }
     
     public void RunLoop(ScheduleContext schedule, Dispatcher dispatcher) {
-        startTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp());
+        startTime = GetCurrentTime();
         var lastTime = startTime;
-        var cancellation = schedule.Cancellation;
         using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));
+        var cancellation = schedule.Cancellation;
         while (!cancellation.IsCancellationRequested) {
             var remainingTime = TickLoop(ref lastTime, schedule, dispatcher);
             if (remainingTime <= TimeSpan.Zero) {
@@ -113,4 +120,5 @@ public class TickingTask : ITickingContext {
         }
         OnComplete?.Invoke();
     }
+
 }

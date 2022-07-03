@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 
 namespace Coorth.Maths; 
 
@@ -138,6 +136,8 @@ public partial struct Color : IEquatable<Color> {
     public Span<float> Span => MemoryMarshal.CreateSpan(ref A, 4);
 
     public Vector3 RGB() => new(R, G, B);
+
+    public Vector4 ToVector4() => new(R, G, B, A);
         
     public readonly bool Equals(Color other) {
         return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);

@@ -14,7 +14,6 @@ public readonly struct ComponentCollection<T1> : IEnumerable<(Entity, T1)> where
     internal ComponentCollection(Sandbox sandbox) {
         this.group1 = sandbox.GetComponentGroup<T1>();
     }
- 
 
     public void ForEach(Action<T1> action) {
         for(var i = group1.separate; i< group1.Count; i++) {

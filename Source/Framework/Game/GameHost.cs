@@ -25,7 +25,7 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     protected abstract ILogger Logger { get; }
     
     private readonly ScheduleContext schedule;
-    
+
     public bool IsRunning { get; private set; }
 
     private bool IsStarting { get; set; }
@@ -98,8 +98,6 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
             Logger.Exception(LogLevel.Error, e);
         }
     }
-    
-    
     
     protected void GameClose() {
         if (IsDisposed || !IsRunning) {

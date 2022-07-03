@@ -21,7 +21,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         
     private readonly Dispatcher dispatcher;
 
-    private readonly TaskJobScheduler scheduler;
+    private readonly TaskExecutor executor;
 
     private Reaction<TEvent>? reaction;
 
@@ -39,10 +39,10 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         
     public IReadOnlyCollection<Type> ExcludeComponents => excludes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
         
-    public SystemSubscription(SystemBase system, Dispatcher dispatcher, TaskJobScheduler scheduler) {
+    public SystemSubscription(SystemBase system, Dispatcher dispatcher, TaskExecutor executor) {
         this.system = system;
         this.dispatcher = dispatcher;
-        this.scheduler = scheduler;
+        this.executor = executor;
     }
         
     private void ValidateReaction() {
@@ -60,7 +60,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
-        
+    
     public void OnEvent(Func<TEvent, ValueTask> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
@@ -142,7 +142,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         _Exclude<T3>();
         return this;
     }
-        
+    
     protected override void OnDispose(bool dispose) {
         reaction?.Dispose();
         system.RemoveReaction(this);

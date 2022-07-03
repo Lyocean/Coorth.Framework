@@ -2,7 +2,6 @@
 
     <PropertyGroup>
         <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
         <LangVersion>10</LangVersion>
