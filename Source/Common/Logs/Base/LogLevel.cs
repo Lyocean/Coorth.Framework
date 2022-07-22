@@ -1,16 +1,19 @@
-﻿namespace Coorth.Logs;
+﻿using System;
 
+namespace Coorth.Logs;
+
+[Flags]
 public enum LogLevel {
     
-    Trace = 0,
+    Trace = 1,
         
-    Debug = 1,
+    Debug = 1 << 1,
         
-    Info = 2,
+    Info = 1 << 2,
         
-    Warn = 3,
+    Warn = 1 << 3,
         
-    Error = 4,
-        
-    Fatal = 5,
+    Error = 1 << 4,
+    
+    Fatal = 1 << 5,
 }

@@ -10,11 +10,10 @@ public interface ITaskWorkItem {
 }
 
 #if NET5_0_OR_GREATER
-public class TaskWorkItem : IThreadPoolWorkItem, ITaskWorkItem {
+public sealed class TaskWorkItem : IThreadPoolWorkItem, ITaskWorkItem {
 #else
-public class TaskWorkItem : ITaskWorkItem {
+public sealed class TaskWorkItem : ITaskWorkItem {
 #endif
-
     
     private static readonly ConcurrentStack<TaskWorkItem> pool = new();
 

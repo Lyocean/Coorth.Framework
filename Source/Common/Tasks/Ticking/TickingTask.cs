@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Coorth.Framework;
-using Coorth.Logs;
 using Coorth.Platforms;
 
 namespace Coorth.Tasks.Ticking;
@@ -65,6 +63,7 @@ public class TickingTask : ITickingContext {
         return TimeSpan.FromTicks(unchecked((long)(Stopwatch.GetTimestamp() * tickFrequency)));
     }
 
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TimeSpan TickLoop(ref TimeSpan lastTime, ScheduleContext schedule, Dispatcher dispatcher) {
         var currentTime = GetCurrentTime();

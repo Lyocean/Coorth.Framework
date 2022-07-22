@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Tasks;
 
-public abstract class TaskExecutor {
+public abstract partial class TaskExecutor {
 
     public static readonly SequenceExecutor Sequence = new();
     

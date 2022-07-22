@@ -41,9 +41,9 @@ public record struct Cuboid {
 
     public readonly float MaxZ => Z + D;
         
-    public Vector3 Max => new(X + W, Y + H, Z + D);
+    public readonly Vector3 Max => new(X + W, Y + H, Z + D);
 
-    public Vector3 Extent => new(W * 0.5f, H * 0.5f, D * 0.5f);
+    public readonly Vector3 Extent => new(W * 0.5f, H * 0.5f, D * 0.5f);
 
     public Cuboid(Vector3 min, Vector3 max) {
         X = Math.Min(min.X, max.X);
@@ -65,7 +65,7 @@ public record struct Cuboid {
         return Intersects(in sphere.Center, in sphere.Radius);
     }
 
-    public bool Intersects(in Vector3 center, in float radius) {
+    public readonly bool Intersects(in Vector3 center, in float radius) {
         var vector = Vector3.Clamp(center, Min, Max);
         var distance = Vector3.DistanceSquared(center, vector);
         return distance <= radius * radius;

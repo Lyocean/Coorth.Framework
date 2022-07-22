@@ -70,7 +70,7 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
         
     // public bool IsValueType => ComponentType<T>.IsValueType;
 
-    private RawList<IComponentGroup> dependency;
+    private ValueList<IComponentGroup> dependency = new(1);
 
     public ComponentGroup(Sandbox sandbox, int indexCapacity, int chunkCapacity) {
         this.Sandbox = sandbox;
@@ -92,10 +92,7 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
     #region Binding
 
     public void AddDependency(IComponentGroup componentGroup) {
-        if (dependency.Values == null) {
-            dependency = new RawList<IComponentGroup>(1);
-        }
-        if (!dependency.Values.Contains(componentGroup)) {
+        if (!dependency.Contains(componentGroup)) {
             dependency.Add(componentGroup);
         }
     }

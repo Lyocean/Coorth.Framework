@@ -8,7 +8,7 @@ public abstract class MessageSystem : SystemBase {
     
     protected RouterComponent Router => Singleton<RouterComponent>();
 
-    protected bool IsDebug => Singleton<DirectorComponent>().IsDebug;
+    // protected bool IsDebug => Singleton<DirectorComponent>().IsDebug;
 
     protected void OnReceive<T>(Action<ActorContext, T> action) where T: IMessage {
         Router.OnReceive(action).ManageBy(ref Collector);

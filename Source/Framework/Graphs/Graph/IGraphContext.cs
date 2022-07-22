@@ -1,4 +1,4 @@
-﻿namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public interface IGraphContext {
 }

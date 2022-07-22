@@ -17,7 +17,7 @@ public partial class AppFrame {
     }
 
     internal void OnAddModule(Type key, Module module) {
-        LogUtil.Error($"OnAddModule:{key} - {module}");
+        Logger.Trace($"AddModule:{key} - {module}");
         modules[key] = module;
         Dispatcher.Dispatch(new EventModuleAdd(key, module));
     }

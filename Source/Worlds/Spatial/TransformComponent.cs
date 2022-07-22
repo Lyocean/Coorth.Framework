@@ -33,7 +33,7 @@ public class TransformComponent : IComponent, IHierarchyNode {
 
     public ref HierarchyComponent Hierarchy => ref Entity.Offer<HierarchyComponent>();
 
-    public SpaceComponent? Space => GetSpace();
+    public SceneSpaceComponent? Space => GetSpace();
 
         
     public void OnSetup(in Entity entity) {
@@ -53,13 +53,13 @@ public class TransformComponent : IComponent, IHierarchyNode {
         
     public void OnClear() { }
         
-    private SpaceComponent? GetSpace() {
-        if (Entity.TryGet<SpaceComponent>(out var space)) {
+    private SceneSpaceComponent? GetSpace() {
+        if (Entity.TryGet<SceneSpaceComponent>(out var space)) {
             return space;
         }
         var transform = Parent;
         while (transform != null) {
-            if (transform.Entity.TryGet<SpaceComponent>(out space)) {
+            if (transform.Entity.TryGet<SceneSpaceComponent>(out space)) {
                 return space;
             }
             transform = transform.Parent;

@@ -54,6 +54,7 @@ public sealed partial class World : Actor, IDisposable {
     }
 
     public Sandbox CreateSandbox(string name) {
+        Module.Logger.Trace("Create Sandbox");
         var logger = Services.Get<ILogManager>().Create(name);
         var options = new SandboxOptions() {
             Name = name,

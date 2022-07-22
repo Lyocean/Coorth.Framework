@@ -83,7 +83,7 @@ public class FolderComponent : Component {
     }
         
     private class EntityFolder {
-        public string Name;
+        public readonly string Name;
         public readonly HashSet<EntityId> Entities = new HashSet<EntityId>();
 
         public EntityFolder(string name) {

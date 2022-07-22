@@ -21,36 +21,41 @@ public class WorldsModule : Module, IWorldsModule {
     private readonly List<World> worlds = new();
 
     private readonly List<IFeature<World>> features = new();
-    
-    public void Register(IFeature<World> feature) {
-        features.Add(feature);
-        foreach (var world in worlds) {
-            feature.Install(world);
-        }
-    }
+
+    public readonly ILogger Logger = LogUtil.Create(nameof(WorldsModule));
 
     protected override void OnAdd() {
         base.OnAdd();
         Subscribe<EventGameStart>(OnStartup);
     }
 
+    protected override void OnActive() => Main.SetActive(true);
+
+    protected override void OnDeActive() => Main.SetActive(false);
+    
     protected override void OnSetup() {
-        LogUtil.Error("World Create");
+        Logger.Trace($"{nameof(WorldsModule)} Setup");
         main = CreateWorld("World-Main");
     }
 
     protected override void OnClear() {
-        LogUtil.Error("World Clear");
-
+        Logger.Trace($"{nameof(WorldsModule)} Clear");
         main?.Dispose();
         main = null;
     }
 
-    private void OnStartup(EventGameStart e) {
-        
-    }
+    private void OnStartup(EventGameStart e) { }
 
+    public void Register(IFeature<World> feature) {
+        features.Add(feature);
+        foreach (var world in worlds) {
+            feature.Install(world);
+        }
+    }
+    
     public World CreateWorld(string name) {
+        Logger.Trace($"CreateWorld: {name}");
+
         var (app, module, actors) = (App, this, App.Actors);
         var options = new WorldOptions(name, app, module, app.Services);
         var domain = actors.CreateDomain($"World_{name}");
@@ -63,11 +68,5 @@ public class WorldsModule : Module, IWorldsModule {
         return world;
     }
 
-    protected override void OnActive() {
-        Main.SetActive(true);
-    }
-        
-    protected override void OnDeActive() {
-        Main.SetActive(false);
-    }
+
 }

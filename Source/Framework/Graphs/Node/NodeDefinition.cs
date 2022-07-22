@@ -6,12 +6,14 @@ using System.Threading.Tasks;
 namespace Coorth.Framework; 
 
 public class NodeDefinition {
+    
+    public static readonly NodeDefinition Empty = new();
 
     public Guid Id { get; } = Guid.NewGuid();
 
-    public int Index { get; internal set; }
+    public int Index { get; internal set; } = -1;
 
-    public GraphDefinition Graph { get; private set; }
+    public GraphDefinition Graph { get; internal set; } = GraphDefinition.Empty;
 
     private readonly List<PortDefinition> inPorts = new();
     public IReadOnlyList<PortDefinition> InPorts => inPorts;
@@ -26,21 +28,12 @@ public class NodeDefinition {
     public int MaxNodePortCount => Graph.MaxNodePortCount;
 
     public int MaxPortEdgeCount => Graph.MaxPortEdgeCount;
-        
-    public NodeDefinition(int index, GraphDefinition graph) {
-        Index = index;
-        Graph = graph;
-    }
-    
-    internal void Setup(GraphDefinition graph) {
-        Graph = graph;
-    }
 
     public void AddInPort(PortDefinition port) {
         port.Setup(this, inPorts.Count);
         inPorts.Add(port);
     }
-        
+    
     public void AddInPort<T>() where T : PortDefinition, new() {
         AddInPort(new T());
     }
@@ -55,15 +48,14 @@ public class NodeDefinition {
     }
 
     public NodeData Compile(ref int index) {
-        int inputMin = inPorts.Count > 0 ? index : -1;
-        int inputMax = inPorts.Count > 0 ? inputMin + inPorts.Count - 1 : -1;
-        int outputMin = OutPorts.Count > 0 ? inputMax + 1 : -1;
-        int outputMax = OutPorts.Count > 0 ? outputMin + inPorts.Count - 1 : -1;
+        var inputMin = inPorts.Count > 0 ? index : -1;
+        var inputMax = inPorts.Count > 0 ? inputMin + inPorts.Count - 1 : -1;
+        var outputMin = OutPorts.Count > 0 ? inputMax + 1 : -1;
+        var outputMax = OutPorts.Count > 0 ? outputMin + inPorts.Count - 1 : -1;
         var data = new NodeData(this, inputMin, inputMax, outputMin, outputMax);
         index = index + inPorts.Count + OutPorts.Count;
         return data;
     }
-
 }
 
 public class NodeDefinition<TContext> : NodeDefinition where TContext : IGraphContext {
@@ -82,6 +74,4 @@ public class NodeDefinition<TContext> : NodeDefinition where TContext : IGraphCo
 
     public virtual void OnClear(ref TContext context) {}
 
-    public NodeDefinition(int index, GraphDefinition graph) : base(index, graph) {
-    }
 }

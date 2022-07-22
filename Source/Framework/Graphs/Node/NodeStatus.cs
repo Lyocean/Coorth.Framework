@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 [Flags]
 public enum NodeStatus {
-        
+    
     Success = 1 << 0,
         
     Failure = 1 << 1,

@@ -11,7 +11,7 @@ public partial class Sandbox {
 
     #region Fields
 
-    private RawList<IComponentGroup> componentGroups;
+    private ValueList<IComponentGroup> componentGroups;
 
     private (int Index, int Chunk) componentCapacity;
 
@@ -21,7 +21,7 @@ public partial class Sandbox {
         
     private void InitComponents(int groupCapacity, int indexCapacity, int chunkCapacity) {
         componentCapacity = (indexCapacity, chunkCapacity);
-        componentGroups = new RawList<IComponentGroup>(groupCapacity);
+        componentGroups = new ValueList<IComponentGroup>(groupCapacity);
     }
 
     private void ClearComponents() {

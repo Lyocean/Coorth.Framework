@@ -10,11 +10,11 @@ public class TransformSystem : SystemBase {
         Parent.OfferSystem<HierarchySystem>();
         //Bind
         Sandbox.BindComponent<TransformComponent>().AddDependency<HierarchyComponent>();
-        Sandbox.BindComponent<SpaceComponent>().AddDependency<TransformComponent>().AddDependency<HierarchyComponent>();
+        Sandbox.BindComponent<SceneSpaceComponent>().AddDependency<TransformComponent>().AddDependency<HierarchyComponent>();
 
         //SpaceComponent
-        OnComponentSetup((ref SpaceComponent _) => _.OnSetup());
-        OnComponentClear((ref SpaceComponent _) => _.OnClear());
+        OnComponentSetup((ref SceneSpaceComponent _) => _.OnSetup());
+        OnComponentClear((ref SceneSpaceComponent _) => _.OnClear());
             
         //TransformComponent
         OnComponentSetup((in Entity entity, ref TransformComponent component) => component.OnSetup(in entity));

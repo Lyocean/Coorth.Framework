@@ -10,7 +10,7 @@ public class LogManager : Manager, ILogManager {
 
     public void Register(Func<string, ILogger> provider) {
         this.provider = provider;
-        LogUtil.Bind(provider.Invoke("[Default]"), provider);
+        LogUtil.Bind(provider.Invoke("Default"), provider);
     }
 
     public virtual ILogger Create(string name) => provider?.Invoke(name) ?? throw new NullReferenceException();

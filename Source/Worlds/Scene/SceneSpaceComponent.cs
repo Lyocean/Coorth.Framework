@@ -1,10 +1,12 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-public class SpaceComponent : Component {
+[Component, Guid("0AEE6DF8-6572-4A0A-9084-6C29274EE34D")]
+public class SceneSpaceComponent : Component {
 
     public ref HierarchyComponent Hierarchy => ref Entity.Get<HierarchyComponent>();
         

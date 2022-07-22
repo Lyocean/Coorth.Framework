@@ -27,7 +27,6 @@ public partial class Sandbox : IDisposable {
     public bool IsDisposed => disposed != 0;
     
     public Sandbox(SandboxOptions? options = null) {
-        LogUtil.Error("Create Sandbox");
         Options = options ?? SandboxOptions.Default;
         Logger = options?.Logger ?? Coorth.Logs.Logger.Root;
 

@@ -44,4 +44,15 @@ public partial struct TaskJob {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<EventTickUpdate> Delay(int frame, CancellationToken cancellation = default) => Dispatcher.Root.Delay<EventTickUpdate>(frame, cancellation);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<T> Until<T>(Dispatcher dispatcher, Func<T, bool> condition, int times, CancellationToken cancellation = default) where T : ITickEvent => dispatcher.Until(condition, times, cancellation);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<T> Until<T>(Func<T, bool> condition, int times, CancellationToken cancellation = default) where T : ITickEvent => Dispatcher.Root.Until(condition, times, cancellation);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<EventTickUpdate> Until(Dispatcher dispatcher, Func<EventTickUpdate, bool> condition, int times, CancellationToken cancellation = default) => dispatcher.Until(condition, times, cancellation);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ValueTask<EventTickUpdate> Until(Func<EventTickUpdate, bool> condition, int times, CancellationToken cancellation = default) => Dispatcher.Root.Until(condition, times, cancellation);
 }

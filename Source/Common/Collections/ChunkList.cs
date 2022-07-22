@@ -4,11 +4,11 @@ using System.Runtime.CompilerServices;
 namespace Coorth.Collections; 
 
 public struct ChunkList<T> {
-        
-    private RawList<RawList<T>> chunks;
+    
+    private ValueList<ValueList<T>> chunks;
         
     private readonly int chunkCapacity;
-        
+    
     public int Count;
         
     private int ChunkCount { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => chunks.Count; }
@@ -22,9 +22,9 @@ public struct ChunkList<T> {
         indexCapacity = (int) ((uint) (indexCapacity - 1 + 4) >> 2) << 2;
         chunkCapacity = (int) ((uint) (chunkCapacity - 1 + 4) >> 2) << 2;
 
-        this.chunkCapacity = chunkCapacity;
-        this.chunks = new RawList<RawList<T>>(indexCapacity);
-        this.chunks.Add(new RawList<T>(this.chunkCapacity));
+        this.chunkCapacity = chunkCapacity;  
+        this.chunks = new ValueList<ValueList<T>>(indexCapacity);
+        this.chunks.Add(new ValueList<T>(this.chunkCapacity));
         this.Count = 0;
     }
         
@@ -33,7 +33,7 @@ public struct ChunkList<T> {
         var index = Count;
         int chunkIndex = index / chunkCapacity;
         if (chunkIndex >= ChunkCount) {
-            chunks.Add(new RawList<T>(chunkCapacity));
+            chunks.Add(new ValueList<T>(chunkCapacity));
         }
         ref var chunk = ref chunks[chunkIndex];
         Count++;
@@ -50,34 +50,28 @@ public struct ChunkList<T> {
     public ref T Ref(int index) {
         int chunkIndex = index / chunkCapacity;
         int itemIndex = index % chunkCapacity;
-        ref var chunk = ref chunks.Values[chunkIndex];
+        ref var chunk = ref chunks[chunkIndex];
         if (chunk.IsNull) {
-            chunk = new RawList<T>(chunkCapacity);
+            chunk = new ValueList<T>(chunkCapacity);
         }
-        return ref chunk.Values[itemIndex];
+        return ref chunk[itemIndex];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T Get(int index) {
         int chunkIndex = index / chunkCapacity;
         //int itemIndex = index % chunkCapacity;
-        ref var chunk = ref chunks.Values[chunkIndex];
+        ref var chunk = ref chunks[chunkIndex];
         if (chunk.IsNull) {
-            chunk = new RawList<T>(chunkCapacity);
+            chunk = new ValueList<T>(chunkCapacity);
         }
         return Ref(index);
     }
         
-    public ref T this[int index] {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => ref Ref(index); 
-    }
+    public ref T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref Ref(index); }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Set(int index, T value) {
-        ref var item = ref Ref(index);
-        item = value;
-    }
+    public void Set(int index, T value) { ref var item = ref Ref(index); item = value; }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SwapRemove(int index) {
@@ -109,7 +103,7 @@ public struct ChunkList<T> {
         if (chunkIndex >= ChunkCount) {
             return Span<T>.Empty;
         }
-        ref var chunk = ref chunks.Values[chunkIndex];
-        return chunk.Values != null ? chunk.Values.AsSpan() : Span<T>.Empty;
+        ref var chunk = ref chunks[chunkIndex];
+        return chunk.Span;
     }
 }
