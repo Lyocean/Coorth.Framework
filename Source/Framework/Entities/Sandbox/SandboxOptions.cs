@@ -21,7 +21,7 @@ public record SandboxOptions {
     
     public Dispatcher? Dispatcher { get; set; }
 
-    public ScheduleContext? Schedule { get; set; }
+    public TaskSyncContext? Schedule { get; set; }
 
     public static SandboxOptions Default => new();
     

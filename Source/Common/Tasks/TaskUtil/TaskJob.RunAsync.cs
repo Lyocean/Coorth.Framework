@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Tasks; 
 
-public partial struct TaskJob {
+public static partial class TaskUtil {
     
     public static async ValueTask RunAsync(Action action, bool configureAwait = true) {
         if (!configureAwait) {

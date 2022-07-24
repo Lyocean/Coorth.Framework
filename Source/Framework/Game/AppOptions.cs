@@ -3,7 +3,7 @@ using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
-public record AppOptions(int Id, string Name, ILogger Logger, Dispatcher? Dispatcher, ServiceLocator? Services, ScheduleContext? Schedule) {
+public record AppOptions(int Id, string Name, ILogger Logger, Dispatcher? Dispatcher, ServiceLocator? Services, TaskSyncContext? Schedule) {
     
     public readonly int Id = Id;
     
@@ -15,5 +15,5 @@ public record AppOptions(int Id, string Name, ILogger Logger, Dispatcher? Dispat
     
     public readonly ServiceLocator? Services = Services;
     
-    public readonly ScheduleContext? Schedule = Schedule;
+    public readonly TaskSyncContext? Schedule = Schedule;
 }

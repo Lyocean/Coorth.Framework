@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Tasks; 
 
-public partial struct TaskJob {
+public static partial class TaskUtil {
     
     private static readonly SendOrPostCallback sendOrPostCallback = state => (state as Action)?.Invoke();
 
@@ -24,10 +24,10 @@ public partial struct TaskJob {
         public void OnCompleted(Action continuation) => ThreadPool.QueueUserWorkItem(waitCallback, continuation);
 
         public void UnsafeOnCompleted(Action continuation) {
-#if NET5_0_OR_GREATER
-            ThreadPool.UnsafeQueueUserWorkItem(TaskWorkItem.Create(continuation), false);
+#if NET6_0_OR_GREATER
+            TaskJobThreadPool.UnsafeQueueUserWorkItem(TaskWorkItem.Create(continuation), false);
 #else
-            ThreadPool.UnsafeQueueUserWorkItem(waitCallback, continuation);
+            TaskJobThreadPool.UnsafeQueueUserWorkItem(waitCallback, continuation);
 #endif
         }
     }

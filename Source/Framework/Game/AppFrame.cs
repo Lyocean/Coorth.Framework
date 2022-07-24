@@ -23,7 +23,7 @@ public abstract partial class AppFrame : Disposable {
 
     public readonly ActorsRuntime Actors;
 
-    public readonly ScheduleContext Schedule;
+    public readonly TaskSyncContext Schedule;
     
     private bool isSetup;
         
@@ -45,7 +45,7 @@ public abstract partial class AppFrame : Disposable {
 
         Services = options.Services ?? Infra.Services.CreateChild();
         Dispatcher = options.Dispatcher ?? Dispatcher.Root;
-        Schedule = options.Schedule ?? new ScheduleContext(Thread.CurrentThread);
+        Schedule = options.Schedule ?? new TaskSyncContext(Thread.CurrentThread);
 
         Actors = new ActorsRuntime(Dispatcher);
         root = InitModules();

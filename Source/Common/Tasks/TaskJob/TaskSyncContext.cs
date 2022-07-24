@@ -6,7 +6,7 @@ using Coorth.Logs;
 
 namespace Coorth.Tasks; 
 
-public class ScheduleContext : SynchronizationContext {
+public class TaskSyncContext : SynchronizationContext {
 
     public readonly Thread MainThread;
 
@@ -18,22 +18,10 @@ public class ScheduleContext : SynchronizationContext {
 
     public bool IsMain => Thread.CurrentThread.ManagedThreadId == MainThread.ManagedThreadId;
     
-    public ScheduleContext(Thread mainThread) {
+    public TaskSyncContext(Thread mainThread) {
         MainThread = mainThread;
     }
     
-    public Task ToTick() {
-        var tcs = new TaskCompletionSource<bool>();
-        Post(state => (state as TaskCompletionSource<bool>)?.SetResult(true), tcs);
-        return tcs.Task;
-    }
-
-    public Task ToPool() {
-        var tcs = new TaskCompletionSource<bool>();
-        ThreadPool.QueueUserWorkItem(state => (state as TaskCompletionSource<bool>)?.SetResult(true), tcs);
-        return tcs.Task;
-    }
-
     public override void Post(SendOrPostCallback callback, object? state) {
         if (Environment.CurrentManagedThreadId == MainThread.ManagedThreadId) {
             try {
@@ -47,7 +35,7 @@ public class ScheduleContext : SynchronizationContext {
     }
 
 
-    public override SynchronizationContext CreateCopy() => new ScheduleContext(MainThread);
+    public override SynchronizationContext CreateCopy() => new TaskSyncContext(MainThread);
 
     public void Execute() {
         while (callbacks.TryDequeue(out var value)) {

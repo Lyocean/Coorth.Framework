@@ -65,7 +65,7 @@ public class TickingTask : ITickingContext {
 
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private TimeSpan TickLoop(ref TimeSpan lastTime, ScheduleContext schedule, Dispatcher dispatcher) {
+    private TimeSpan TickLoop(ref TimeSpan lastTime, TaskSyncContext schedule, Dispatcher dispatcher) {
         var currentTime = GetCurrentTime();
         
         var deltaTickTime = currentTime - lastTime;
@@ -105,7 +105,7 @@ public class TickingTask : ITickingContext {
         return remainingTime;
     }
     
-    public void RunLoop(ScheduleContext schedule, Dispatcher dispatcher) {
+    public void RunLoop(TaskSyncContext schedule, Dispatcher dispatcher) {
         startTime = GetCurrentTime();
         var lastTime = startTime;
         using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));

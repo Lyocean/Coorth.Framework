@@ -15,7 +15,7 @@ public partial class Sandbox : IDisposable {
     
     public readonly SandboxOptions Options;
 
-    public readonly ScheduleContext Schedule;
+    public readonly TaskSyncContext Schedule;
 
     public readonly Dispatcher Dispatcher;
     
@@ -35,7 +35,7 @@ public partial class Sandbox : IDisposable {
         Name = Options.Name;
         Services = options?.Services ?? new ServiceLocator();
         Dispatcher = options?.Dispatcher ?? Dispatcher.Root.CreateChild();
-        Schedule = options?.Schedule ?? new ScheduleContext(Thread.CurrentThread);
+        Schedule = options?.Schedule ?? new TaskSyncContext(Thread.CurrentThread);
 
         InitArchetypes(Options.ArchetypeCapacity.Index, Options.ArchetypeCapacity.Chunk);
         emptyArchetype = new ArchetypeDefinition(this);

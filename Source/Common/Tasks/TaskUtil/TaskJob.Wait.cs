@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Tasks; 
 
-public partial struct TaskJob {
+public static partial class TaskUtil {
     
     public static Task FromWaitHandle(WaitHandle handle) => FromWaitHandle(handle, Timeout.InfiniteTimeSpan);
 

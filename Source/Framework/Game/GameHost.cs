@@ -24,7 +24,7 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     
     protected abstract ILogger Logger { get; }
     
-    private readonly ScheduleContext schedule;
+    private readonly TaskSyncContext schedule;
 
     public bool IsRunning { get; private set; }
 
@@ -33,7 +33,7 @@ public abstract class GameHost<TApp, TSetting> : Disposable, IGameHost where TAp
     protected GameHost(TApp app, TSetting setting) {
         App = app;
         Setting = setting;
-        schedule = new ScheduleContext(Thread.CurrentThread);
+        schedule = new TaskSyncContext(Thread.CurrentThread);
         SynchronizationContext.SetSynchronizationContext(schedule);
     }
     

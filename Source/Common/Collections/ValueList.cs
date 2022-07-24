@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Coorth.Collections;
 
-// #nullable disable
-
 public struct ValueList<T> : IList<T> {
-    
-    private T?[] values;
+
+    private readonly IMemoryAllocator? allocator;
+    private Memory<T> values;
 
     public int Count { [MethodImpl(MethodImplOptions.AggressiveInlining)] get; private set; }
 
@@ -18,29 +16,35 @@ public struct ValueList<T> : IList<T> {
 
     public int Capacity { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => values.Length; }
 
-    public bool IsNull { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => values == null; }
+    public bool IsNull { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => values.IsEmpty; }
         
     public static readonly ValueList<T> Empty = new() { values = Array.Empty<T>(), Count = 0 };
-
-    public Span<T> Span => values.AsSpan();
     
-    public ValueList(int capacity) {
+    public Span<T> Span => values.Span[..Count];
+    
+    public ValueList(int capacity, IMemoryAllocator? alloc = null) {
         if (capacity <= 0) {
             throw new ArgumentException("Capacity must larger than 0");
         }
-        values = new T[capacity];
+        allocator = alloc;
+        values = alloc?.Alloc<T>(capacity) ?? new T[capacity];
+        Count = 0;
+    }
+    
+    public ValueList(Memory<T> memory, IMemoryAllocator? alloc = null) {
+        allocator = alloc;
+        values = memory;
         Count = 0;
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T Add() {
-        if (Count == Capacity) {
-            var size = Capacity == 0 ? 4 : Capacity << 1;
-            Array.Resize(ref values, size);
+        if (Count >= Capacity) {
+            Resize(Capacity < 4 ? 4 : Capacity << 1);
         }
         var index = Count;
         Count++;
-        return ref values[index];
+        return ref values.Span[index];
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -50,103 +54,137 @@ public struct ValueList<T> : IList<T> {
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Get(int index) => values[index];
+    public T Get(int index) => values.Span[index];
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Ref(int index) => ref values[index];
+    public ref T Ref(int index) => ref values.Span[index];
 
-    public ref T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref values[index]; }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Set(int index, T value) { ref var item = ref Ref(index); item = value; }
+    public ref T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref values.Span[index]; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Contains(T value) => values.Contains(value);
+    public void Set(int index, T value) => values.Span[index] = value;
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Contains(T value) => IndexOf(value) >= 0;
     
     public void SwapRemove(int index) {
         var tail = Count - 1;
+        var span = values.Span;
         if (index != tail) {
-            values[index] = values[tail];
+            span[index] = span[tail];
         }
-        values[tail] = default;
+        #nullable disable
+        span[tail] = default;
+        #nullable restore
         Count--;
     }
 
     public void CopyTo(T[] array, int arrayIndex) {
-        var src = values.AsSpan(0, Count);
+        var src = values.Span[..Count];
         var dst = array.AsSpan(arrayIndex, Count);
         src.CopyTo(dst);
     }
 
     public bool Remove(T item) {
-        var index = Array.IndexOf(values, item, 0, values.Length);
+        var index = IndexOf(item);
         if (index >= 0) {
             RemoveAt(index);
             Count--;
             return true;
         }
         return false;
-        
     }
     
     public void Insert(int index, T item) {
         if (index < 0 || index > Count) {
             throw new IndexOutOfRangeException();
         }
-        if (Count == Capacity) {
-            var size = Capacity == 0 ? 4 : Capacity << 1;
-            Array.Resize(ref values, size);
+        if (Count >= Capacity) {
+            Resize(Capacity < 4 ? 4 : Capacity << 1);
         }
+        var span = Span;
         for (var i = Count; i > index; i--) {
-            values[i] = values[i - 1];
+            span[i] = span[i - 1];
         }
         Count++;
-        values[index] = item;
+        span[index] = item;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveAt(int index) {
+        var span = values.Span;
         Count--;
         if (index < Count) {
-            Array.Copy(values, index + 1, values, index, Count - index);
+            for (var i = index; i < Count; i++) {
+                span[i] = span[i + 1];
+            }
         }
-        values[Count] = default;
+#nullable disable
+        span[Count] = default;
+#nullable restore
     }
 
-    T IList<T>.this[int index] { get => values[index]; set => values[index] = value; }
+    T IList<T>.this[int index] { get => Span[index]; set => Span[index] = value; }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveLast() {
         Count--;
-        values[Count] = default;
+#nullable disable
+        values.Span[Count] = default;
+#nullable restore
+
     }
-        
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int IndexOf(T item) => Array.IndexOf(values, item, 0, Count);
+    public T Pop() {
+        Count--;
+        var span = values.Span;
+        var item = span[Count];
+        
+        span.Clear();
+#nullable disable
+        span[Count] = default;
+#nullable restore
+        return item;
+    }
+
+    public void Push(in T item) => Add(item);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int IndexOf(T item) {
+        var comparer = EqualityComparer<T>.Default;
+        var span = Span;
+        for (var i = 0; i < span.Length; i++) {
+            if (comparer.Equals(span[i], item)) {
+                return i;
+            }                  
+        }
+        return -1;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear() {
-        Array.Clear(values, 0, Count);
+        Span.Clear();
         Count = 0;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T Alloc(int index) {
         if (index < Count) {
-            return ref values[index];
+            return ref values.Span[index];
         }
         var size = values.Length;
         if (index < size) {
             Count = index + 1;
-            return ref values[index];
+            return ref values.Span[index];
         }
         size = size == 0 ? 4 : size * 2;
         do {
             size *= 2;
         } while (index >= size);
-        Array.Resize(ref values, size);
+        Resize(size);
         Count = index + 1;
-        return ref values[index];
+        return ref values.Span[index];
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -160,15 +198,35 @@ public struct ValueList<T> : IList<T> {
             do {
                 size = Math.Min(size * 2, capacity);
             } while (index >= size);
-            Array.Resize(ref values, size);
+            Resize(size);
         }
         Count++;
-        return ref values[index];
+        return ref values.Span[index];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void Resize(int size) {
+        var memory = allocator?.Alloc<T>(size) ?? new T[size];
+        values.Span[..Count].CopyTo(memory.Span[..Count]);
+        allocator?.Return(values);
+        values = memory;
+    }
+
+    public bool Equals(ValueList<T> other) {
+        return values.Equals(other.values) && Count == other.Count;
+    }
+
+    public override bool Equals(object? obj) {
+        return obj is ValueList<T> other && Equals(other);
+    }
+
+    public override int GetHashCode() {
+        return HashCode.Combine(values, Count);
+    }
+    
     public struct Enumerator : IEnumerator<T> {
 
-        private readonly T[] values;
+        private readonly ReadOnlyMemory<T> values;
 
         private readonly int length;
 
@@ -178,28 +236,34 @@ public struct ValueList<T> : IList<T> {
 
         public T Current => current;
 
+#nullable disable
         object IEnumerator.Current => current;
 
-        public Enumerator(T[] values, int length) {
+        public Enumerator(ReadOnlyMemory<T> values, int length) {
             this.values = values;
             this.length = length;
             this.index = 0;
             this.current = default;
         }
-            
+#nullable restore
+
         public bool MoveNext() {
             if (index < length) {
-                current = values[index];
+                current = values.Span[index];
                 index++;
                 return true;
             }
+#nullable disable
             current = default;
+#nullable restore
             index = length + 1;
             return false;
         }
 
         public void Reset() {
+#nullable disable
             current = default;
+#nullable restore
             index = 0;
         }
 
@@ -211,4 +275,6 @@ public struct ValueList<T> : IList<T> {
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+
 }

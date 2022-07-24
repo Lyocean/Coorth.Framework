@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
+#if NET6_0_OR_GREATER
 using System.Threading;
+#endif
 
 namespace Coorth.Tasks;
 
@@ -9,7 +11,7 @@ public interface ITaskWorkItem {
     void Execute();
 }
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
 public sealed class TaskWorkItem : IThreadPoolWorkItem, ITaskWorkItem {
 #else
 public sealed class TaskWorkItem : ITaskWorkItem {
@@ -38,4 +40,3 @@ public sealed class TaskWorkItem : ITaskWorkItem {
         action.Invoke();
     }
 }
-

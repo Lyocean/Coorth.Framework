@@ -6,7 +6,7 @@ using Coorth.Framework;
 
 namespace Coorth.Tasks; 
 
-public partial struct TaskJob {
+public static partial class TaskUtil {
     
     public static YieldAwaitable Yield() => new();
 
@@ -26,10 +26,10 @@ public partial struct TaskJob {
                 context.Post(sendOrPostCallback, continuation);
             }
             else {
-#if NET5_0_OR_GREATER
-                ThreadPool.UnsafeQueueUserWorkItem(TaskWorkItem.Create(continuation), false);
+#if NET6_0_OR_GREATER
+                TaskJobThreadPool.UnsafeQueueUserWorkItem(TaskWorkItem.Create(continuation), false);
 #else
-                ThreadPool.UnsafeQueueUserWorkItem(waitCallback, continuation);
+                TaskJobThreadPool.UnsafeQueueUserWorkItem(waitCallback, continuation);
 #endif
             }
 

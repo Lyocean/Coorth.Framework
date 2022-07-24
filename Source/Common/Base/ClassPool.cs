@@ -4,7 +4,7 @@ namespace Coorth;
 
 public static class ClassPool {
     private static class Pool<T> where T: class {
-        public static readonly ConcurrentQueue<T> Items = new ConcurrentQueue<T>();
+        public static readonly ConcurrentQueue<T> Items = new();
     }
 
     public static T? Create<T>() where T: class => Pool<T>.Items.TryDequeue(out var item) ? item : default;

@@ -6,7 +6,7 @@ using Coorth.Framework;
 
 namespace Coorth.Tasks; 
 
-public partial struct TaskJob {
+public static partial class TaskUtil {
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask<T> NextFrame<T>(Dispatcher dispatcher) where T : ITickEvent => dispatcher.Delay<T>(1, CancellationToken.None);

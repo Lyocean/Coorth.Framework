@@ -25,6 +25,6 @@ public struct ActiveComponent : IComponent {
         }
         return mask[index];
     }
-        
+    
     public bool this[int index] { get => Get(index); set => Set(index, value); }
 }

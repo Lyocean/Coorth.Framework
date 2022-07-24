@@ -1,8 +1,9 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace Coorth.Framework; 
 
-internal struct EntityContext {
+internal struct EntityContext : IEquatable<EntityContext> {
     
     public int Index;
 
@@ -36,5 +37,16 @@ internal struct EntityContext {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(int type, out int value) => Components.TryGetValue(type, out value);
-    
+
+    public bool Equals(EntityContext other) {
+        return Index == other.Index && Version == other.Version && Archetype.Equals(other.Archetype) && LocalIndex == other.LocalIndex && Components.Equals(other.Components);
+    }
+
+    public override bool Equals(object? obj) {
+        return obj is EntityContext other && Equals(other);
+    }
+
+    public override int GetHashCode() {
+        return HashCode.Combine(Index, Version, Archetype, LocalIndex, Components);
+    }
 }
