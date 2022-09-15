@@ -5,10 +5,10 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 [Component, Guid("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
 public struct ActiveComponent : IComponent {
-    [DataMember(Order = 1)]
+    [StoreMember(1)]
     private BitMask64 mask;
     public BitMask64 Mask => mask;
 

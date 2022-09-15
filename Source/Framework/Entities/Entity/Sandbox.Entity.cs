@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Coorth.Collections;
 
 namespace Coorth.Framework; 
@@ -11,7 +12,9 @@ public partial class Sandbox {
     
     private ChunkList<EntityContext> contexts;
 
-    private int reusing = -1;
+    private int reusingIndex = -1;
+
+    private int reusingCount;
 
     private int entityCount;
 
@@ -33,16 +36,16 @@ public partial class Sandbox {
             DestroyEntity(id);
         }
     }
-        
+
     #endregion
 
     #region Create Entity
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private ref EntityContext CreateContext() {
-        if (reusing >= 0) {
-            ref var context = ref contexts.Ref(reusing);
-            (reusing, context.Index) = (context.Index, reusing);
+        if (reusingIndex >= 0) {
+            ref var context = ref contexts.Ref(reusingIndex);
+            (reusingIndex, context.Index) = (context.Index, reusingIndex);
             entityCount++;
             return ref context;
         }
@@ -172,8 +175,8 @@ public partial class Sandbox {
         context.Archetype.EntityRemove(ref context, emptyArchetype);
         
         context.Version++;
-        context.Index = reusing;
-        reusing = id.Index;
+        context.Index = reusingIndex;
+        reusingIndex = id.Index;
         entityCount--;
         return true;
     }

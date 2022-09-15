@@ -27,7 +27,6 @@ public abstract partial class Module : IModule {
 
     protected ref Disposables Collector => ref (IsActive ? ref Actives : ref Managed);
 
-
     public TModule AddModule<TKey, TModule>(TModule module) where TModule : Module, TKey where TKey : IModule {
         var key = typeof(TKey);
         AddChild(key, module);

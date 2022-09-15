@@ -5,11 +5,12 @@ namespace Coorth.Serialize;
 public abstract partial class SerializeWriter : SerializeBase {
     
     //Root
-    public abstract void BeginRoot(Type type);
-    public abstract void EndRoot();
+    public virtual void BeginRoot(Type type) => BeginScope(type, SerializeScope.Table);
+    public virtual void EndRoot() => EndScope();
     
     //Scope
     public abstract void BeginScope(Type type, SerializeScope scope);
+    public void BeginScope(Type type) => BeginScope(type, SerializeScope.Table);
     public abstract void EndScope();
     
     //List
@@ -22,7 +23,7 @@ public abstract partial class SerializeWriter : SerializeBase {
     
     //Tag, Key, Value
     public abstract void WriteTag(string name, int index);
-    public virtual void WriteKey<T>(in T key) where T : notnull {
+    public void WriteKey<T>(in T key) where T : notnull {
         var type = typeof(T);
         if (type.IsPrimitive) {
             var serializer = Serializers.GetSerializer<T>();
@@ -39,7 +40,11 @@ public abstract partial class SerializeWriter : SerializeBase {
         }
         throw new NotSupportedException(type.ToString());
     }
-    public virtual void WriteValue<T>(in T? value) {
+    public void WriteValue<T>(in T? value) {
+        if (value == null) {
+            WriteNull();
+            return;
+        }
         if (typeof(T).IsEnum) {
             WriteEnum(value);
             return;
@@ -52,7 +57,11 @@ public abstract partial class SerializeWriter : SerializeBase {
         throw new NotSupportedException(typeof(T).ToString());
     }
     
-    public virtual void WriteObject(Type type, object? obj) {
+    public void WriteObject(Type type, object? obj) {
+        if (obj == null) {
+            WriteNull();
+            return;
+        }
         if (type.IsEnum) {
             WriteEnum(type, obj);
             return;
@@ -64,6 +73,8 @@ public abstract partial class SerializeWriter : SerializeBase {
         }
         throw new NotSupportedException(type.ToString());
     }
+
+    public abstract void WriteNull();
     
     public abstract void WriteBool(bool value);
 

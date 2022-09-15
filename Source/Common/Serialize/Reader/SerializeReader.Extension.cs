@@ -3,6 +3,7 @@
 namespace Coorth.Serialize;
 
 public partial class SerializeReader {
+    
     public void BeginScope<T>(SerializeScope scope) => BeginScope(typeof(T), scope);
 
     public void BeginList<T>(out int count) => BeginList(typeof(T), out count);

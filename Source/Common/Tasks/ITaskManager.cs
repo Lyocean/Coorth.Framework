@@ -6,7 +6,6 @@ namespace Coorth.Tasks;
 
 [Manager]
 public interface ITaskManager : IManager {
-    void Setup();
     void Sleep(TimeSpan time, SleepOptions option);
 }
 
@@ -17,9 +16,6 @@ public class TaskManager : Manager, ITaskManager {
     public TaskManager(IPlatformManager platformManager) {
         PlatformManager = platformManager;
     }
-    
-    public void Setup() { }
 
-    public virtual void Sleep(TimeSpan time, SleepOptions option) => PlatformManager.Sleep(time, option);
-    
+    public void Sleep(TimeSpan time, SleepOptions option) => PlatformManager.Sleep(time, option);
 }

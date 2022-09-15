@@ -9,7 +9,7 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 [Component, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
 public class TransformComponent : IComponent, IHierarchyNode {
 
@@ -131,7 +131,10 @@ public class TransformComponent : IComponent, IHierarchyNode {
         
     public Matrix4x4 SpaceMatrix { get => GetSpaceMatrix(); set => SetSpaceMatrix(in value); }
 
-                
+    public ref readonly Matrix4x4 WorldMatrixRef => ref worldMatrix;
+
+    public ref readonly Matrix4x4 LocalMatrixRef => ref localMatrix;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)] 
     private Matrix4x4 GetLocalMatrix() => localMatrix;
 

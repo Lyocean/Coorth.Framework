@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
@@ -110,7 +111,7 @@ public class Blackboard<TKey> where TKey : notnull {
         public int Add(TValue value) {
             
             if (!holes.IsNull && holes.Count > 0) {
-                var index = holes[holes.Count - 1];
+                var index = holes[^1];
                 holes.RemoveLast();
                 values[index] = value;
                 return index;

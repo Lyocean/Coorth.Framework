@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[DataContract, Guid("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
+[StoreContract, Guid("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public record struct Int3(int X, int Y, int Z) {
         

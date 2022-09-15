@@ -5,7 +5,7 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 [Component, Guid("4276C354-293B-4554-9B9E-7C224CEB6B56")]
 public class FolderComponent : Component {
         

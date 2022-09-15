@@ -6,7 +6,7 @@ namespace Coorth.Framework;
 
 #if COORTH_ACTOR_ID_GUID
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 public readonly record struct ActorId(Guid Id) {
     
     [DataMember(Order = 1)]
@@ -33,10 +33,10 @@ public readonly record struct ActorId(Guid Id) {
 }
 #else
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 public readonly record struct ActorId(long Id) {
     
-    [DataMember(Order = 1)]
+    [StoreMember(1)]
     public readonly long Id = Id;
     
     public bool IsNull => Id == 0;

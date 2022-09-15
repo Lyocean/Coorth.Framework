@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Coorth.Framework; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 [Component, Guid("5B494D7C-597D-4D08-9992-28FEC170DB78")]
 public abstract class ScriptComponent : Component, IDisposable {
 

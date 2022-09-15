@@ -3,19 +3,19 @@
 
 namespace Coorth.Tasks.Ticking; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 public sealed class TickSetting {
 
-    [DataMember(Order = 1)]
+    [StoreMember(1)]
     public int MaxStepPerFrame { get; set; } = int.MaxValue;
 
-    [DataMember(Order = 2)]
+    [StoreMember(2)]
     public float StepFrameRate { get; set; } = 60f;
 
-    [DataMember(Order = 3)]
+    [StoreMember(3)]
     public float TickFrameRate { get; set; } = 60f;
 
-    [DataMember(Order = 4)]
+    [StoreMember(4)]
     public float TimeScale { get; set; } = 1f;
 
     public TimeSpan StepDeltaTime => TimeSpan.FromSeconds(1f / StepFrameRate);

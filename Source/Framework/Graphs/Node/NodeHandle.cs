@@ -15,6 +15,7 @@ public readonly record struct NodeHandle(Type Type, Guid Id) {
         return new NodeHandle<T>(Id);
     }
 }
+
 public readonly record struct NodeHandle<T>(Guid Id) {
 
     public readonly Type Type => typeof(T);

@@ -223,6 +223,23 @@ public static class QuaternionUtil {
         return result;
     }
         
+    public static Quaternion BetweenDirection(in Vector3 source, in Vector3 target) {
+        Quaternion result;
+        var norms = (float)Math.Sqrt(source.LengthSquared() * target.LengthSquared());
+        var real = norms + Vector3.Dot(source, target);
+        if (real < MathUtil.ZERO_TOLERANCE * norms) {
+            // If source and target are exactly opposite, rotate 180 degrees around an arbitrary orthogonal axis.
+            // Axis normalisation can happen later, when we normalise the quaternion.
+            result = Math.Abs(source.X) > Math.Abs(source.Z) ? new Quaternion(-source.Y, source.X, 0.0f, 0.0f) : new Quaternion(0.0f, -source.Z, source.Y, 0.0f);
+        } else {
+            // Otherwise, build quaternion the standard way.
+            var axis = Vector3.Cross(source, target);
+            result = new Quaternion(axis, real);
+        }
+        result = Quaternion.Normalize(result);
+        return result;
+    }
+
     #endregion
 
 }

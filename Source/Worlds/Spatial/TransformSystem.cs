@@ -4,7 +4,7 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[System, DataContract, Guid("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
+[System, StoreContract, Guid("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
 public class TransformSystem : SystemBase {
     protected override void OnAdd() {
         Parent.OfferSystem<HierarchySystem>();

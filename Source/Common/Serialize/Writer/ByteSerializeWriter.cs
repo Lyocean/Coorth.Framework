@@ -37,7 +37,6 @@ public abstract class ByteSerializeWriter : SerializeWriter {
         }
     }
 
-    
     protected abstract void WriteBytes(ReadOnlySpan<byte> value);
 
     public override void WriteType(Type type) {

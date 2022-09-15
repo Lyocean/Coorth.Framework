@@ -27,7 +27,7 @@ public struct ChunkList<T> {
         this.chunks.Add(new ValueList<T>(this.chunkCapacity));
         this.Count = 0;
     }
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T Add() {
         var index = Count;
@@ -39,7 +39,7 @@ public struct ChunkList<T> {
         Count++;
         return ref chunk.Add();
     }
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T value) {
         ref var item = ref Add();
@@ -67,12 +67,12 @@ public struct ChunkList<T> {
         }
         return Ref(index);
     }
-        
+
     public ref T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref Ref(index); }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Set(int index, T value) { ref var item = ref Ref(index); item = value; }
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SwapRemove(int index) {
         var tail = Count - 1;
@@ -90,7 +90,7 @@ public struct ChunkList<T> {
         chunk.RemoveLast();
         Count--;
     }
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear() {
         for (var i = 0; i < chunks.Count; i++) {

@@ -76,34 +76,35 @@ public partial class Module  {
         if (!children.TryGetValue(key, out var child)) {
             return false;
         }
-        child.RemoveChildren();
-        App.OnRemoveModule(key, child);
-        
-        child.SetActive(false);
-        if (child.isSetup) {
-            child.isSetup = false;
-            child.OnClear();
-        }
-        child.OnRemove();
-        
-        child.SetActive(false);
-
-        child.Parent = null;
+        child._OnRemove();
         return children.Remove(key);
     }
 
-    private void RemoveChildren() {
+    private void _OnRemove() {
+        SetActive(false);
+        Managed.Clear();
+        Clear();
+        App.OnRemoveModule(Key, this);
+        if (isSetup) {
+            isSetup = false;
+            OnClear();
+        }
+        OnRemove();
+        Parent = null;
+    }
+
+    public void Clear() {
         if (children == null) {
             return;
         }
-        foreach (var (key, _) in children) {
-            RemoveChild(key);
+        foreach (var (_, child) in children) {
+            child._OnRemove();
         }
         children.Clear();
     }
         
     public void Dispose() {
-        Managed.Clear();
+        
         Parent?.RemoveChild(Key);
     }
         

@@ -3,7 +3,7 @@ using Coorth.Collections;
 
 namespace Coorth.Serialize;
 
-[Serializable, Serializer(typeof(BitMask32))]
+[Serializer(typeof(BitMask32))]
 internal sealed class BitMask32Serializer : Serializer<BitMask32> {
     
     public override void Write(SerializeWriter writer, in BitMask32 value) {
@@ -16,7 +16,7 @@ internal sealed class BitMask32Serializer : Serializer<BitMask32> {
 }
 
 
-[Serializable, Serializer(typeof(BitMask64))]
+[Serializer(typeof(BitMask64))]
 internal sealed class BitMask64Serializer : Serializer<BitMask64> {
     public override void Write(SerializeWriter writer, in BitMask64 value) {
         writer.WriteValue(value.Value);

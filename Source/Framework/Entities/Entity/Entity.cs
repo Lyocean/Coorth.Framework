@@ -6,7 +6,7 @@ using Coorth.Serialize;
 
 namespace Coorth.Framework;
 
-[DataContract, Guid("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
+[StoreContract, Guid("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
 public readonly record struct Entity(Sandbox Sandbox, EntityId Id) : IDisposable {
 
     public readonly EntityId Id = Id;

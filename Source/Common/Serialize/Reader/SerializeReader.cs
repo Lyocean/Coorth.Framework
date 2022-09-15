@@ -17,9 +17,6 @@ public abstract partial class SerializeReader : SerializeBase {
     public abstract bool EndDict();
     //Tag, Key, Value
     public abstract int ReadTag(string name, int index);
-    
-    // T? ReadField<T>(string name, int index);
-    
     public virtual TKey ReadKey<TKey>() where TKey: notnull {   
         var type = typeof(TKey);
         if (type.IsEnum) {
@@ -34,7 +31,7 @@ public abstract partial class SerializeReader : SerializeBase {
         } 
         throw new NotSupportedException(type.ToString());
     }
-    
+
     public T? ReadValue<T>() {
         if (typeof(T).IsEnum) {
             return ReadEnum<T>();
@@ -46,7 +43,7 @@ public abstract partial class SerializeReader : SerializeBase {
         throw new NotSupportedException(typeof(T).ToString());
     }
 
-    public virtual object? ReadObject(Type type) {
+    public object ReadObject(Type type) {
         var serializer = Serializers.GetSerializer(type);
         if (serializer != null) {
             return serializer.ReadObject(this, default);
@@ -55,6 +52,7 @@ public abstract partial class SerializeReader : SerializeBase {
     }
 
     // Types
+    public abstract bool ReadNull();
     
     public abstract bool ReadBool();
 

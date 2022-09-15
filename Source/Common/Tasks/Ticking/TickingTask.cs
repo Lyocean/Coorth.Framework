@@ -105,13 +105,13 @@ public class TickingTask : ITickingContext {
         return remainingTime;
     }
     
-    public void RunLoop(TaskSyncContext schedule, Dispatcher dispatcher) {
+    public void RunLoop(TaskSyncContext syncContext, Dispatcher dispatcher) {
         startTime = GetCurrentTime();
         var lastTime = startTime;
         using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));
-        var cancellation = schedule.Cancellation;
+        var cancellation = syncContext.Cancellation;
         while (!cancellation.IsCancellationRequested) {
-            var remainingTime = TickLoop(ref lastTime, schedule, dispatcher);
+            var remainingTime = TickLoop(ref lastTime, syncContext, dispatcher);
             if (remainingTime <= TimeSpan.Zero) {
                 continue;
             }

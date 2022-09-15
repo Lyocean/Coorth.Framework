@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Buffers;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Coorth.Tasks;
@@ -44,12 +45,15 @@ public abstract partial class TaskExecutor {
             });
         }
 
-        //TODO: [Task]: implement this parallel mode
         public override void For<T>(ReadOnlySequence<T> sequence, Action<T> action) {
             foreach (var memory in sequence) {
-                foreach (var value in memory.Span) {
-                    action(value);
-                }
+                TaskThreadPool.QueueUserWorkItem(o => {
+                    using var box = (Box<(ReadOnlyMemory<T>, Action<T>)>)o!;
+                    var (m, a) = box.Value;
+                    foreach (var item in m.Span) {
+                        a(item);
+                    }
+                }, Box<(ReadOnlyMemory<T>, Action<T>)>.Create((memory, action)));
             }
         }
     }

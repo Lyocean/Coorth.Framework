@@ -1,12 +1,11 @@
 using System;
 using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
 using System.Threading;
 
 namespace Coorth.Tasks;
 
 //TODO: [Task]: Replace internal thread pool
-public static class TaskJobThreadPool {
+public static class TaskThreadPool {
 #if NET6_0_OR_GREATER
     public static int ThreadCount => ThreadPool.ThreadCount;
 

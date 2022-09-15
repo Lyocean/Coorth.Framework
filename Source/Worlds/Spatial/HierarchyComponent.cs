@@ -6,7 +6,7 @@ using Coorth.Framework;
 
 namespace Coorth.Worlds; 
 
-[Serializable, DataContract]
+[Serializable, StoreContract]
 [Component, Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
 public struct HierarchyComponent : IComponent {
         

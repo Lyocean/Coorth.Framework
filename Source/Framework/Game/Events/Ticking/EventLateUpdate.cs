@@ -12,6 +12,9 @@ public readonly record struct EventLateUpdate(ITickingContext TickingContext, Ti
 
     public readonly TimeSpan DeltaTime = DeltaTime;
         
+    public TimeSpan UnscaleDeltaTime => DeltaTime;
+
+    
     public readonly long FrameCount = FrameCount;
         
     public float DeltaSecond => (float)DeltaTime.TotalSeconds;

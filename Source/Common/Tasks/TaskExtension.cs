@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Coorth.Tasks; 
 
 public static class TaskExtension {
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Forget(this Task task) {
         if (task == null) {
@@ -19,13 +19,13 @@ public static class TaskExtension {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueTask<T> FromResult<T>(in T result) => new ValueTask<T>(result);
+    public static ValueTask<T> FromResult<T>(in T result) => new(result);
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueTask FromTask(in Task task) => new ValueTask(task);
+    public static ValueTask FromTask(in Task task) => new(task);
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ValueTask<T> FromTask<T>(in Task<T> task) => new ValueTask<T>(task);
+    public static ValueTask<T> FromTask<T>(in Task<T> task) => new(task);
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ValueTask ToValueTask(this Task result) => new(result);

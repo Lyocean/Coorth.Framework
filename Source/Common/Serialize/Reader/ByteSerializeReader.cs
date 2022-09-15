@@ -82,3 +82,4 @@ public abstract class ByteSerializeReader : SerializeReader {
         }
     }
 }
+
