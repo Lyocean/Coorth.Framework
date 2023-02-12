@@ -2,15 +2,15 @@
 
 // public class EventHierarchyTest {
 //     
-//     private Dispatcher root;
+//     private Router root;
 //
-//     private Dispatcher node1;
+//     private Router node1;
 //         
-//     private Dispatcher node2;
+//     private Router node2;
 //
-//     private Dispatcher node11;
+//     private Router node11;
 //         
-//     private Dispatcher node12;
+//     private Router node12;
 //
-//     private Dispatcher node21;
+//     private Router node21;
 // }

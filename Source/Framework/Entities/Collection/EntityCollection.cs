@@ -14,26 +14,25 @@ public readonly partial struct EntityCollection : IEnumerable<Entity> {
         archetypeGroup = value;
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Execute<T>(T e, TaskExecutor executor, Action<T, Entity> action) {
-        var sandbox = archetypeGroup.Sandbox;
+        var world = archetypeGroup.World;
         foreach (var archetype in archetypeGroup.Archetypes) {
-            executor.For((e, archetype, sandbox), 0, archetype.EntityCount,(state, i) => {
+            executor.For((e, archetype, world), 0, archetype.EntityCount,(state, i) => {
                 var index = state.archetype.GetEntity(i);
-                var entity = state.sandbox.GetEntity(index);
+                var entity = state.world.GetEntity(index);
                 action(state.e, entity);
             });
         }
     }
 
     public struct Enumerator : IEnumerator<Entity> {
-        private readonly Sandbox sandbox; 
+        private readonly World world; 
         private readonly ArchetypeDefinition[] archetypes;
         private int archetypeIndex;
         private int index;
             
         public Enumerator(ArchetypeGroup archetypeGroup){
-            sandbox = archetypeGroup.Sandbox;
+            world = archetypeGroup.World;
             archetypes = archetypeGroup.Archetypes;
             archetypeIndex = 0;
             index = 0;
@@ -48,7 +47,7 @@ public readonly partial struct EntityCollection : IEnumerable<Entity> {
                 var archetype = archetypes[archetypeIndex];
                 if(index < archetype.EntityCount) {
                     var entityIndex = archetype.GetEntity(index);
-                    Current = sandbox.GetEntity(entityIndex);
+                    Current = world.GetEntity(entityIndex);
                     index ++;
                     return true;
                 }

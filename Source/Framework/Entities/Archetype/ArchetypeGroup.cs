@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace Coorth.Framework; 
 
-public class ArchetypeGroup {
+public sealed class ArchetypeGroup {
         
-    public readonly Sandbox Sandbox;
+    public readonly World World;
 
-    public readonly EntityMatcher Matcher;
+    public readonly ArchetypeMatcher Matcher;
 
     private readonly HashSet<ArchetypeDefinition> archetypes = new();
 
@@ -15,13 +15,13 @@ public class ArchetypeGroup {
 
     internal ArchetypeDefinition[] Archetypes => archetypeArray ?? archetypes.ToArray();
 
-    public ArchetypeGroup(Sandbox sandbox, EntityMatcher matcher) {
-        Sandbox = sandbox;
+    public ArchetypeGroup(World world, ArchetypeMatcher matcher) {
+        World = world;
         Matcher = matcher;
     }
 
     internal void Match(ArchetypeDefinition archetype) {
-        if (!Matcher.Match(Sandbox, archetype)) {
+        if (!Matcher.Match(archetype)) {
             return;
         }
         if (archetypes.Add(archetype)) {

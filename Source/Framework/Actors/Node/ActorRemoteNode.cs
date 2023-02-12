@@ -18,7 +18,7 @@ public sealed class ActorRemoteNode : ActorNode {
         Runtime = runtime;
     }
 
-    protected override ValueTask Receive(in ActorContext context, in IMessage message) {
+    protected override ValueTask Receive(in MessageContext context, in IMessage message) {
         return domain.ReceiveAsync(context, message);
     }
 }

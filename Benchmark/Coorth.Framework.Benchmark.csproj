@@ -1,21 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
+        <PackageReference Include="BenchmarkDotNet" Version="0.13.4" />
     </ItemGroup>
-    
+
     <ItemGroup>
-      <ProjectReference Include="..\Source\Coorth.Framework.Runtime.csproj" />
-      <ProjectReference Include="..\Tests\Coorth.Framework.Tests.csproj" />
+        <ProjectReference Include="..\Source\Coorth.Framework.Runtime.csproj" />
+        <!--<ProjectReference Include="..\Tests\Coorth.Framework.Tests.csproj" />-->
     </ItemGroup>
 
 </Project>

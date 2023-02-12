@@ -14,7 +14,7 @@ public abstract class ActorProxy : IActor {
         Ref = value;
     }
     
-    public ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         Ref.Send(m);
         return new ValueTask();
     }

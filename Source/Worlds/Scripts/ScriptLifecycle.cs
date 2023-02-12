@@ -15,15 +15,15 @@ public interface IScriptEnable : IScriptLifecycle {
 }
     
 public interface IScriptStepUpdate : IScriptLifecycle {
-    void OnStepUpdate(in EventStepUpdate e);
+    void OnStepUpdate(in StepUpdateEvent e);
 }
     
 public interface IScriptTickUpdate : IScriptLifecycle {
-    void OnTickUpdate(in EventTickUpdate e);
+    void OnTickUpdate(in TickUpdateEvent e);
 }
 
 public interface IScriptLateUpdate : IScriptLifecycle {
-    void OnLateUpdate(in EventLateUpdate e);
+    void OnLateUpdate(in LateUpdateEvent e);
 }
     
 public interface IScriptDestroy : IScriptLifecycle {

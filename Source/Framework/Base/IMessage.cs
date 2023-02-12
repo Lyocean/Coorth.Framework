@@ -1,10 +1,12 @@
-﻿namespace Coorth.Framework; 
+﻿using System;
 
-public interface IMessage {
-}
+namespace Coorth.Framework; 
+
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct)]
+public class MessageAttribute : Attribute { }
+
+public interface IMessage { }
     
-public interface IRequest : IMessage {
-}
+public interface IRequest : IMessage { }
 
-public interface IResponse : IMessage {
-}
+public interface IResponse : IMessage { }

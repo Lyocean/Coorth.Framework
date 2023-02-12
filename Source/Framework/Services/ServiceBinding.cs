@@ -1,106 +1,74 @@
 ﻿using System;
+using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
 public interface IServiceBinding {
-        
-    IServiceBinding ToValue(object value);
-
-    IServiceBinding ToFactory(Func<ServiceLocator, object> func);
-
-    object Singleton();
-
-    T Singleton<T>();
-
-    object Create();
-
-    T Create<T>();
+    
 }
 
-public class ServiceBinding : Disposable, IServiceBinding {
-    private readonly ServiceLocator locator;
+public interface IServiceBinding<T> : IServiceBinding where T: class {
+    
+}
+
+public abstract class ServiceBinding : IDisposable, IServiceBinding {
 
     private readonly Type type;
 
-    private volatile Func<ServiceLocator, object>? provider;
-
-    private volatile object? instance;
-
-    private readonly object locking = new();
-
-    public ServiceBinding(ServiceLocator l, Type t) {
-        locator = l;
+    protected ServiceBinding(Type t) {
         type = t;
     }
+    public abstract void Dispose();
+}
 
-    public IServiceBinding ToValue(object value) {
-        instance = value;
-        return this;
+public interface IServiceSingleton {
+    object Value { get; }
+}
+
+public sealed class ServiceSingleton<T> : ServiceBinding, IServiceBinding<T>, IServiceSingleton where T: class {
+    
+    public readonly T Value;
+    
+    object IServiceSingleton.Value => Value;
+
+    public ServiceSingleton(Type key, T value) : base(key) {
+        Value = value;
     }
 
-    public IServiceBinding ToFactory(Func<ServiceLocator, object> func) {
-        provider = func;
-        return this;
-    }
-
-    public object Singleton() {
-        if (instance != null) {
-            return instance;
-        }
-        lock (locking) {
-            if (instance != null) {
-                return instance;
-            }
-            var inst = Create();
-            instance = inst;
-            return inst;
-        }
-    }
-        
-    public T Singleton<T>() => (T)Singleton();
-
-    public object? Find() {
-        if (instance != null) {
-            return instance;
-        }
-        lock (locking) {
-            if (instance != null) {
-                return instance;
-            }
-            var inst = provider != null ? provider.Invoke(locator) : Activator.CreateInstance(type);
-            instance = inst;
-            return inst;
-        }
-    }
-        
-    public T? Find<T>() where T : class => Find() as T;
-
-    public object Create() {
-        if (provider != null) {
-            return provider.Invoke(locator);
-        }
-        var value = Activator.CreateInstance(type);
-        if (value != null) {
-            return value;
-        }
-        throw new NullReferenceException();
-    }
-
-    public T Create<T>() => (T)Create();
-
-    protected override void OnDispose(bool dispose) {
-        if (instance == null) {
-            return;
-        }
-        if (instance is IDisposable disposable) {
+    public override void Dispose() {
+        if (Value is IDisposable disposable) {
             disposable.Dispose();
         }
-        instance = null;
     }
 }
 
-public readonly struct ServiceBinding<T> {
-    public readonly IServiceBinding Binding;
-    public ServiceBinding(IServiceBinding binding) => Binding = binding;
-    public T Singleton() => Binding.Singleton<T>();
+public interface IServiceFactory {
+    object Create(ServiceLocator locator);
+}
+
+public sealed class ServiceFactory<T> : ServiceBinding, IServiceBinding<T>, IServiceFactory where T: class {
+
+    public readonly Delegate Provider;
+    
+    public ServiceFactory(Type key, Delegate provider) : base(key) {
+        Provider = provider;
+    }
+
+    public override void Dispose() { }
+
+    object IServiceFactory.Create(ServiceLocator locator) {
+        return ((Func<ServiceLocator, T>)Provider).Invoke(locator);
+    }
+    
+    public T Create(ServiceLocator locator) {
+        return Provider switch {
+            Func<T> func => func(),
+            Func<ServiceLocator, T> func2 => func2(locator),
+            _ => throw new InvalidCastException()
+        };
+    }
+    
+    public T Create(ServiceLocator locator, object param) {
+        return ((Func<ServiceLocator, object, T>)Provider).Invoke(locator, param);
+    }
 }

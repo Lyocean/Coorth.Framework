@@ -5,30 +5,30 @@ namespace Coorth.Framework;
 public interface IComponentFactory<T> {
     void Create(in Entity entity, out T component);
     void Attach(in Entity entity, ref T component);
-    void Recycle(in Entity entity, ref T? component);
+    void Recycle(in Entity entity, ref T component);
     void Clone(in Entity entity, ref T source, out T target);
 }
-    
+
 public class ComponentFactory<T> : IComponentFactory<T> {
 
     public virtual void Create(in Entity entity, out T component) {
         component = Activator.CreateInstance<T>();
-        if (component is IRefComponent refComponent) {
+        if (component is IAttachable<Entity> refComponent) {
             refComponent.OnAttach(in entity);
         }
     }
         
     public virtual void Attach(in Entity entity, ref T component) {
-        if (component is IRefComponent refComponent) {
+        if (component is IAttachable<Entity> refComponent) {
             refComponent.OnAttach(in entity);
         }
     }
         
-    public virtual void Recycle(in Entity entity, ref T? component) {
-        if (component is IRefComponent refComponent) {
+    public virtual void Recycle(in Entity entity, ref T component) {
+        if (component is IAttachable<Entity> refComponent) {
             refComponent.OnDetach();
         }
-        component = default;
+        component = default!;
     }
 
     public virtual void Clone(in Entity entity, ref T source, out T target) {

@@ -4,86 +4,86 @@ namespace Coorth.Framework;
 
 public class EntityTest {
 
-    private Sandbox sandbox;
+    private World world;
         
     [SetUp]
     public void Setup() {
-        sandbox = SandboxTest.Create();
+        world = WorldTest.Create();
     }
         
     [Test]
-    public void ValidateSandbox() {
-        Assert.NotNull(sandbox);
+    public void ValidateWorld() {
+        Assert.NotNull(world);
     }
 
     [Test]
     public void CreateEmptyEntity() {
-        var entity = sandbox.CreateEntity();
-        Assert.IsTrue(entity.Sandbox == sandbox);
+        var entity = world.CreateEntity();
+        Assert.IsTrue(entity.World == world);
         Assert.IsTrue(!entity.IsNull);
     }
         
     [Test]
     public void CreateEmptyEntitiesX2() {
-        var entity1 = sandbox.CreateEntity();
-        var entity2 = sandbox.CreateEntity();
+        var entity1 = world.CreateEntity();
+        var entity2 = world.CreateEntity();
         Assert.IsTrue(entity1 != entity2);
     }
         
     [Test]
     public void CreateEmptyEntitiesX1000() {
         for (var i = 0; i < 1000; i++) {
-            var entity = sandbox.CreateEntity();
+            var entity = world.CreateEntity();
             Assert.IsFalse(entity.IsNull);
         }
     }
 
     [Test]
     public void SingletonEntity() {
-        var entity = sandbox.Singleton();
+        var entity = world.Singleton();
         Assert.IsFalse(entity.Id.IsNull);
         Assert.IsFalse(entity.IsNull);
-        var entity1 = sandbox.Singleton();
-        var entity2 = sandbox.Singleton();
+        var entity1 = world.Singleton();
+        var entity2 = world.Singleton();
         Assert.IsTrue(entity1 == entity2);
 
-        var entity3 = sandbox.CreateEntity();
+        var entity3 = world.CreateEntity();
         Assert.IsFalse(entity == entity3);
 
     }
         
     [Test]
     public void HasEntity() {
-        var entity = sandbox.CreateEntity();
-        Assert.IsTrue(sandbox.HasEntity(entity));
-        Assert.IsTrue(sandbox.HasEntity(entity.Id));
+        var entity = world.CreateEntity();
+        Assert.IsTrue(world.HasEntity(entity));
+        Assert.IsTrue(world.HasEntity(entity.Id));
     }
 
     [Test]
     public void GetEntity() {
-        var entity = sandbox.CreateEntity();
-        Assert.IsTrue(sandbox.GetEntity(entity.Id) == entity);
+        var entity = world.CreateEntity();
+        Assert.IsTrue(world.GetEntity(entity.Id) == entity);
     }
 
     [Test]
     public void DestroyEntity() {
-        var entity = sandbox.CreateEntity();
+        var entity = world.CreateEntity();
         entity.Dispose();
-        Assert.IsFalse(sandbox.HasEntity(entity));
+        Assert.IsFalse(world.HasEntity(entity));
     }
 
     [Test]
     public void CreateArchetype() {
-        var builder = sandbox.CreateArchetype();
+        var builder = world.CreateArchetype();
         var archetypeCompiled = builder.Compile();
         Assert.IsFalse(archetypeCompiled.IsNull);
         var entity = archetypeCompiled.CreateEntity();
-        Assert.IsTrue(sandbox.HasEntity(entity));
+        Assert.IsTrue(world.HasEntity(entity));
     }
         
     [Test]
     public void ArchetypeAddComponent() {
-        var builder = sandbox.CreateArchetype();
+        var builder = world.CreateArchetype();
         builder.Add<TestValueComponent0>()
             .Add<TestValueComponent1>()
             .Add<TestClassComponent2>();
@@ -99,14 +99,14 @@ public class EntityTest {
         
     [Test]
     public void ArchetypeCreateEntity() {
-        var builder = sandbox.CreateArchetype();
+        var builder = world.CreateArchetype();
         builder.Add<TestValueComponent0>()
             .Add<TestValueComponent1>()
             .Add<TestClassComponent2>();
         var archetypeCompiled = builder.Compile();
         var entity = archetypeCompiled.CreateEntity();
 
-        Assert.IsTrue(sandbox.HasEntity(entity));
+        Assert.IsTrue(world.HasEntity(entity));
         Assert.IsTrue(entity.Has<TestValueComponent0>());
         Assert.IsTrue(entity.Has<TestValueComponent1>());
         Assert.IsTrue(entity.Has<TestClassComponent2>());
@@ -114,7 +114,7 @@ public class EntityTest {
         
     [Test]
     public void ArchetypeCreateEntityX1000() {
-        var builder = sandbox.CreateArchetype();
+        var builder = world.CreateArchetype();
         builder.Add<TestValueComponent0>()
             .Add<TestValueComponent1>()
             .Add<TestClassComponent2>();
@@ -122,11 +122,11 @@ public class EntityTest {
 
         for (int i = 0; i < 1000; i++) {
             var entity = archetypeCompiled.CreateEntity();
-            Assert.IsTrue(sandbox.HasEntity(entity));
+            Assert.IsTrue(world.HasEntity(entity));
             Assert.IsTrue(entity.Has<TestValueComponent0>());
             Assert.IsTrue(entity.Has<TestValueComponent1>());
             Assert.IsTrue(entity.Has<TestClassComponent2>());
         }
-        Assert.IsTrue(sandbox.EntityCount == 1001);
+        Assert.IsTrue(world.EntityCount == 1001);
     }
 }

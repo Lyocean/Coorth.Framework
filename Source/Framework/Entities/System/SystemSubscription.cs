@@ -27,9 +27,9 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
 
     public Type EventType => typeof(TEvent);
 
-    private Sandbox Sandbox => system.Sandbox;
+    private World World => system.World;
 
-    private EntityMatcher? matcher;
+    private ArchetypeMatcher? matcher;
         
     private HashSet<Type>? includes;
         
@@ -96,14 +96,14 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     private void _Exclude<T>() where T : IComponent => _Exclude(typeof(T));
         
     public SystemSubscription<TEvent> Include<T>() where T : IComponent {
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Include<T>();
         _Include<T>();
         return this;
     }
         
     public SystemSubscription<TEvent> Include<T1, T2>() where T1 : IComponent where T2 : IComponent {
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Include<T1>().Include<T2>();
         _Include<T1>();
         _Include<T2>();
@@ -111,7 +111,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     }
         
     public SystemSubscription<TEvent> Include<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Include<T1>().Include<T2>().Include<T3>();
         _Include<T1>();
         _Include<T2>();
@@ -120,14 +120,14 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     }
     
     public SystemSubscription<TEvent> Exclude<T>() where T : IComponent {
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Exclude<T>();
         _Exclude<T>();
         return this;
     }
         
     public SystemSubscription<TEvent> Exclude<T1, T2>() where T1 : IComponent where T2 : IComponent {
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Exclude<T1>().Exclude<T2>();
         _Exclude<T1>();
         _Exclude<T2>();
@@ -135,7 +135,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     }
         
     public SystemSubscription<TEvent> Exclude<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
-        matcher ??= new EntityMatcher();
+        matcher ??= new ArchetypeMatcher();
         matcher.Exclude<T1>().Exclude<T2>().Exclude<T3>();
         _Exclude<T1>();
         _Exclude<T2>();
@@ -146,5 +146,28 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     protected override void OnDispose(bool dispose) {
         reaction?.Dispose();
         system.RemoveReaction(this);
+    }
+    
+    private void _Match(ArchetypeMatcher archetypeMatcher) {
+        if (matcher != null) {
+            throw new InvalidOperationException($"[SystemSubscription] Matcher has exists.");
+        }
+        matcher = archetypeMatcher;
+        foreach (var typeId in matcher.Includes) {
+            var componentGroup = World.GetComponentGroup(typeId);
+            _Include(componentGroup.Type);
+        }
+        foreach (var typeId in matcher.Excludes) { 
+            var componentGroup = World.GetComponentGroup(typeId);
+            _Exclude(componentGroup.Type);
+        }
+    }
+        
+    public void OnMatch(ArchetypeMatcher archetypeMatcher, Action<TEvent, Entity> action) {
+        _Match(archetypeMatcher);
+        OnEvent(e => {
+            var entities = World.GetEntities(archetypeMatcher);
+            entities.Execute(e, executor, action);
+        });
     }
 }

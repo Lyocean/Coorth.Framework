@@ -3,9 +3,9 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[StoreContract, Guid("DE608657-DB40-4EAB-AA16-AA31AE1CFA97")]
+[StoreContract(StoreFlags.PublicField), Guid("DE608657-DB40-4EAB-AA16-AA31AE1CFA97")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-public record struct Size3(int X, int Y, int Z) {
+public partial record struct Size3(int X, int Y, int Z) {
         
     public int X = X;
         

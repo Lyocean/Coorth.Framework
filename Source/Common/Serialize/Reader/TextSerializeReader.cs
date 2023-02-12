@@ -1,60 +1,68 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
 namespace Coorth.Serialize; 
 
 public abstract class TextSerializeReader : SerializeReader {
-    public override DateTime ReadDateTime() {
-        var text = ReadString();
-        if (text == null) {
-            throw new SerializationException();
-        }
-        return DateTime.Parse(text);
-    }
 
-    public override TimeSpan ReadTimeSpan() {
-        var text = ReadString();
-        if (text == null) {
-            throw new SerializationException();
-        }
-        return TimeSpan.Parse(text);
-    }
+    protected abstract ReadOnlySpan<char> ReadChars();
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override DateTime ReadDateTime() => DateTime.Parse(ReadChars());
 
-    public override Guid ReadGuid() {
-        var text = ReadString();
-        if (text == null) {
-            throw new SerializationException();
-        }
-        return Guid.Parse(text);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override TimeSpan ReadTimeSpan() => TimeSpan.Parse(ReadChars());
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override Guid ReadGuid() => Guid.Parse(ReadChars());
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override Type ReadType() {
-        var text = ReadString();
-        if (text == null) {
-            throw new SerializationException();
-        }
-        var index = text.IndexOf(":", StringComparison.Ordinal);
-        var content = text[(index + 1)..];
-        if (text.StartsWith("Guid:")) {
-            var type = TypeBinding.GetType(content);
+        var text = ReadChars();
+        var head = text[..5];
+        if (head == "Guid:") {
+            var guid = Guid.Parse(text[6..]);
+            var type = TypeBinding.GetType(guid);
             if (type != null) {
                 return type;
             }
         }
-        if(text.StartsWith("Name:")) {
-            var type = Type.GetType(content);
+        else if (head == "Name:") {
+            var name = new string(text[6..]);
+            var type = TypeBinding.GetType(name);
             if (type != null) {
                 return type;
             }
         }
-        throw new SerializationException($"[Serialize]: Unexpected type format: {text}.");
+        throw new SerializationException($"[Serialize]: Unexpected type format: {text.ToString()}.");
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public override T ReadEnum<T>() {
+#if NET5_0_OR_GREATER
+        var text = ReadChars();
+        return (T)Enum.Parse(typeof(T), text);
+#else
         var text = ReadString();
         if (text == null) {
             throw new SerializationException();
         }
         return (T)Enum.Parse(typeof(T), text);
+#endif
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public override object ReadEnum(Type type) {
+#if NET5_0_OR_GREATER
+        var text = ReadChars();
+        return Enum.Parse(type, text);
+#else
+        var text = ReadString();
+        if (text == null) {
+            throw new SerializationException();
+        }
+        return Enum.Parse(type, text);
+#endif
     }
 }

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 namespace Coorth;
 
 public static class BitOpUtil {
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Guid ReadGuid(BinaryReader reader) {
         var size = Unsafe.SizeOf<Guid>();
@@ -51,21 +52,3 @@ public static class BitOpUtil {
 #endif
     }
 }
-
-
-// public static void Test() {
-// Marshal
-// MemoryMarshal
-// SequenceMarshal
-// CollectionsMarshal
-//System.Buffers.SequenceReader<>
-// ReadOnlySequence<>
-// }
-//
-
-
-// public enum BitPrecision {
-//     Bit16,
-//     Bit32,
-//     Bit64,
-// }

@@ -5,30 +5,29 @@ using Coorth.Framework;
 using Coorth.Platforms;
 using Coorth.Tasks.Ticking;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [System, Guid("32B3C700-5454-4C27-83A1-B6B94C6B386D")]
 public class DirectorSystem : SystemBase {
     
     protected override void OnAdd() {
-        Sandbox.BindComponent<DirectorComponent>();
-        Subscribe<EventSandboxRunTick>().OnEvent(OnRunTick);
+        Subscribe<WorldRunTickEvent>().OnEvent(OnRunTick);
     }
     
-    private void OnRunTick(EventSandboxRunTick e) {
+    private void OnRunTick(WorldRunTickEvent e) {
         
-        var platformManager = Sandbox.GetService<IPlatformManager>();
+        var platformManager = World.GetService<IPlatformManager>();
         var ticking = new TickingTask(platformManager, e.Setting);
-        var thread = new Thread(_ => ticking.RunLoop(Sandbox.Schedule, Sandbox.Dispatcher));
+        var thread = new Thread(_ => ticking.RunLoop(World.SyncContext, World.Dispatcher));
         thread.Start();
         
-        ticking.OnComplete += () => e.Completion.SetResult(Sandbox);
+        ticking.OnComplete += () => e.Completion.SetResult(World);
     }
     
 }
 
 [Event]
-public record EventSandboxRunTick(TickSetting Setting, TaskCompletionSource<Sandbox> Completion) : IEvent {
+public record WorldRunTickEvent(TickSetting Setting, TaskCompletionSource<World> Completion) : IEvent {
     public readonly TickSetting Setting = Setting;
-    public readonly TaskCompletionSource<Sandbox> Completion = Completion;
+    public readonly TaskCompletionSource<World> Completion = Completion;
 }

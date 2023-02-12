@@ -19,8 +19,8 @@ public static class ComponentType<T> {
     static ComponentType() {
         Type = typeof(T);
         Attribute = Type.GetCustomAttribute<ComponentAttribute>();
-        TypeId = Interlocked.Increment(ref Sandbox.ComponentTypeCount);
-        Sandbox.ComponentTypeIds[Type] = TypeId;
+        TypeId = Interlocked.Increment(ref World.ComponentTypeCount);
+        World.ComponentTypeIds[Type] = TypeId;
         IsValueType = typeof(T).IsValueType;
         IsPinned = (Attribute != null) && Attribute.IsPinned;
     }

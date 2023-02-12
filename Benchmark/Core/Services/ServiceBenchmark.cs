@@ -20,17 +20,17 @@ public class ServiceBenchmark {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void _BindServices(ServiceLocator services) {
         services.Bind<IServiceApi1>(_ => new ServiceImpl1());
-        services.Bind<IServiceApi2>(new ServiceImpl2());
+        services.Add<IServiceApi2>(new ServiceImpl2());
         services.Bind<ServiceInst1>();
-        services.Bind(new ServiceInst2());
+        services.Add(new ServiceInst2());
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void _GetServices(ServiceLocator services) {
-        services.Singleton<IServiceApi1>();
-        services.Singleton<IServiceApi2>();
-        services.Singleton<ServiceInst1>();
-        services.Singleton<ServiceInst2>();
+        //services.Create<IServiceApi1>();
+        services.GetService<IServiceApi2>();
+        //services.Create<ServiceInst1>();
+        services.GetService<ServiceInst2>();
     }
     
     [GlobalSetup]
@@ -63,9 +63,9 @@ public class ServiceBenchmark {
         for (var i = 1; i < BIND_TEST_COUNT; i++) {
             var services = locators[i];
             services.Bind<IServiceApi1>(_ => new ServiceImpl1());
-            services.Bind<IServiceApi2>(new ServiceImpl2());
+            services.Add<IServiceApi2>(new ServiceImpl2());
             services.Bind<ServiceInst1>();
-            services.Bind(new ServiceInst2());
+            services.Add(new ServiceInst2());
         }
     }
 
@@ -102,3 +102,28 @@ public class ServiceBenchmark {
     }
 }
 
+
+
+
+public interface IServiceApi1 {
+
+}
+
+public class ServiceImpl1 : IServiceApi1 {
+
+}
+
+public interface IServiceApi2 {
+    int Value { get; set; }
+}
+
+public sealed class ServiceImpl2 : IServiceApi2 {
+    public int Value { get; set; }
+}
+
+public sealed class ServiceInst1 {
+}
+
+public sealed class ServiceInst2 {
+    public int Value { get; set; }
+}

@@ -19,4 +19,6 @@ public readonly record struct EntityId(int Index, int Version) {
     public static explicit operator EntityId(long uid) => new(uid);
 
     public override string ToString() => $"(Index:{Index}, Version:{Version})";
+
+    public override int GetHashCode() => Index;
 }

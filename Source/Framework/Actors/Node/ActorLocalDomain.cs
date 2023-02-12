@@ -10,7 +10,7 @@ public sealed class ActorLocalDomain : ActorDomain {
     public ActorLocalDomain(string? name, ActorsRuntime runtime, ActorNode? parent) : base(name, runtime, parent) {
     }
     
-    public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
 
         return new ValueTask();
     }

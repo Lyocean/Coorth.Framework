@@ -77,18 +77,18 @@ public abstract class ActorNode : Disposable {
     #region Message
 
     public void Send(IMessage message) {
-        using var context = new ActorContext(this, ActorRef.Null, CancellationToken.None);       
+        using var context = new MessageContext(this, ActorRef.Null, CancellationToken.None);       
         Receive(in context, in message);
     }
 
     public async void Send(IMessage message, ActorRef sender) {
-        using var context = new ActorContext(this, sender, CancellationToken.None);       
+        using var context = new MessageContext(this, sender, CancellationToken.None);       
         await Receive(in context, in message);
     }
     
     public async ValueTask<IResponse> Request(IRequest message) {
         var completion = new TaskCompletionSource<IResponse>();
-        using var context = new ActorContext(this, ActorRef.Null, completion);       
+        using var context = new MessageContext(this, ActorRef.Null, completion);       
         await Receive(in context, message);
         var response = await completion.Task;
         return response;
@@ -100,7 +100,7 @@ public abstract class ActorNode : Disposable {
     
     public async ValueTask<IResponse> Request(IRequest message, ActorRef sender, CancellationToken cancellation) {
         var completion = new TaskCompletionSource<IResponse>(cancellation);
-        var context = new ActorContext(this, sender, completion);       
+        var context = new MessageContext(this, sender, completion);       
         await Receive(in context, message);
         var response = await completion.Task;
         return response;
@@ -111,7 +111,7 @@ public abstract class ActorNode : Disposable {
         return Request(message, sender, cancellation.Token);
     }
     
-    protected abstract ValueTask Receive(in ActorContext context, in IMessage message);
+    protected abstract ValueTask Receive(in MessageContext context, in IMessage message);
     
     #endregion
 }

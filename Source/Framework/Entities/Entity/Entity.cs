@@ -1,114 +1,144 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
+using Coorth.Collections;
 using Coorth.Serialize;
 
 namespace Coorth.Framework;
 
-[StoreContract, Guid("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
-public readonly record struct Entity(Sandbox Sandbox, EntityId Id) : IDisposable {
-
+[Guid("B210C381-5F47-45BE-A5B7-2A78B13D859A")]
+public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public readonly EntityId Id = Id;
 
-    public readonly Sandbox Sandbox = Sandbox;
+    public readonly World World = World;
 
-    public static Entity Null => new(Sandbox.GetDefault(), EntityId.Null);
+    public static Entity Null => new(null!, EntityId.Null);
 
-    public int Count => Sandbox.ComponentCount(Id);
+    public int Count => World.ComponentCount(Id);
 
-    public Archetype Archetype => Sandbox.GetArchetype(Id);
-        
-    public IEnumerable<Type> ComponentTypes() => Sandbox.ComponentTypes(Id);
+    public Archetype Archetype => World.GetArchetype(Id);
 
-    internal ref EntityContext GetContext() => ref Sandbox.GetContext(Id.Index);
-        
-    public bool IsNull => Id.IsNull || Sandbox == null || !Sandbox.HasEntity(Id);
+    EntityContext Context => World.GetContext(Id.Index);
 
-    public bool IsNotNull => Id.IsNotNull && Sandbox != null && Sandbox.HasEntity(Id);
-        
-    public void Add(Type type) => Sandbox.AddComponent(Id, type);
-        
-    public ref T Add<T>() where T : IComponent, new() => ref Sandbox.AddComponent<T>(Id);
+    public IEnumerable<Type> ComponentTypes() => World.ComponentTypes(Id);
 
-    public ref T Add<T>(T component) where T : IComponent => ref Sandbox.AddComponent(Id, component);
+    public bool IsNull => Id.IsNull || World == null || !World.HasEntity(Id);
 
-    public bool TryAdd<T>() where T : IComponent => Sandbox.TryAddComponent<T>(Id);
-        
-    public bool Has<T>() where T : IComponent => Sandbox.HasComponent<T>(Id);
+    public bool IsNotNull => Id.IsNotNull && World != null && World.HasEntity(Id);
 
-    public bool Has(Type type) => Sandbox.HasComponent(Id, type); 
-        
-    public ref T Get<T>() where T : IComponent => ref Sandbox.GetComponent<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Add(Type type) => World.AddComponent(Id, type);
 
-    public T Get<T>(T defaultValue) where T : IComponent => Sandbox.TryGetComponent<T>(Id, out var component) ? component : defaultValue;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Add<T>() where T : IComponent, new() => ref World.AddComponent<T>(Id);
 
-    public T? Find<T>() where T : IComponent => Sandbox.TryGetComponent<T>(Id, out var component) ? component : default;
-        
-    public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent => Sandbox.TryGetComponent(Id, out component);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Add<T>(T component) where T : IComponent => ref World.AddComponent(Id, component);
 
-    public ComponentPtr<T> Ptr<T>() where T : IComponent => Sandbox.PtrComponent<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryAdd<T>() where T : IComponent => World.TryAddComponent<T>(Id);
 
-    public IEnumerable<IComponent> GetAll() => Sandbox.GetAllComponents(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Has<T>() where T : IComponent => World.HasComponent<T>(Id);
 
-    public ref T Offer<T>() where T : IComponent, new() => ref Sandbox.OfferComponent<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Has(Type type) => World.HasComponent(Id, type);
 
-    public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() => ref Sandbox.OfferComponent(Id, provider);
-        
-    public ComponentPtr<T> Wrap<T>() where T : IComponent => Sandbox.GetComponentPtr<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Get<T>() where T : IComponent => ref World.GetComponent<T>(Id);
 
-    public void Modify<T>() where T : IComponent => Sandbox.ModifyComponent<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T Get<T>(T defaultValue) where T : IComponent =>
+        World.TryGetComponent<T>(Id, out var component) ? component : defaultValue;
 
-    public void Modify<T>(in T component) where T : IComponent => Sandbox.ModifyComponent(Id, component);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public T? Find<T>() where T : IComponent => World.TryGetComponent<T>(Id, out var component) ? component : default;
 
-    public void Modify<T>(Action<Sandbox, T> action) where T : IComponent => Sandbox.ModifyComponent(Id, action);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent =>
+        World.TryGetComponent(Id, out component);
 
-    public void Modify<T>(Func<Sandbox, T, T> action) where T : IComponent => Sandbox.ModifyComponent(Id, action);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ComponentPtr<T> Ptr<T>() where T : IComponent => World.PtrComponent<T>(Id);
 
-    public bool Remove<T>() where T : IComponent => Sandbox.RemoveComponent<T>(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ComponentPtr<T> Wrap<T>() where T : IComponent => World.GetComponentPtr<T>(Id);
 
-    public bool Remove(Type type) => Sandbox.RemoveComponent(Id, type);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public IEnumerable<IComponent> GetAll() => World.GetAllComponents(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Offer<T>() where T : IComponent, new() => ref World.OfferComponent<T>(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() =>
+        ref World.OfferComponent(Id, provider);
+
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Modify<T>() where T : IComponent => World.ModifyComponent<T>(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Modify<T>(in T component) where T : IComponent => World.ModifyComponent(Id, component);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Modify<T>(Action<World, T> action) where T : IComponent => World.ModifyComponent(Id, action);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Modify<T>(Func<World, T, T> action) where T : IComponent => World.ModifyComponent(Id, action);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Remove<T>() where T : IComponent => World.RemoveComponent<T>(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Remove(Type type) => World.RemoveComponent(Id, type);
 
     public bool TryRemove<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent {
-        if (Sandbox.TryGetComponent(Id, out component)) {
-            Sandbox.RemoveComponent<T>(Id);
+        if (World.TryGetComponent(Id, out component)) {
+            World.RemoveComponent<T>(Id);
         }
+
         return false;
     }
-    
-    public bool IsEnable<T>() where T : IComponent => Sandbox.IsComponentEnable<T>(in Id);
-        
-    public bool IsEnable(Type type) => Sandbox.IsComponentEnable(in Id, type);
 
-    public void SetEnable<T>(bool enable) where T : IComponent => Sandbox.SetComponentEnable<T>(in Id, enable);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsEnable<T>() where T : IComponent => World.IsComponentEnable<T>(in Id);
 
-    public void SetEnable(Type type, bool enable) => Sandbox.SetComponentEnable(in Id, type, enable);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsEnable(Type type) => World.IsComponentEnable(in Id, type);
 
-    public void Clear() => Sandbox.ClearComponent(Id);
-        
-    public void Dispose() => Sandbox.DestroyEntity(Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetEnable<T>(bool enable) where T : IComponent => World.SetComponentEnable<T>(in Id, enable);
 
-    public void Write(SerializeWriter writer) => Sandbox.WriteEntity(writer, Id);
-        
-    public void Read(SerializeReader reader) => Sandbox.ReadEntity(reader, Id);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetEnable(Type type, bool enable) => World.SetComponentEnable(in Id, type, enable);
 
-    public Entity CloneEntity() => Sandbox.CloneEntity(this);
-    
-    public static Serializer<Entity> GetSerializer() => new Serializer();
-    
-    [Serializer(typeof(Entity))]
-    private class Serializer : Serializer<Entity> {
-        public override void Write(SerializeWriter writer, in Entity value) {
-            value.Sandbox.WriteEntity(writer, value.Id);
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Clear() => World.ClearComponent(Id);
 
-        public override Entity Read(SerializeReader reader, Entity value) {
-            if (value.IsNull) {
-                var sandbox = reader.GetContext<Sandbox>();
-                value = sandbox.CreateEntity();
-            }
-            value.Sandbox.ReadEntity(reader, value.Id);
-            return value;
-        }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Dispose() => World.DestroyEntity(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Write(ISerializeWriter writer) => World.WriteEntity(writer, Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Read(ISerializeReader reader) => World.ReadEntity(reader, Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity CloneEntity() => World.CloneEntity(this);
+
+    public override string ToString() {
+        using var builder = new ValueStringBuilder(512);
+        builder.Append("Entity={ ");
+        builder.Append("Id=(Index:");
+        builder.Append(Id.Index);
+        builder.Append(", Version:");
+        builder.Append(Id.Version);
+        builder.Append("), ");
+        builder.Append(Archetype.ToString());
+        builder.Append(" }");
+        return builder.ToString();
     }
 }

@@ -1,13 +1,12 @@
 ﻿using System.Runtime.InteropServices;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [System, Guid("4C94F9C9-C178-4E34-9755-DA59E08D96DF")]
 public class FolderSystem : SystemBase {
         
     protected override void OnAdd() {
-        Sandbox.BindComponent<FolderComponent>();
     }
         
     protected override void OnActive() {

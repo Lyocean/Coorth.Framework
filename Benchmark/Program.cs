@@ -1,12 +1,20 @@
 ﻿using BenchmarkDotNet.Running;
-
 using Coorth.Framework;
 
-namespace Coorth.Framework; 
+//public class Program {
 
-public static class Program {
-    private static void Main(string[] args) {
-        BenchmarkRunner.Run<ServiceBenchmark>();
-        BenchmarkRunner.Run<EntityBenchmark>();
-    }
-}
+//    public static void Main(string[] args) {
+//        BenchmarkRunner.Run<ServiceBenchmark>();
+//    }
+//}
+
+// var service = new ServiceBenchmark();
+// service.Setup();
+// service.IterationSetup();
+// service.BindService();
+// service.NewService();
+// service.FirstGetService();
+// service.RepeatGetService();
+
+//BenchmarkRunner.Run<ServiceBenchmark>();
+BenchmarkRunner.Run<EntityBenchmark>();

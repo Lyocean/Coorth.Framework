@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 public class ActorComponent : Component, IActor, IActorLifetime {
 
-    private RouterComponent Router => Sandbox.Singleton<RouterComponent>();
+    private RouterComponent Router => World.Singleton<RouterComponent>();
     
     private ActorLocalNode? node;
     public ActorLocalNode Node => node ?? throw new NullReferenceException();
@@ -17,7 +16,7 @@ public class ActorComponent : Component, IActor, IActorLifetime {
 
     void IActorLifetime.Clear() => node = null;
 
-    public ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         return Router.DispatchAsync(this, context, m);
     }
 }

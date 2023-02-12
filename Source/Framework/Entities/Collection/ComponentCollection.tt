@@ -21,8 +21,8 @@ public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(Entity
 
 <#=GetList2(1, count, 1, "private readonly ComponentGroup<T", "> group",";\n")#>
 
-    internal ComponentCollection(Sandbox sandbox) {
-<#=GetList2(1, count, 2, "this.group", " = sandbox.GetComponentGroup<T",">();\n")#>
+    internal ComponentCollection(World world) {
+<#=GetList2(1, count, 2, "this.group", " = world.GetComponentGroup<T",">();\n")#>
     }
  
 <# 
@@ -35,12 +35,12 @@ public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(Entity
 
     public void ForEach<#= variant.GetEventTemplate(true) #>(<#= variant.GetEventParameter() #><#= variant.GetActionTemplate(index) #><#= templates #>> action) {
 <# if(variant.HasEntity || count >= 2) { #>
-        var sandbox = group1.Sandbox;
+        var world = group1.World;
 <# } #>
         for(var i = group1.separate; i< group1.Count; i++) {
             ref var component1 = ref group1.Get(i);
 <# if(variant.HasEntity || count >= 2) { #>
-            ref var context = ref sandbox.GetContext(group1.GetEntityIndex(i));
+            ref var context = ref world.GetContext(group1.GetEntityIndex(i));
 <# } #>
 <#for(var j = 2; j <= count; j++) {#>
             if (!context.TryGet(group<#=j#>.TypeId, out var componentIndex<#=j#>)) {
@@ -77,21 +77,21 @@ public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(Entity
         }
 
         public bool MoveNext() {
-            var sandbox = group1.Sandbox;
+            var world = group1.World;
             while (index < group1.Count) {
-                var component1 = group1.components[index];
+                var component1 = group1.Get(index);
                 var entityIndex = group1.GetEntityIndex(index);
                 if(entityIndex < 0){
                     continue;
                 }
-                ref var context = ref sandbox.GetContext(entityIndex);
+                ref var context = ref world.GetContext(entityIndex);
 <#for(var i = 2; i <= count; i++) {#>
                 if (!context.TryGet(group<#=i#>.TypeId, out var componentIndex<#=i#>)) {
                     continue;
                 }
                 var component<#=i#> = group<#=i#>.Get(componentIndex<#=i#>);
 <#}#>
-                current = (context.GetEntity(sandbox), <#=components#>);
+                current = (context.GetEntity(world), <#=components#>);
                 index++;
                 return true;
             }
@@ -127,8 +127,8 @@ public readonly struct ComponentCollection<<#=templates#>> : IEnumerable<(Entity
         var constraints = GetList1(1, count, "where T", " : IComponent"," ");
 #>
 
-         public static ComponentCollection<<#=templates#>> GetComponents<<#=templates#>>(this Sandbox sandbox) <#=constraints#> {
-             return new ComponentCollection<<#=templates#>>(sandbox);
+         public static ComponentCollection<<#=templates#>> GetComponents<<#=templates#>>(this World world) <#=constraints#> {
+             return new ComponentCollection<<#=templates#>>(world);
          }   
 <#  
 }

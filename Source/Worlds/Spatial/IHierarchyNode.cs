@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 public interface IHierarchyNode {
     Entity ParentEntity { get; }

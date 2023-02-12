@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 using Coorth.Maths;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [Serializable, StoreContract]
 [Component, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
-public class TransformComponent : IComponent, IHierarchyNode {
+public partial class TransformComponent : IComponent, IHierarchyNode {
 
     #region Hierarchy
 
@@ -149,7 +149,7 @@ public class TransformComponent : IComponent, IHierarchyNode {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateLocalMatrix() {
-        MatrixUtil.Transformation(in localPosition, in localRotation, in localScaling, out localMatrix);
+        MathUtil.Transformation(in localPosition, in localRotation, in localScaling, out localMatrix);
     }
         
     private void UpdateWorldMatrix() {
@@ -209,10 +209,13 @@ public class TransformComponent : IComponent, IHierarchyNode {
         
     private TransformFlags flags;
 
+    [StoreMember(1)]
     private Vector3 localPosition;
         
+    [StoreMember(2)]
     private Quaternion localRotation;
         
+    [StoreMember(3)]
     private Vector3 localScaling;
         
     public Vector3 LocalPosition { get => GetLocalPosition(); set => SetLocalPosition(value); }
@@ -233,11 +236,11 @@ public class TransformComponent : IComponent, IHierarchyNode {
         
     public Vector3 SpaceAngles { get => SpaceRotation.ToEulerDegree(); set => SpaceRotation = value.ToQuaternion(); }
         
-    public Vector3 LocalYawPitchRoll { get => LocalRotation.ToEulerRad(); set => LocalRotation = QuaternionUtil.CreateFromEulerRad(in value); }
+    public Vector3 LocalYawPitchRoll { get => LocalRotation.ToEulerRad(); set => LocalRotation = MathUtil.CreateFromEulerRad(in value); }
         
-    public Vector3 WorldYawPitchRoll { get => WorldRotation.ToEulerRad(); set => WorldRotation = QuaternionUtil.CreateFromEulerRad(in value); }
+    public Vector3 WorldYawPitchRoll { get => WorldRotation.ToEulerRad(); set => WorldRotation = MathUtil.CreateFromEulerRad(in value); }
         
-    public Vector3 SpaceYawPitchRoll { get => SpaceRotation.ToEulerRad(); set => SpaceRotation = QuaternionUtil.CreateFromEulerRad(in value); }
+    public Vector3 SpaceYawPitchRoll { get => SpaceRotation.ToEulerRad(); set => SpaceRotation = MathUtil.CreateFromEulerRad(in value); }
         
     public Vector3 LocalScaling { get => GetLocalScaling(); set => SetLocalScaling(value); }
         

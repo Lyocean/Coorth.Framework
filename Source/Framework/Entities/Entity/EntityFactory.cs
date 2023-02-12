@@ -2,16 +2,16 @@
 
 public abstract class EntityFactory {
 
-    public readonly Sandbox Sandbox;
+    public readonly World World;
 
     public Archetype Archetype { get; private set; }
 
-    protected EntityFactory(Sandbox sandbox) {
-        Sandbox = sandbox;
+    protected EntityFactory(World world) {
+        World = world;
     }
     
     internal void Setup() {
-        var builder = Sandbox.CreateArchetype();
+        var builder = World.CreateArchetype();
         OnBuild(builder);
         Archetype = builder.Compile();
     }

@@ -1,4 +1,4 @@
-﻿namespace Coorth.Worlds; 
+﻿namespace Coorth.Framework; 
 
 public enum TransformAttach : byte {
     ResetZero,

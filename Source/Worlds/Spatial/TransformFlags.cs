@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [Flags]
 public enum TransformFlags : byte {

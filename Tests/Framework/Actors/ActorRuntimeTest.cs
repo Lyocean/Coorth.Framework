@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using Coorth.Logs;
+using NUnit.Framework;
 
 namespace Coorth.Framework; 
 
@@ -6,20 +7,20 @@ public class ActorRuntimeTest {
         
     [Test]
     public void CreateContainer() {
-        var container = new ActorsRuntime();
+        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
         Assert.NotNull(container);
     }
         
     [Test]
     public void CreateDomain() {
-        var container = new ActorsRuntime();
+        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
         var domain = container.CreateDomain("test");
         Assert.NotNull(domain);
     }
         
     [Test]
     public void GetDomain() {
-        var container = new ActorsRuntime();
+        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
         var domain10 = container.CreateDomain("111");
         var domain20 = container.CreateDomain("222");
 
@@ -40,7 +41,7 @@ public class ActorRuntimeTest {
         
     [Test]
     public void DisposeDomain() {
-        var container = new ActorsRuntime();
+        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
         var domain10 = container.CreateDomain("111");
         var _ = container.CreateDomain("222");
 

@@ -1,21 +1,20 @@
 ﻿using System;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public abstract class ComponentPack {
     public abstract Type Type { get; }
 
-    public abstract void UnPack(Sandbox sandbox, Entity entity);
+    public abstract void UnPack(World world, Entity entity);
 }
-    
+
 public class ComponentPack<T> : ComponentPack where T : IComponent {
-        
     public override Type Type => typeof(T);
 
     public T? Component;
 
-    public override void UnPack(Sandbox sandbox, Entity entity) {
-        var componentGroup = sandbox.GetComponentGroup<T>();
+    public override void UnPack(World world, Entity entity) {
+        var componentGroup = world.GetComponentGroup<T>();
         if (Component != null) {
             componentGroup._Clone(entity, ref Component, out var newComponent);
             entity.Add(newComponent);
@@ -24,9 +23,9 @@ public class ComponentPack<T> : ComponentPack where T : IComponent {
             throw new NullReferenceException();
         }
     }
-        
-    public void Pack(Sandbox sandbox, Entity entity, ref T component) {
-        var componentGroup = sandbox.GetComponentGroup<T>();
+
+    public void Pack(World world, Entity entity, ref T component) {
+        var componentGroup = world.GetComponentGroup<T>();
         componentGroup._Clone(entity, ref component, out Component);
     }
 }

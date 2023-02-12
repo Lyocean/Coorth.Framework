@@ -14,9 +14,9 @@ public static class EntityExtension {
     public static (T1, T2, T3) Add<T1, T2, T3>(this Entity entity) where T1 : IComponent, new()
         where T2 : IComponent, new()
         where T3 : IComponent, new() {
-        var c1 = entity.Add<T1>();
-        var c2 = entity.Add<T2>();
-        var c3 = entity.Add<T3>();
+        ref var c1 = ref entity.Add<T1>();
+        ref var c2 = ref entity.Add<T2>();
+        ref var c3 = ref entity.Add<T3>();
         return (c1, c2, c3);
     }
 
@@ -125,15 +125,11 @@ public static class EntityExtension {
     #endregion
         
     #region Find
-
-#nullable enable
-        
+    
     public static T? Find<T>(this Entity entity) where T : class, IComponent {
         return entity.TryGet<T>(out var component) ? component : null;
     }
-        
-#nullable disable
-
+    
     #endregion
         
     #region Remove

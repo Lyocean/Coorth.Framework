@@ -1,14 +1,42 @@
 ﻿using System;
+using System.Threading;
 using Coorth.Framework;
 
 namespace Coorth.Platforms;
+
+public interface IPlatformManager : IManager {
+
+    PlatformTypes GetPlatformType();
+    
+    TimePeriodScope TimePeriodScope(TimeSpan time);
+    
+    TimeSpan TimePeriodBegin(TimeSpan time);
+    
+    TimeSpan TimePeriodEnd(TimeSpan time);
+    
+    void Sleep(TimeSpan time, SleepOptions options);
+}
+
+public class PlatformManager : Manager, IPlatformManager {
+
+    public virtual PlatformTypes GetPlatformType() => PlatformTypes.Other;
+
+    public TimePeriodScope TimePeriodScope(TimeSpan time) => new(this, time);
+
+    public virtual TimeSpan TimePeriodBegin(TimeSpan time) => time;
+
+    public virtual TimeSpan TimePeriodEnd(TimeSpan time) => time;
+
+    public virtual void Sleep(TimeSpan time, SleepOptions options) => Thread.Sleep(time);
+}
+
 
 public enum SleepOptions {
     Precision,
     Performance,
 }
 
-public readonly struct TimePeriodScope : IDisposable {
+public readonly ref struct TimePeriodScope {
 
     private readonly PlatformManager manager;
 
@@ -22,18 +50,4 @@ public readonly struct TimePeriodScope : IDisposable {
     public void Dispose() {
         manager.TimePeriodEnd(period);
     }
-}
-
-public interface IPlatformManager : IManager {
-    TimePeriodScope TimePeriodScope(TimeSpan time);
-    TimeSpan TimePeriodBegin(TimeSpan time);
-    TimeSpan TimePeriodEnd(TimeSpan time);
-    void Sleep(TimeSpan time, SleepOptions options);
-}
-
-public abstract class PlatformManager : Manager, IPlatformManager {
-    public TimePeriodScope TimePeriodScope(TimeSpan time) => new(this, time);
-    public abstract TimeSpan TimePeriodBegin(TimeSpan time);
-    public abstract TimeSpan TimePeriodEnd(TimeSpan time);
-    public abstract void Sleep(TimeSpan time, SleepOptions options);
 }

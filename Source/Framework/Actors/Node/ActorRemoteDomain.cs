@@ -10,7 +10,7 @@ public sealed class ActorRemoteDomain : ActorDomain {
         Session = session;
     }
     
-    public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         
         
         

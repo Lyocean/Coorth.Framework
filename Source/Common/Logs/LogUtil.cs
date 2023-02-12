@@ -4,39 +4,96 @@ using System.Diagnostics;
 namespace Coorth.Logs; 
 
 public static class LogUtil {
-        
-    private static ILogger Logger => Logs.Logger.Root;
-        
-    private static Func<string, ILogger> factory = _ => new LoggerConsole();
 
-    public static void Bind(ILogger value, Func<string, ILogger> func) {
-        Logs.Logger.Root = value;
-        factory = func;
+    private static ILogger? logger;
+    private static ILogger Logger => logger ?? throw new NullReferenceException();
+
+    private static ILogManager? manager;
+    private static ILogManager Manager => manager ?? throw new NullReferenceException();
+
+    public static void Bind(ILogManager value) {
+        manager = value;
+        logger = value.Create("Default");
     }
 
-    public static ILogger Create(string name) => factory(name);
-        
-    [Conditional("DEBUG")]
-    public static void Debug(string message) => Logger.Debug(message);
+    public static ILogger Create(string name) => Manager.Create(name);
+
+    #region Debug
 
     [Conditional("DEBUG")]
-    public static void Debug(string module, string message) => Logger.Debug(module, message);
-
-    [Conditional("DEBUG")]
-    public static void Debug(string module, string message, LogColor color) => Logger.Debug(module, message, color);
-
+    public static void Debug(string message) => Logger.Log(LogLevel.Debug, message);
     
-    public static void Trace(string message) => Logger.Trace(message);
-    public static void Trace(string message, LogColor color) => Logger.Log(LogLevel.Trace, message, color);
+    [Conditional("DEBUG")]
+    public static void Debug(string message, ConsoleColor color) => Logger.Log(LogLevel.Debug, message, color);
+    
+    [Conditional("DEBUG")]
+    public static void Debug(string name, string message) => Manager.Offer(name).Log(LogLevel.Debug, message);
+    
+    [Conditional("DEBUG")]
+    public static void Debug(string name, string message, ConsoleColor color) => Manager.Offer(name).Log(LogLevel.Debug, message, color);
 
-    public static void Info(string message) => Logger.Info(message);
-    public static void Info(string module, string message) => Logger.Info(module, message);
+    #endregion
 
-    public static void Info(string module, string message, LogColor color) => Logger.Info(module, message, color);
+    #region Trace
 
-    public static void Warning(string message) => Logger.Warn(message);
+    public static void Trace(string message) => Logger.Log(LogLevel.Trace, message);
+    
+    public static void Trace(string message, ConsoleColor color) => Logger.Log(LogLevel.Trace, message, color);
+    
+    public static void Trace(string name, string message) => Manager.Offer(name).Log(LogLevel.Trace, message);
+    
+    public static void Trace(string name, string message, ConsoleColor color) => Manager.Offer(name).Log(LogLevel.Trace, message, color);
 
-    public static void Error(string message) => Logger.Error(message);
+    #endregion
+
+    #region Info
+
+    public static void Info(string message) => Logger.Log(LogLevel.Info, message);
+    
+    public static void Info(string message, ConsoleColor color) => Logger.Log(LogLevel.Info, message, color);
+    
+    public static void Info(string name, string message) => Manager.Offer(name).Log(LogLevel.Info, message);
+    
+    public static void Info(string name, string message, ConsoleColor color) => Manager.Offer(name).Log(LogLevel.Info, message, color);
+
+    #endregion
+
+    #region Warn
+
+    public static void Warn(string message) => Logger.Log(LogLevel.Warn, message);
+    
+    public static void Warn(string message, ConsoleColor color) => Logger.Log(LogLevel.Warn, message, color);
+    
+    public static void Warn(string name, string message) => Manager.Offer(name).Log(LogLevel.Warn, message);
+    
+    public static void Warn(string name, string message, ConsoleColor color) => Manager.Offer(name).Log(LogLevel.Warn, message, color);
+
+
+    #endregion
+
+    #region Error
+
+    public static void Error(string message) => Logger.Log(LogLevel.Error, message);
+    
+    public static void Error(string message, ConsoleColor color) => Logger.Log(LogLevel.Error, message, color);
+    
+    public static void Error(string name, string message) => Manager.Offer(name).Log(LogLevel.Error, message);
+    
+    public static void Error(string name, string message, ConsoleColor color) => Manager.Offer(name).Log(LogLevel.Error, message, color);
+
+
+    #endregion
+
+    #region Exception
+    
+    public static void Exception(Exception e) => Logger.Exception(LogLevel.Error, e);
+
+    public static void Exception(string name, Exception e) => Manager.Offer(name).Exception(LogLevel.Error, e);
 
     public static void Exception<T>(T? e = null) where T : Exception => Logger.Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+
+    public static void Exception<T>(string name, T? e = null) where T : Exception => Manager.Offer(name).Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+
+    #endregion
+
 }

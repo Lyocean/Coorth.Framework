@@ -24,11 +24,11 @@ public sealed class ActorsRuntime : IActor {
 
     #region Lifecycle
 
-    public ActorsRuntime(Dispatcher? dispatcher = null, ServiceLocator? services = null, ILogger? logger = null) {
-        Dispatcher = dispatcher ?? Dispatcher.Root.CreateChild();
-        Services   = services ?? new ServiceLocator();
+    public ActorsRuntime(Dispatcher dispatcher, ServiceLocator services, ILogger logger) {
+        Dispatcher = dispatcher;
+        Services   = services;
         Root       = new ActorRoot(this);
-        Logger     = logger ?? Coorth.Logs.Logger.Root;
+        Logger     = logger;
     }
 
     #endregion
@@ -89,7 +89,7 @@ public sealed class ActorsRuntime : IActor {
         Logger.Error($"Actor {node.Id} mailbox overflow: {node.Mailbox.Reader.Count}");
     }
 
-    public ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         Logger.Log(LogLevel.Error, $"Actor runtime receive message: {m}");
         return new ValueTask();
     }

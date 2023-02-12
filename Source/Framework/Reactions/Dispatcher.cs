@@ -1,22 +1,25 @@
-﻿using System;
+﻿using Coorth.Logs;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
-using Coorth.Logs;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public sealed partial class Dispatcher : Disposable {
 
     public static readonly Dispatcher Root = new(null!);
-    
+
     private readonly Dispatcher parent;
 
     private readonly List<Dispatcher> children = new();
 
     private readonly Dictionary<Type, ReactChannel> channels = new();
 
-    private Dispatcher(Dispatcher parent) {
+    public Dispatcher(Dispatcher parent) {
         this.parent = parent;
     }
 
@@ -37,7 +40,7 @@ public sealed partial class Dispatcher : Disposable {
         channels.Clear();
         parent.children.Remove(this);
     }
-    
+
     private ReactChannel OfferChannel(Type key) {
         if (channels.TryGetValue(key, out var channel)) {
             return channel;
@@ -49,12 +52,9 @@ public sealed partial class Dispatcher : Disposable {
 
 #if NET5_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
     public void Dispatch<T>(in T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
-            foreach (var reaction in channel.Reactions) {
+            foreach (var reaction in CollectionsMarshal.AsSpan<Reaction>(channel.Reactions)) {
                 try {
                     ((Reaction<T>)reaction).Execute(in e);
                 }
@@ -63,11 +63,29 @@ public sealed partial class Dispatcher : Disposable {
                 }
             }
         }
+        foreach (var child in CollectionsMarshal.AsSpan<Dispatcher>(children)) {
+            child.Dispatch(in e);
+        }
+    }
+#else
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Dispatch<T>(in T e) where T : notnull {
+        if (channels.TryGetValue(typeof(T), out var channel)) {
+            foreach (var reaction in channel.Reactions) {
+                try {
+                    ((Reaction<T>)reaction).Execute(in e);
+                } catch (Exception exception) {
+                    LogUtil.Exception(exception);
+                }
+            }
+        }
         foreach (var child in children) {
             child.Dispatch(in e);
         }
     }
-    
+#endif
+
+
 #if NET5_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 #else
@@ -78,8 +96,7 @@ public sealed partial class Dispatcher : Disposable {
             foreach (var reaction in channel.Reactions) {
                 try {
                     ((IProcessor)reaction).Execute(key, e);
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     LogUtil.Exception(exception);
                 }
             }
@@ -88,29 +105,28 @@ public sealed partial class Dispatcher : Disposable {
             child.Dispatch(key, e);
         }
     }
-    
+
 #if NET5_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 #else
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-    public async ValueTask DispatchAsync<T>(T e) where T: notnull {
+    public async ValueTask DispatchAsync<T>(T e) where T : notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
                 try {
                     await ((Reaction<T>)reaction).ExecuteAsync(e);
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     LogUtil.Exception(exception);
                 }
             }
         }
-        
+
         foreach (var child in children) {
             await child.DispatchAsync(e);
         }
     }
-    
+
 #if NET5_0_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
 #else
@@ -121,8 +137,7 @@ public sealed partial class Dispatcher : Disposable {
             foreach (var reaction in channel.Reactions) {
                 try {
                     await ((IProcessor)reaction).ExecuteAsync(key, e);
-                }
-                catch (Exception exception) {
+                } catch (Exception exception) {
                     LogUtil.Exception(exception);
                 }
             }
@@ -133,133 +148,94 @@ public sealed partial class Dispatcher : Disposable {
     }
 }
 
-public sealed partial class Dispatcher<TContext> : Disposable {
-    
-    public static readonly Dispatcher<TContext> Root = new();
 
-    private readonly Dispatcher<TContext>? parent;
+public sealed class ReactChannel : IReactionContainer, IDisposable {
 
-    private readonly List<Dispatcher<TContext>> children = new();
+    public readonly Type Key;
 
-    private readonly Dictionary<Type, ReactChannel> channels = new();
-    
-    public Dispatcher() {
-        parent = null;
+    public readonly List<Reaction> Reactions = new();
+
+    public ReactChannel(Type key) {
+        Key = key;
     }
 
-    private Dispatcher(Dispatcher<TContext> parent) {
-        this.parent = parent;
-    }
-    
-    public Dispatcher<TContext> CreateChild() {
-        var child = new Dispatcher<TContext>(this);
-        children.Add(child);
-        return child;
+    public void Add(Reaction reaction) {
+        Reactions.Add(reaction);
     }
 
-    protected override void OnDispose(bool disposing) {
-        foreach (var child in children) {
-            child.Dispose();
-        }
-        children.Clear();
-        foreach (var (_, channel) in channels) {
-            channel.Dispose();
-        }
-        channels.Clear();
-        parent?.children.Remove(this);
-    }
-    
-    private ReactChannel OfferChannel(Type key) {
-        if (channels.TryGetValue(key, out var channel)) {
-            return channel;
-        }
-        channel = new ReactChannel(key);
-        channels.Add(key, channel);
-        return channel;
+    public void Remove(ReactionId id) {
+        Reactions.RemoveAll(_ => _.Id == id);
     }
 
-#if NET5_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-    public void Dispatch<T>(TContext context, in T e) where T: notnull {
-        if (channels.TryGetValue(typeof(T), out var channel)) {
-            foreach (var reaction in channel.Reactions) {
-                try {
-                    ((Reaction<TContext, T>)reaction).Execute(context, in e);
-                }
-                catch (Exception exception) {
-                    LogUtil.Exception(exception);
-                }
-            }
-        }
-        foreach (var child in children) {
-            child.Dispatch(context, in e);
-        }
-    }
-
-#if NET5_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-    public void Dispatch(TContext context, Type key, object e) {
-        if (channels.TryGetValue(key, out var channel)) {
-            foreach (var reaction in channel.Reactions) {
-                try {
-                    ((IProcessor<TContext>)reaction).Execute(context, key, e);
-                }
-                catch (Exception exception) {
-                    LogUtil.Exception(exception);
-                }
-            }
-        }
-        foreach (var child in children) {
-            child.Dispatch(context, key, e);
-        }
-    }
-    
-#if NET5_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-    public async ValueTask DispatchAsync<T>(TContext context, T e) where T: notnull {
-        if (channels.TryGetValue(typeof(T), out var channel)) {
-            foreach (var reaction in channel.Reactions) {
-                try {
-                    await ((Reaction<TContext, T>)reaction).ExecuteAsync(context, e);
-                }
-                catch (Exception exception) {
-                    LogUtil.Exception(exception);
-                }
-            }
-            
-        }
-        foreach (var child in children) {
-            await child.DispatchAsync(context, e);
-        }
-    }
-    
-#if NET5_0_OR_GREATER
-    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-    public async ValueTask DispatchAsync(TContext context, Type key, object e) {
-        if (channels.TryGetValue(key, out var channel)) {
-            foreach (var reaction in channel.Reactions) {
-                try {
-                    await ((IProcessor<TContext>)reaction).ExecuteAsync(context,key, e);
-                }
-                catch (Exception exception) {
-                    LogUtil.Exception(exception);
-                }
-            }
-        }
-        foreach (var child in children) {
-            await child.DispatchAsync(context, key, e);
+    public void Dispose() {
+        foreach (var reaction in Reactions) {
+            reaction.Dispose();
         }
     }
 }
+
+public interface IReactionContainer {
+    void Add(Reaction reaction);
+    void Remove(ReactionId id);
+}
+
+
+public sealed partial class Dispatcher {
+
+    private readonly ConcurrentDictionary<Type, object> futures = new();
+
+    private ReactFutures<T> GetFutures<T>() where T : ITickEvent {
+        var key = typeof(T);
+        var channel = OfferChannel(key);
+        var reaction = (ReactFutures<T>)futures.GetOrAdd(key, () => new ReactFutures<T>(channel));
+        return reaction;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask<T> Delay<T>(CancellationToken cancellationToken = default) where T : ITickEvent => GetFutures<T>().Delay(TimeSpan.Zero, 0, cancellationToken);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask<T> Delay<T>(TimeSpan time, CancellationToken cancellationToken = default) where T : ITickEvent => GetFutures<T>().Delay(time, 0, cancellationToken);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask<T> Delay<T>(int frame, CancellationToken cancellationToken = default) where T : ITickEvent => GetFutures<T>().Delay(TimeSpan.Zero, frame, cancellationToken);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask<T> Until<T>(Func<T, bool> condition, int times, CancellationToken cancellationToken = default) where T : ITickEvent => GetFutures<T>().Until(condition, times, cancellationToken);
+
+}
+
+public partial class Dispatcher {
+
+    public Reaction<T> Subscribe<T>(EventAction<T> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+
+    public Reaction<T> Subscribe<T>(Action<T> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+
+    public Reaction<T> Subscribe<T>(EventFunc<T, ValueTask> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+
+    public Reaction<T> Subscribe<T>(Func<T, ValueTask> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+
+    public Reaction<T> Subscribe<T>(EventFunc<T, Task> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+
+    public Reaction<T> Subscribe<T>(Func<T, Task> action) where T : notnull {
+        var channel = OfferChannel(typeof(T));
+        return channel.Subscribe(action);
+    }
+}
+
+

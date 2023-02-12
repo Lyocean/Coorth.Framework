@@ -1,17 +1,38 @@
 ﻿using Coorth.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace Coorth.Logs; 
 
 [Manager]
-public class LogManager : Manager, ILogManager {
+public interface ILogManager {
+    
+    ILogger Create(string name);
+    
+    ILogger? Find(string name);
+    
+    ILogger Offer(string name);
+}
 
-    private Func<string, ILogger>? provider;
+[Manager]
+public sealed class LogManager : Manager, ILogManager {
 
-    public void Register(Func<string, ILogger> provider) {
-        this.provider = provider;
-        LogUtil.Bind(provider.Invoke("Default"), provider);
+    private readonly Func<string, ILogger> provider;
+
+    private readonly Dictionary<string, ILogger> loggers = new();
+
+    public LogManager(Func<string, ILogger> func) {
+        provider = func;
+        LogUtil.Bind(this);
     }
 
-    public virtual ILogger Create(string name) => provider?.Invoke(name) ?? throw new NullReferenceException();
+    public ILogger Create(string name) {
+        var logger = provider.Invoke(name);
+        loggers.Add(name, logger);
+        return logger;
+    }
+
+    public ILogger? Find(string name) => loggers.TryGetValue(name, out var logger) ? logger : null;
+
+    public ILogger Offer(string name) => loggers.TryGetValue(name, out var logger) ? logger : Create(name);
 }

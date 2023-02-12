@@ -7,7 +7,7 @@ namespace Coorth.Framework;
 #if COORTH_ACTOR_ID_GUID
 
 [Serializable, StoreContract]
-public readonly record struct ActorId(Guid Id) {
+public readonly partial record struct ActorId(Guid Id) {
     
     [DataMember(Order = 1)]
     public readonly Guid Id = Id;
@@ -36,7 +36,7 @@ public readonly record struct ActorId(Guid Id) {
 [Serializable, StoreContract]
 public readonly record struct ActorId(long Id) {
     
-    [StoreMember(1)]
+    [DataMember(Order = 1)]
     public readonly long Id = Id;
     
     public bool IsNull => Id == 0;
@@ -54,18 +54,6 @@ public readonly record struct ActorId(long Id) {
     }
 
     public static void Setup(ushort poolId, Func<long> secondGetter) => idGenerator = new IdGenerator(poolId, secondGetter);
-    
-    [Serializer(typeof(ActorId))]
-    private class Serializer : Serializer<ActorId> {
-        
-        public override void Write(SerializeWriter writer, in ActorId value) {
-            writer.WriteValue(value.Id);
-        }
-
-        public override ActorId Read(SerializeReader reader, ActorId value) {
-            return new ActorId(reader.ReadValue<long>());
-        }
-    }
     
     private class IdGenerator {
     
@@ -114,6 +102,17 @@ public readonly record struct ActorId(long Id) {
             var now = DateTime.UtcNow;
             var start = new DateTime(now.Year - startYear, 1, 1);
             return (long)(now - start).TotalSeconds;
+        }
+    }
+    
+    [SerializeFormatter(typeof(ActorId))]
+    public class Formatter : SerializeFormatter<ActorId> {
+        public override void SerializeWriting(in SerializeWriter writer, scoped in ActorId value) {
+            writer.WriteInt64(value.Id);
+        }
+
+        public override void SerializeReading(in SerializeReader reader, scoped ref ActorId value) {
+            value = new ActorId(reader.ReadInt64());
         }
     }
 

@@ -1,28 +1,38 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
-namespace Coorth.Collections; 
+namespace Coorth.Collections;
 
 public struct ChunkList<T> {
     
     private ValueList<ValueList<T>> chunks;
-        
-    private readonly int chunkCapacity;
-    
-    public int Count;
-        
-    private int ChunkCount { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => chunks.Count; }
 
-    private int Capacity { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ChunkCount * chunkCapacity; }
+    private readonly int chunkCapacity;
+
+    public int Count;
+
+    private int ChunkCount {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => chunks.Count;
+    }
+
+    private int Capacity {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ChunkCount * chunkCapacity;
+    }
 
     public ChunkList(int indexCapacity, int chunkCapacity) {
-        if (indexCapacity <= 0 || chunkCapacity <= 0) {
-            throw new ArgumentException("Capacity must larger than 0");
-        }
-        indexCapacity = (int) ((uint) (indexCapacity - 1 + 4) >> 2) << 2;
-        chunkCapacity = (int) ((uint) (chunkCapacity - 1 + 4) >> 2) << 2;
+        Debug.Assert(indexCapacity > 0 && chunkCapacity > 0);
+#if NET5_0_OR_GREATER
+        indexCapacity = ((indexCapacity - 1 + 4) >>> 2) << 2;
+        chunkCapacity = ((chunkCapacity - 1 + 4) >>> 2) << 2;
+#else
+        indexCapacity = ((indexCapacity - 1 + 4) >>> 2) << 2;
+        chunkCapacity = ((chunkCapacity - 1 + 4) >>> 2) << 2;
+#endif
 
-        this.chunkCapacity = chunkCapacity;  
+        this.chunkCapacity = chunkCapacity;
         this.chunks = new ValueList<ValueList<T>>(indexCapacity);
         this.chunks.Add(new ValueList<T>(this.chunkCapacity));
         this.Count = 0;
@@ -35,6 +45,7 @@ public struct ChunkList<T> {
         if (chunkIndex >= ChunkCount) {
             chunks.Add(new ValueList<T>(chunkCapacity));
         }
+
         ref var chunk = ref chunks[chunkIndex];
         Count++;
         return ref chunk.Add();
@@ -54,6 +65,7 @@ public struct ChunkList<T> {
         if (chunk.IsNull) {
             chunk = new ValueList<T>(chunkCapacity);
         }
+
         return ref chunk[itemIndex];
     }
 
@@ -65,13 +77,20 @@ public struct ChunkList<T> {
         if (chunk.IsNull) {
             chunk = new ValueList<T>(chunkCapacity);
         }
+
         return Ref(index);
     }
 
-    public ref T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => ref Ref(index); }
+    public ref T this[int index] {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => ref Ref(index);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Set(int index, T value) { ref var item = ref Ref(index); item = value; }
+    public void Set(int index, T value) {
+        ref var item = ref Ref(index);
+        item = value;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void SwapRemove(int index) {
@@ -80,6 +99,7 @@ public struct ChunkList<T> {
         if (index != tail) {
             Ref(index) = tailItem;
         }
+
         tailItem = default;
         Count--;
     }
@@ -96,6 +116,7 @@ public struct ChunkList<T> {
         for (var i = 0; i < chunks.Count; i++) {
             chunks[i].Clear();
         }
+
         Count = 0;
     }
 
@@ -103,6 +124,7 @@ public struct ChunkList<T> {
         if (chunkIndex >= ChunkCount) {
             return Span<T>.Empty;
         }
+
         ref var chunk = ref chunks[chunkIndex];
         return chunk.Span;
     }

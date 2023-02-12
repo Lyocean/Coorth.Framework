@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[StoreContract, Guid("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
+[StoreContract(StoreFlags.PublicField), Guid("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-public record struct Cuboid {
+public partial record struct Cuboid {
         
     public float X;
 

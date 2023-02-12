@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [Serializable, StoreContract]
 [Component, Guid("4276C354-293B-4554-9B9E-7C224CEB6B56")]
@@ -16,8 +16,8 @@ public class FolderComponent : Component {
     private readonly Dictionary<EntityId, EntityFolder> id2Folder = new();
 
     private void ValidateEntity(Entity entity) {
-        if (!ReferenceEquals(entity.Sandbox, this.Sandbox)) {
-            throw new ArgumentException("Can't add entity cross sandbox.");
+        if (!ReferenceEquals(entity.World, this.World)) {
+            throw new ArgumentException("Can't add entity cross world.");
         }
     }
         
@@ -43,7 +43,7 @@ public class FolderComponent : Component {
         foreach (var entityId in folder.Entities) {
             id2Folder.Remove(entityId);
             if (destroyEntity) {
-                Sandbox.DestroyEntity(entityId);
+                World.DestroyEntity(entityId);
             }
         }
         return true;
@@ -68,7 +68,7 @@ public class FolderComponent : Component {
         }
         var folder = folders[index];
         foreach (var id in folder.Entities) {
-            yield return new Entity(Sandbox, id);
+            yield return new Entity(World, id);
         }
     }
 

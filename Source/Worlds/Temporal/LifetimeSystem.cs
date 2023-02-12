@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
-using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+
+namespace Coorth.Framework; 
 
 [System, Guid("FB93ADDC-FF8B-4686-A079-50188F7EB575")]
 public class LifetimeSystem : SystemBase {
@@ -11,12 +10,11 @@ public class LifetimeSystem : SystemBase {
     private readonly List<Entity> entities = new();
 
     protected override void OnAdd() {
-        Sandbox.BindComponent<LifetimeComponent>();
         Subscribe<EventEndOfFrame>().OnEvent(Execute);
     }
 
     private void Execute(in EventEndOfFrame e) {
-        var collection = Sandbox.GetComponents<LifetimeComponent>();
+        var collection = World.GetComponents<LifetimeComponent>();
         foreach (var (entity, component) in collection) {
             Execute(in e, in entity, component);
         }

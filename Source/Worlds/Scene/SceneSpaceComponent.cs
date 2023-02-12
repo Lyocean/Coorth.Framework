@@ -1,9 +1,8 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [Component, Guid("0AEE6DF8-6572-4A0A-9084-6C29274EE34D")]
 public class SceneSpaceComponent : Component {
@@ -33,4 +32,13 @@ public class SceneSpaceComponent : Component {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector3 SpaceToWorldScale(in Vector3 value) => Transform.LocalToWorldScaling(value);
+
+    public void Enter(Entity entity, Vector3 position, Quaternion rotation) {
+        var transform_component = entity.Get<TransformComponent>();
+        transform_component.SetParent(Transform, position, rotation);
+    }
+
+    public void Leave(Entity entity) {
+        
+    }
 }

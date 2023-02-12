@@ -2,15 +2,12 @@
 using System.Runtime.InteropServices;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [System, StoreContract, Guid("782DC9F0-6B8F-4AA0-A1E8-D1CFE095EC03")]
 public class TransformSystem : SystemBase {
     protected override void OnAdd() {
-        Parent.OfferSystem<HierarchySystem>();
-        //Bind
-        Sandbox.BindComponent<TransformComponent>().AddDependency<HierarchyComponent>();
-        Sandbox.BindComponent<SceneSpaceComponent>().AddDependency<TransformComponent>().AddDependency<HierarchyComponent>();
+        Parent.OfferChild<HierarchySystem>();
 
         //SpaceComponent
         OnComponentSetup((ref SceneSpaceComponent _) => _.OnSetup());

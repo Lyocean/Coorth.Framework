@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Coorth.Maths; 
+namespace Coorth.Maths;
 
-[StoreContract, Guid("15AA0458-A548-473F-8934-9F2EDF30AE87")]
+[StoreContract(StoreFlags.PublicField), Guid("15AA0458-A548-473F-8934-9F2EDF30AE87")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
-public record struct Range {
+public partial record struct Range {
 
     public double Min;
         

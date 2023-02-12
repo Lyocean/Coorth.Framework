@@ -30,25 +30,25 @@ for (var count = 1; count <= COUNT; count++) {
 <#}#>
 <#if(count == 1) {#>
         OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-            ComponentCollection<T1> components = Sandbox.GetComponents<T1>();
+            ComponentCollection<T1> components = World.GetComponents<T1>();
             components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
         });
 <#} else if(count <= 3) {#>
 <#if(count == 2) {#>
-        if (Sandbox.GetBinding<T1>().HasDependency<T2>()) {
+        if (World.GetBinding<T1>().HasDependency<T2>()) {
 <#} else if(count == 3) {#>
-        if (Sandbox.GetBinding<T1>().HasDependency<T2>() && Sandbox.GetBinding<T1>().HasDependency<T3>()) {
+        if (World.GetBinding<T1>().HasDependency<T2>() && World.GetBinding<T1>().HasDependency<T3>()) {
 <#} else {#>
         throw new NotImplementException();
 <#}#>
             EntityMatcher entityMatcher = (new EntityMatcher()).Include<<#=templates#>>();
             OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-                EntityCollection entities = Sandbox.GetEntities(entityMatcher);
+                EntityCollection entities = World.GetEntities(entityMatcher);
                 entities.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
             });
         } else {
             OnEvent((in TEvent <#= variant.HasEvent? "e" :"_" #>) => {
-                ComponentCollection<<#=templates#>> components = Sandbox.GetComponents<<#=templates#>>();
+                ComponentCollection<<#=templates#>> components = World.GetComponents<<#=templates#>>();
                 components.ForEach(<#= variant.HasEvent? "in e, " :"" #>action);
             });
         }

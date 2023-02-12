@@ -23,7 +23,7 @@ public abstract class Reaction<T> : Reaction, IProcessor where T : notnull {
     protected Reaction(IReactionContainer container) : base(container) {
     }
 
-    public abstract void Execute(in T e);
+    public abstract void Execute(scoped in T e);
 
     public abstract ValueTask ExecuteAsync(in T e);
 

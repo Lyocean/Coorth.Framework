@@ -5,22 +5,22 @@ namespace Coorth.Framework;
 
 public class ActorDispatch : Disposable, IActor {
     
-    private readonly Dispatcher<ActorContext> dispatcher = new ();
+    private readonly Router<MessageContext> router = new ();
     
-    public Reaction<ActorContext, T> OnReceive<T>(Action<ActorContext, T> action) where T: IMessage {
-        return dispatcher.Subscribe(action);
+    public Reaction<MessageContext, T> OnReceive<T>(Action<MessageContext, T> action) where T: IMessage {
+        return router.Subscribe(action);
     }
     
-    public Reaction<ActorContext, T> OnReceive<T>(Func<ActorContext, T, ValueTask> action) where T: IRequest {
-        return dispatcher.Subscribe(action);
+    public Reaction<MessageContext, T> OnReceive<T>(Func<MessageContext, T, ValueTask> action) where T: IRequest {
+        return router.Subscribe(action);
     }
     
-    public async ValueTask ReceiveAsync(ActorContext context, IMessage m) {
-        await dispatcher.DispatchAsync(context, m);
+    public async ValueTask ReceiveAsync(MessageContext context, IMessage m) {
+        await router.DispatchAsync(context, m);
         await OnReceive(in context, in m);
     }
 
-    protected virtual ValueTask OnReceive(in ActorContext context, in IMessage m) {
+    protected virtual ValueTask OnReceive(in MessageContext context, in IMessage m) {
         return new ValueTask();
     }
 }

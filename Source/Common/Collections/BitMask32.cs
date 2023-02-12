@@ -1,7 +1,10 @@
 ﻿using System;
+using Coorth.Serialize;
+
 
 namespace Coorth.Collections;
 
+[Serializable]
 public struct BitMask32 : IEquatable<BitMask32> {
     public uint Value { get; private set; }
 
@@ -57,5 +60,18 @@ public struct BitMask32 : IEquatable<BitMask32> {
         return new string(span[1..]);
     }
     
+    
+    [SerializeFormatter(typeof(BitMask32))]
+    public class BitMask32_Formatter : SerializeFormatter<BitMask32> {
+
+        public override void SerializeWriting(in SerializeWriter writer, scoped in BitMask32 value) {
+            writer.WriteUInt32(value.Value);
+        }
+
+        public override void SerializeReading(in SerializeReader reader, scoped ref BitMask32 value) {
+            value = new BitMask32(reader.ReadUInt32());
+        }
+
+    }
     
 }

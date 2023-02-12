@@ -14,9 +14,9 @@ public abstract class ActorDomain : ActorNode, IActor {
         Runtime = runtime;
     }
 
-    protected sealed override ValueTask Receive(in ActorContext context, in IMessage message) {
+    protected sealed override ValueTask Receive(in MessageContext context, in IMessage message) {
         return ReceiveAsync(context, message);
     }
 
-    public abstract ValueTask ReceiveAsync(ActorContext context, IMessage m);
+    public abstract ValueTask ReceiveAsync(MessageContext context, IMessage m);
 }

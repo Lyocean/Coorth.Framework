@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+
 namespace Coorth.Framework; 
 
 public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanaged {
@@ -13,14 +14,20 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
         public T Value;
     }
     
-    private Memory<Entry> data;
-    private Span<Entry> Span { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => data.Span; }
+    private Memory<byte> data;
+    private Span<Entry> Span { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => MemoryMarshal.Cast<byte, Entry>(data.Span); }
 
     private int count;
     public int Count => count;
 
     private int capacity;
     public int Capacity => capacity;
+
+    public static readonly IndexDict<T> Empty = new() {
+        data = Memory<byte>.Empty,
+        count = 0,
+        capacity = 0
+    };
         
     public IndexDict(int size = 4) {
         count = 0;
@@ -28,22 +35,25 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
         while (capacity < size) {
             capacity <<= 1;
         }
-        data = new Memory<Entry>(new Entry[capacity]);
-    }
-        
-    public IndexDict(ArraySegment<Entry> segment) {
-        count = 0;
-        capacity = segment.Count;
-        data = segment;
+        // data = new Memory<Entry>(new Entry[capacity]);
+        data = new Memory<byte>(new byte[Unsafe.SizeOf<Entry>() * capacity]);
     }
     
-    public T this[int index] {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Get(index); 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] set => Set(index, value);
+    // public IndexDict(ArraySegment<byte> segment) {
+    //     count = 0;
+    //     capacity = segment.Count;
+    //     data = segment;
+    // }
+    
+    public IndexDict(Memory<byte> memory) {
+        count = 0;
+        capacity = memory.Length / Unsafe.SizeOf<Entry>();
+        data = memory;
     }
+    
+    public T this[int index] { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Get(index); [MethodImpl(MethodImplOptions.AggressiveInlining)] set => Set(index, value); }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T Get(int key) => Ref(key);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)] public T Get(int key) => Ref(key);
 
     public ref T Ref(int key) {
         //var position = key  % values.Length;
@@ -136,6 +146,9 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
     }
 
     public bool ContainsKey(int key) {
+        if (count == 0) {
+            return false;
+        }
         //var position = key % values.Length;
         var position = key & (capacity - 1);
         do {
@@ -150,6 +163,10 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
 
     public bool TryGetValue(int key, out T value) {
         //var position = key % values.Length;
+        if (count == 0) {
+            value = default;
+            return false;
+        }
         var position = key & (capacity - 1);
         do {
             ref var entry = ref Span[position];
@@ -159,8 +176,7 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
             }
             position = entry.Next - 1;
         } while (position >= 0);
-
-        value = default(T);
+        value = default;
         return false;
     }
 
@@ -191,13 +207,33 @@ public struct IndexDict<T> : IEnumerable<KeyValuePair<int, T>> where T: unmanage
         var origin = Span;
 
         capacity <<= 1;
-        data = new Memory<Entry>(new Entry[capacity]);
+        
+        data = new Memory<byte>(new byte[Unsafe.SizeOf<Entry>() * capacity]);
         count = 0;
         for (var i = 0; i < length; i++) {
             ref var entry = ref origin[i];
             if (entry.Key != 0) {
                 Add(entry.Key - 1, entry.Value);
             }
+        }
+    }
+    
+    public void CopyTo(IndexDict<T> target) {
+        if (target.Capacity == Capacity) {
+            Span.CopyTo(target.Span);
+        }
+        else if(target.Capacity >= count ) {
+            var span = Span;
+            target.count = 0;
+            for (var i = 0; i < capacity; i++) {
+                ref var entry = ref span[i];
+                if (entry.Key != 0) {
+                    target.Add(entry.Key - 1, entry.Value);
+                }
+            }
+        }
+        else {
+            throw new InvalidOperationException();
         }
     }
 

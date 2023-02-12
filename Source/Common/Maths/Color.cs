@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[StoreContract, Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
+[StoreContract(StoreFlags.PublicField), Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
 [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
 public partial struct Color : IEquatable<Color> {
     
@@ -133,12 +133,14 @@ public partial struct Color : IEquatable<Color> {
         }
     }
 
-    public Span<float> Span => MemoryMarshal.CreateSpan(ref A, 4);
-
     public Vector3 RGB() => new(R, G, B);
 
     public Vector4 ToVector4() => new(R, G, B, A);
-        
+    
+    public static Color operator* (Color color, float value) {
+        return new Color(color.R * value, color.G * value, color.B * value, color.A * value);
+    }
+    
     public readonly bool Equals(Color other) {
         return R.Equals(other.R) && G.Equals(other.G) && B.Equals(other.B) && A.Equals(other.A);
     }
@@ -189,4 +191,5 @@ public partial struct Color : IEquatable<Color> {
 
         return $"{rl}{rr}{gl}{gr}{bl}{br}{al}{ar}";
     }
+    
 }

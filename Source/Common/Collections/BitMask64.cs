@@ -1,7 +1,9 @@
 ﻿using System;
+using Coorth.Serialize;
 
 namespace Coorth.Collections;
 
+[Serializable]
 public struct BitMask64 : IEquatable<BitMask64> {
     public ulong Value { get; private set; }
 
@@ -55,5 +57,17 @@ public struct BitMask64 : IEquatable<BitMask64> {
             span[index--] = '_';
         }
         return new string(span[1..]);
+    }
+    
+    [SerializeFormatter(typeof(BitMask64))]
+    public class BitMask64_Formatter : SerializeFormatter<BitMask64> {
+        
+        public override void SerializeWriting(in SerializeWriter writer, scoped in BitMask64 value) {
+            writer.WriteUInt64(value.Value);
+        }
+
+        public override void SerializeReading(in SerializeReader reader, scoped ref BitMask64 value) {
+            value = new BitMask64(reader.ReadUInt64());
+        }
     }
 }

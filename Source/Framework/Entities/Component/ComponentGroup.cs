@@ -1,59 +1,49 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Coorth.Collections;
 using Coorth.Serialize;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
-internal interface IComponentGroup {
-
-    Sandbox Sandbox { get; }
-
+public interface IComponentGroup {
+    World World { get; }
     int Count { get; }
-        
     Type Type { get; }
-
     int TypeId { get; }
 
-    int AddComponent(in Entity entity);
-    void OnComponentAdd(in EntityId id, int componentIndex);
-        
+    int Add(in Entity entity);
+    void OnAdd(in EntityId id, int index);
+
     IComponent Get(int index);
-        
-    void RemoveComponent(in Entity entity, int componentIndex);
-    void OnRemoveComponent(in EntityId id, int componentIndex);
 
-    void OnComponentModify(in EntityId id, int componentIndex);
-        
-    int CloneComponent(in Entity entity, int componentIndex);
+    void Remove(in Entity entity, int index);
+    void OnRemove(in EntityId id, int index);
 
-    void ReadComponent(SerializeReader reader, int componentIndex);
+    void OnModify(in EntityId id, int index);
 
-    void WriteComponent(SerializeWriter writer, int componentIndex);
+    int Clone(in Entity entity, int index);
 
-    ComponentPack PackComponent(Entity entity, int componentIndex);
+    void Read(ISerializeReader reader, int index);
+    void Write(ISerializeWriter writer, int index);
 
-    bool IsComponentEnable(int componentIndex);
-        
-    void SetComponentEnable(EntityId id, int componentIndex, bool enable);
+    ComponentPack Pack(Entity entity, int index);
+
+    bool IsEnable(int index);
+    void SetEnable(EntityId id, int index, bool enable);
 }
 
-internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
-
+public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     #region Fields
 
-    public Sandbox Sandbox { get; set; }
+    public World World { get; }
 
     public IComponentFactory<T>? Factory { get; internal set; }
 
-    //Component Value
-    internal ChunkList<T> components;
-        
-    //Entity Index
+    private ChunkList<T> components;
+
     private ChunkList<int> mapping;
 
-    // private int reusing = -1;
+    private int reusing = -1;
 
     //Disable | Enable
     internal int separate;
@@ -65,23 +55,24 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
     public Type Type => ComponentType<T>.Type;
 
     public int TypeId => ComponentType<T>.TypeId;
-        
+
     // public bool IsPinned => ComponentType<T>.IsPinned;
-        
+
     // public bool IsValueType => ComponentType<T>.IsValueType;
 
     private ValueList<IComponentGroup> dependency = new(1);
 
-    public ComponentGroup(Sandbox sandbox, int indexCapacity, int chunkCapacity) {
-        this.Sandbox = sandbox;
+    public ComponentGroup(World world, int indexCapacity, int chunkCapacity) {
+        World = world;
         var attribute = ComponentType<T>.Attribute;
         if (attribute != null) {
             indexCapacity = attribute.IndexCapacity > 0 ? attribute.IndexCapacity : indexCapacity;
             chunkCapacity = attribute.ChunkCapacity > 0 ? attribute.ChunkCapacity : chunkCapacity;
         }
-        this.components = new ChunkList<T>(indexCapacity, chunkCapacity);
-        this.mapping = new ChunkList<int>(indexCapacity, chunkCapacity);  
-            
+
+        components = new ChunkList<T>(indexCapacity, chunkCapacity);
+        mapping = new ChunkList<int>(indexCapacity, chunkCapacity);
+
         if (!ComponentType<T>.IsValueType) {
             Factory = new ComponentFactory<T>();
         }
@@ -96,16 +87,18 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
             dependency.Add(componentGroup);
         }
     }
-        
+
     public bool HasDependency(Type otherType) {
         if (dependency.IsNull) {
             return false;
         }
+
         for (var i = 0; i < dependency.Count; i++) {
             if (dependency[i].Type == otherType) {
                 return true;
-            } 
+            }
         }
+
         return false;
     }
 
@@ -117,55 +110,53 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
     #endregion
 
     #region Add
-        
-    public int AddComponent(in Entity entity) {
-        Count++;
-        var componentIndex = components.Count;
-        ref var component = ref components.Add();
-        mapping.Add(entity.Id.Index);
-        Factory?.Create(in entity, out component);
-        return componentIndex;
-            
-        // if (reusing >= 0) {
-        //     var componentIndex = reusing;
-        //     reusing = mapping[reusing];
-        //     ref var component = ref components.Ref(componentIndex);
-        //     mapping.Set(componentIndex, entity.Id.Index);
-        //     Factory?.Create(in entity, out component);
-        //     return componentIndex;
-        // }
-        // else {
-        //
-        // }
 
-    }
-        
-    public int AddComponent(in Entity entity, ref T componentValue) {
+    public int Add(in Entity entity) {
         Count++;
-        var componentIndex = components.Count;
-        ref var component = ref components.Add();
-        mapping.Add(entity.Id.Index);
-        component = componentValue;
-        Factory?.Attach(in entity, ref component);
-        return componentIndex;
-            
-        // if (reusing >= 0) {
-        //     var componentIndex = reusing;
-        //     reusing = mapping[reusing];
-        //     ref var component = ref components.Ref(componentIndex);
-        //     component = componentValue;
-        //     mapping.Set(componentIndex, entity.Id.Index);
-        //     Factory?.Attach(in entity, ref component);
-        //     return componentIndex;
-        // }
-        // else {
-        //
-        // }
+        int index;
+        if (reusing < 0) {
+            index = components.Count;
+            ref var component = ref components.Add();
+            mapping.Add(entity.Id.Index);
+            Factory?.Create(in entity, out component);
+        }
+        else {
+            index = reusing;
+            reusing = mapping[reusing];
+            ref var component = ref components.Ref(index);
+            mapping.Set(index, entity.Id.Index);
+            Factory?.Create(in entity, out component);
+        }
+        return index;
     }
 
-    public void OnComponentAdd(in EntityId id, int componentIndex) {
-        Sandbox.Dispatch(new EventComponentAdd(id, this, componentIndex));
-        Sandbox.Dispatch(new EventComponentAdd<T>(id, this, componentIndex));
+    public int Add(in Entity entity, in T value) {
+        Count++;
+        int index;
+        // ref var component = ref Unsafe.NullRef<T>();
+        if (reusing < 0) {
+            index = components.Count;
+            ref var component = ref components.Add();
+            mapping.Add(entity.Id.Index);
+            component = value;
+            Factory?.Attach(in entity, ref component);
+        }
+        else {
+            index = reusing;
+            reusing = mapping[reusing];
+            ref var component = ref components.Ref(index);
+            mapping.Set(index, entity.Id.Index);
+            component = value;
+            Factory?.Attach(in entity, ref component);
+        }
+
+
+        return index;
+    }
+
+    public void OnAdd(in EntityId id, int index) {
+        World.Dispatch(new EventComponentAdd(id, this, index));
+        World.Dispatch(new ComponentAddEvent<T>(id, this, index));
     }
 
     #endregion
@@ -173,65 +164,70 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
     #region Get & Ref
 
     IComponent IComponentGroup.Get(int index) => components[index];
-        
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Get(int index)=> ref components.Ref(index);
+    public ref T Get(int index) => ref components.Ref(index);
 
-    public T this[int index] { get => components[index]; set => components[index] = value; }
-
-    public void OnComponentModify(in EntityId id, int componentIndex) {
-        Sandbox.Dispatch(new EventComponentModify(id, this, componentIndex));
-        Sandbox.Dispatch(new EventComponentModify<T>(id, this, componentIndex));
+    public T this[int index] {
+        get => components[index];
+        set => components[index] = value;
     }
-        
+
+    public void OnModify(in EntityId id, int index) {
+        World.Dispatch(new EventComponentModify(id, this, index));
+        World.Dispatch(new ComponentModifyEvent<T>(id, this, index));
+    }
+
     #endregion
 
     #region Remove
-        
-    public void RemoveComponent(in Entity entity, int componentIndex) {
+
+    public void Remove(in Entity entity, int index) {
         Count--;
-        ref var component = ref components.Ref(componentIndex);
+        ref var component = ref components.Ref(index);
         if (Factory != null) {
             Factory.Recycle(in entity, ref component);
         }
         else {
-            component = default;
+            component = default!;
         }
-        var tailIndex = components.Count-1;
-        if (componentIndex != tailIndex) {
+
+        var tailIndex = components.Count - 1;
+        if (index != tailIndex) {
             component = components[tailIndex];
-            mapping[componentIndex] = mapping[tailIndex];
-            ref var tailContext = ref Sandbox.GetContext(mapping[componentIndex]);
-            tailContext[TypeId] = componentIndex;
+            mapping[index] = mapping[tailIndex];
+            ref var tailContext = ref World.GetContext(mapping[index]);
+            tailContext[TypeId] = index;
         }
+
         components.RemoveLast();
         mapping.RemoveLast();
     }
 
-    public void OnRemoveComponent(in EntityId id, int componentIndex) {
-        Sandbox.Dispatch(new EventComponentRemove(id, this, componentIndex));
-        Sandbox.Dispatch(new EventComponentRemove<T>(id, this, componentIndex));
+    public void OnRemove(in EntityId id, int index) {
+        World.Dispatcher.Dispatch(new EventComponentRemove(id, this, index));
+        World.Dispatcher.Dispatch(new ComponentRemoveEvent<T>(id, this, index));
     }
 
     #endregion
 
     #region Clone
 
-    public int CloneComponent(in Entity entity, int componentIndex) {
+    public int Clone(in Entity entity, int index) {
         Count = 0;
-        ref var sourceComponent = ref components.Ref(componentIndex);
+        ref var sourceComponent = ref components.Ref(index);
         _Clone(entity, ref sourceComponent, out T targetComponent);
-        return AddComponent(entity, ref targetComponent);
+        return Add(entity, in targetComponent);
     }
 
-    public void ReadComponent(SerializeReader reader, int componentIndex) {
-        ref var component = ref components[componentIndex];
-        reader.ReadValue(out component);
+    public void Read(ISerializeReader reader, int index) {
+        ref var component = ref components[index];
+        reader.ReadValue(ref component!);
     }
 
-    public void WriteComponent(SerializeWriter writer, int componentIndex) {
-        ref var component = ref components[componentIndex];
-        writer.WriteValue(component);
+    public void Write(ISerializeWriter writer, int index) {
+        ref var component = ref components[index];
+        writer.WriteValue(in component);
     }
 
     internal void _Clone(in Entity entity, ref T sourceComponent, out T targetComponent) {
@@ -243,45 +239,47 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
         }
     }
 
-    public ComponentPack PackComponent(Entity entity, int componentIndex) {
-        ref var component = ref components[componentIndex];
+    public ComponentPack Pack(Entity entity, int index) {
+        ref var component = ref components[index];
         var asset = new ComponentPack<T>();
-        asset.Pack(Sandbox, entity, ref component);
+        asset.Pack(World, entity, ref component);
         return asset;
     }
-        
+
     #endregion
 
     #region Enable
 
     private void SwapComponent(int index1, int index2) {
-            
-        ref var context1 = ref Sandbox.GetContext(index1);
-        ref var context2 = ref Sandbox.GetContext(index2);
+        if (index1 == index2) {
+            return;
+        }
+        ref var context1 = ref World.GetContext(index1);
+        ref var context2 = ref World.GetContext(index2);
         context1[TypeId] = mapping[index2];
         context2[TypeId] = mapping[index1];
 
         (components[index1], components[index2]) = (components[index2], components[index1]);
         (mapping[index1], mapping[index2]) = (mapping[index2], mapping[index1]);
     }
-        
-    public bool IsComponentEnable(int index) {
+
+    public bool IsEnable(int index) {
         return separate <= index && index < Count && ((1u << 31) & mapping[index]) == 0;
     }
 
-    public void SetComponentEnable(EntityId id, int index, bool enable) {
+    public void SetEnable(EntityId id, int index, bool enable) {
         if (enable && index < separate) {
             SwapComponent(separate, index);
             separate--;
-            OnComponentEnable(id, separate+1, true);
+            OnComponentEnable(id, separate + 1, true);
         }
-        else if(!enable && (index >= separate)) {
+        else if (!enable && (index >= separate)) {
             SwapComponent(separate, index);
             separate++;
-            OnComponentEnable(id, separate-1, false);
+            OnComponentEnable(id, separate - 1, false);
         }
-            
-            
+
+
         // if (IsPinned) {
         //     var value = ((1u << 31) & mapping[index]) == 0;
         //     if(!value && enable) {
@@ -298,21 +296,9 @@ internal class ComponentGroup<T> : IComponentGroup where T : IComponent {
     }
 
     private void OnComponentEnable(EntityId id, int index, bool enable) {
-        Sandbox.Dispatch(new EventComponentEnable<T>(id, this, index, enable));
+        World.Dispatch(new EventComponentEnable<T>(id, this, index, enable));
     }
-        
-    #endregion
-
-    #region Collect
-
-    // public void Defragment(int step) {
-    //     if (reusing < 0 ) {
-    //         return;
-    //     }
-    //     for (var i = 0; i < step; i++) {
-    //         SwapComponent(reusing, Count - 1);
-    //     }
-    // }
 
     #endregion
+
 }

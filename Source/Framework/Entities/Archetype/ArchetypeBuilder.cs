@@ -4,14 +4,14 @@ namespace Coorth.Framework;
 
 public class ArchetypeBuilder {
         
-    private readonly Sandbox sandbox;
+    private readonly World world;
 
     private ArchetypeDefinition definition;
         
     private bool closed;
     
-    internal ArchetypeBuilder(Sandbox s, ArchetypeDefinition d) {
-        sandbox = s;
+    internal ArchetypeBuilder(World s, ArchetypeDefinition d) {
+        world = s;
         definition = d;
     }
 
@@ -22,19 +22,20 @@ public class ArchetypeBuilder {
         if (!typeof(IComponent).IsAssignableFrom(type)) {
             throw new ArgumentException("Type is not implement IComponent");
         } 
-        if (!sandbox.IsComponentBind(type)) {
+        if (!world.IsComponentBind(type)) {
             throw new NotBindException(type);
         }
     }
 
     public ArchetypeBuilder Add(Type type) {
         Validate(type);
-        var typeId = Sandbox.ComponentTypeIds[type];
+        var typeId = World.ComponentTypeIds[type];
         definition = definition.AddComponent(typeId);
         return this;
     }
         
     public ArchetypeBuilder Add<T>() where T : IComponent {
+        world.BindComponent<T>();
         Validate(typeof(T));
         var typeId = ComponentType<T>.TypeId;
         definition = definition.AddComponent(typeId);
@@ -43,12 +44,13 @@ public class ArchetypeBuilder {
 
     public ArchetypeBuilder Remove(Type type) {
         Validate(type);
-        var typeId = Sandbox.ComponentTypeIds[type];
+        var typeId = World.ComponentTypeIds[type];
         definition = definition.RemoveComponent(typeId);
         return this;
     } 
 
     public ArchetypeBuilder Remove<T>() where T : IComponent {
+        world.BindComponent<T>();
         Validate(typeof(T));
         var typeId = ComponentType<T>.TypeId;
         definition = definition.RemoveComponent(typeId);
@@ -57,6 +59,6 @@ public class ArchetypeBuilder {
     
     public Archetype Compile() {
         closed = true;
-        return new Archetype(sandbox, definition);
+        return new Archetype(world, definition);
     }
 }

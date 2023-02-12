@@ -115,6 +115,27 @@ internal class IndexDictTest {
     }
         
     [Test]
+    public void SpecialList3() {
+        var dict = new IndexDict<int>(2);
+        dict.Add(3, 1);
+        dict.Add(4, 1);
+        dict.Add(5, 0);
+        dict.Add(21, 0);
+        dict.Add(35, 0);
+
+        Assert.IsTrue(dict.Count == 5);
+            
+        Assert.IsTrue(dict.Get(3) == 1);
+        Assert.IsTrue(dict.Get(4) == 1);
+        Assert.IsTrue(dict.Get(5) == 0);
+        Assert.IsTrue(dict.Get(21) == 0);
+        Assert.IsTrue(dict.Get(35) == 0);
+
+        //10 -> 19 -> 11 -> 18 -> 20
+    }
+
+    
+    [Test]
     public void SpecialList2() {
         var dict = new IndexDict<int>(2);
         dict[10] = 1;

@@ -85,7 +85,7 @@
         public string GetActionParameter(int count, int index) {
             string componentParams = IsAction ? GetCompParams(count) : GetParams(count, index, "component");
             var eventParameter = HasEvent ? (IsAction ? "e, " : "in e, ") : "";
-            var entityParameter = HasEntity ? "context.GetEntity(sandbox), " : "";
+            var entityParameter = HasEntity ? "context.GetEntity(world), " : "";
             return $"{eventParameter}{entityParameter}{componentParams}";
         }
     }

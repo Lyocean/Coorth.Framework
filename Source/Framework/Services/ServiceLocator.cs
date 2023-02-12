@@ -1,138 +1,153 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace Coorth.Framework;
 
-public interface IServiceLocator : IServiceProvider {
-    IServiceBinding Bind(Type type);
-    IServiceBinding Bind(Type key, Type impl);
-    ServiceBinding<T> Bind<T>(T value);
-    ServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class;
-    ServiceBinding<T> Bind<T>() where T : class, new();
-    ServiceBinding<TImpl> Bind<T, TImpl>() where TImpl : class, T, new();
-
-    IServiceBinding GetBinding(Type type);
-    ServiceBinding<T> GetBinding<T>() where T : class;
-
-    object Singleton(Type type);
-    T Singleton<T>() where T : class;
-
-    T Get<T>() where T : class;
-    object Get(Type type);
+public interface IServiceCollection : IServiceProvider {
     T GetService<T>() where T : class;
 
+    object? FindService(Type serviceType);
+
+    T? FindService<T>() where T : class;
+}
+
+public interface IServiceLocator : IServiceCollection {
+
+    IServiceLocator CreateChild();
+    
+    T Add<T>(T value) where T: class;
+    
+    IServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class;
+    IServiceBinding<T> Bind<T>(Func<ServiceLocator, object, T> provider) where T: class;
+    IServiceBinding<T> Bind<T>() where T : class, new();
+    IServiceBinding<T> Bind<T, TImpl>() where T: class where TImpl : class, T, new();
+
+    IServiceBinding GetBinding(Type type);
+    IServiceBinding<T> GetBinding<T>() where T : class;
+
+    
+    T Get<T>() where T : class;
+    
+    object Get(Type type);
+
     object? Find(Type type);
+    
     T? Find<T>() where T : class;
         
     object Create(Type type);
-    T Create<T>();
+    T Create<T>() where T: class;
 
-    bool Remove(Type key);
-    bool Remove<T>();
-        
     void Clear();
 }
     
 public sealed class ServiceLocator : Disposable, IServiceLocator {
         
-    private readonly ConcurrentDictionary<Type, ServiceBinding> bindings = new();
+    private readonly Dictionary<Type, ServiceBinding> bindings = new();
         
     private ServiceLocator? parent;
         
     private readonly List<ServiceLocator> children = new();
 
-    public ServiceLocator CreateChild() {
+    public IServiceLocator CreateChild() {
         var child = new ServiceLocator();
-        AddChild(child);
-        return child;
-    }
-        
-    public void AddChild(ServiceLocator child) {
         child.parent = this;
         children.Add(child);
+        return child;
     }
 
-    public void RemoveChild(ServiceLocator child) {
+    private void RemoveChild(ServiceLocator child) {
         child.parent = null;
         children.Remove(child);
     }
-        
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ServiceBinding CreateBinding(Type type) => new ServiceBinding(this, type);
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ServiceBinding OfferBinding(Type key) {
-        var binding = bindings.GetOrAdd(key, CreateBinding);
+    public T Add<T>(T value) where T: class {
+        var key = typeof(T);
+        var binding = new ServiceSingleton<T>(key, value);
+        bindings.Add(key, binding);
+        return value;
+    }
+    
+    public IServiceBinding<T> Bind<T>(Func<T> provider) where T: class {
+        var key = typeof(T);
+        var binding = new ServiceFactory<T>(key, provider);
+        bindings.Add(key, binding);
         return binding;
     }
-        
-    public IServiceBinding Bind(Type type) {
-        var binding = OfferBinding(type);
-        binding.ToFactory(_ => Activator.CreateInstance(type)!);
+    
+    public IServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class {
+        var key = typeof(T);
+        var binding = new ServiceFactory<T>(key, provider);
+        bindings.Add(key, binding);
+        return binding;
+    }
+    
+    public IServiceBinding<T> Bind<T>(Func<ServiceLocator, object, T> provider) where T: class {
+        var key = typeof(T);
+        var binding = new ServiceFactory<T>(key, provider);
+        bindings.Add(key, binding);
+        return binding;
+    }
+    
+    public IServiceBinding<T> Bind<T>() where T : class, new() {
+        var key = typeof(T);
+        var binding = new ServiceFactory<T>(key, (ServiceLocator _) => Activator.CreateInstance<T>());
+        bindings.Add(key, binding);
         return binding;
     }
 
-    public IServiceBinding Bind(Type key, Type impl) {
-        var binding = OfferBinding(key);
-        binding.ToFactory(_ => Activator.CreateInstance(impl)!);
+    public IServiceBinding<T> Bind<T, TImpl>() where T: class where TImpl : class, T, new() {
+        var key = typeof(T);
+        var binding = new ServiceFactory<T>(key, Activator.CreateInstance<TImpl>);
+        bindings.Add(key, binding);
         return binding;
     }
-
-    public ServiceBinding<T> Bind<T>(T value) {
-        var binding = OfferBinding(typeof(T));
-        binding.ToValue(value!);
-        return new ServiceBinding<T>(binding);
-    }
-
-    public ServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class {
-        var binding = OfferBinding(typeof(T));
-        binding.ToFactory(provider);
-        return new ServiceBinding<T>(binding);
-    }
-
-    public ServiceBinding<T> Bind<T>() where T : class, new() {
-        var binding = OfferBinding(typeof(T));
-        binding.ToFactory(_ => new T());
-        return new ServiceBinding<T>(binding);
-    }
-
-    public ServiceBinding<TImpl> Bind<T, TImpl>() where TImpl : class, T, new() {
-        var binding = OfferBinding(typeof(T));
-        binding.ToFactory(_ => new TImpl());
-        return new ServiceBinding<TImpl>(binding);
-    }
-        
+    
     public IServiceBinding GetBinding(Type type) => bindings.TryGetValue(type, out var binding) ? binding : throw new NullReferenceException();
 
-    public ServiceBinding<T> GetBinding<T>() where T : class => new ServiceBinding<T>(GetBinding(typeof(T)));
+    public IServiceBinding<T> GetBinding<T>() where T : class => (IServiceBinding<T>)GetBinding(typeof(T));
 
-    public object Singleton(Type type) {
-        if (bindings.TryGetValue(type, out var binding)) {
-            return binding.Singleton();
+    public object GetService(Type key) {
+        if (bindings.TryGetValue(key, out var binding) && binding is IServiceSingleton singleton) {
+            return singleton.Value;
         }
-        return parent?.GetService(type) ?? throw new NullReferenceException();
+        return parent?.GetService(key) ?? throw new NullReferenceException();
     }
 
-    public T Singleton<T>() where T: class {
-        if (bindings.TryGetValue(typeof(T), out var binding)) {
-            return binding.Singleton<T>();
+    public T GetService<T>() where T : class {
+        var key = typeof(T);
+        if (bindings.TryGetValue(key, out var binding) && binding is ServiceSingleton<T> singleton) {
+            return singleton.Value;
         }
-        return parent?.GetService<T>() ?? throw new NullReferenceException();
+        return parent?.GetService<T>() ?? throw new ServiceException($"Service not found: {typeof(T)}");
     }
 
-    public T Get<T>() where T: class => Singleton<T>();
+    public object? FindService(Type serviceType) => Find(serviceType);
 
-    public object Get(Type type) => Singleton(type);
-        
-    public object? Find(Type type) => bindings.TryGetValue(type, out var binding) ? binding.Find() : parent?.Find(type);
+    public T? FindService<T>() where T : class => Find<T>();
 
-    public T? Find<T>() where T : class => bindings.TryGetValue(typeof(T), out var binding) ? binding.Find<T>() : parent?.Find<T>();
+    public T Get<T>() where T: class => GetService<T>();
+
+    public object Get(Type type) => GetService(type);
+
+    public object? Find(Type key) {
+        if (bindings.TryGetValue(key, out var binding) && binding is IServiceSingleton singleton) {
+            return singleton.Value;
+        }
+        return parent?.Find(key);
+    }
+
+    public T? Find<T>() where T : class {
+        var key = typeof(T);
+        if (bindings.TryGetValue(key, out var binding) && binding is ServiceSingleton<T> singleton) {
+            return singleton.Value;
+        }
+        return parent?.Find<T>();
+    }
 
     public object Create(Type type) {
-        if (bindings.TryGetValue(type, out var binding)) {
-            return binding.Create();
+        if (bindings.TryGetValue(type, out var binding) && binding is IServiceFactory factory) {
+            return factory.Create(this);
         }
         if (parent != null) {
             return parent.Create(type);
@@ -140,42 +155,39 @@ public sealed class ServiceLocator : Disposable, IServiceLocator {
         return Activator.CreateInstance(type)!;
     }
 
-    public T Create<T>() {
-        if (bindings.TryGetValue(typeof(T), out var binding)) {
-            return binding.Create<T>();
+    public T Create<T>() where T: class {
+        if (bindings.TryGetValue(typeof(T), out var binding) && binding is ServiceFactory<T> factory) {
+            return factory.Create(this);
         }
-        return parent == null ? Activator.CreateInstance<T>() : parent.Create<T>();
+        if (parent != null) {
+            return parent.Create<T>();
+        }
+        return Activator.CreateInstance<T>();
     }
 
-    public bool Remove(Type key) {
-        if (bindings.TryGetValue(key, out var binding)) {
+    public T Create<T>(object param) where T: class {
+        if (bindings.TryGetValue(typeof(T), out var binding) && binding is ServiceFactory<T> factory) {
+            return factory.Create(this);
+        }
+        if (parent != null) {
+            return parent.Create<T>();
+        }
+        return Activator.CreateInstance<T>();
+    }
+    
+    public void Clear() {
+        foreach (var binding in bindings.Values.ToArray()) {
             binding.Dispose();
-            return bindings.Remove(key, out binding);
         }
-        return false;
+        bindings.Clear();
     }
-
-    public bool Remove<T>() => Remove(typeof(T));
-
+    
     protected override void OnDispose(bool disposing) {
-        foreach (var child in children) {
-            child.Dispose();
+        foreach (var locator in children.ToArray()) {
+            locator.Dispose();
         }
         children.Clear();
-        foreach (var pair in bindings) {
-            pair.Value.Dispose();
-        }
-        bindings.Clear();
-    }
-
-    public object GetService(Type serviceType) => Singleton(serviceType);
-
-    public T GetService<T>() where T : class => Singleton<T>();
-        
-    public void Clear() {
-        foreach (var (_, binding) in bindings) {
-            binding.Dispose();
-        }
-        bindings.Clear();
+        Clear();
+        parent?.RemoveChild(this);
     }
 }

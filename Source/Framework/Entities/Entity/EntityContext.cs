@@ -1,9 +1,11 @@
-﻿using System;
+﻿#define CHUNK_MODE
+
 using System.Runtime.CompilerServices;
 
-namespace Coorth.Framework; 
 
-internal struct EntityContext : IEquatable<EntityContext> {
+namespace Coorth.Framework;
+
+internal record struct EntityContext {
     
     public int Index;
 
@@ -13,19 +15,20 @@ internal struct EntityContext : IEquatable<EntityContext> {
     
     public int LocalIndex;
 
-    public IndexDict<int> Components;
-
-    public EntityId Id => new(Index, Version);
-
+    public EntityId Id { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(Index, Version); }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Entity GetEntity(Sandbox sandbox) => new(sandbox, new EntityId(Index, Version));
+    public Entity GetEntity(World world) => new(world, new EntityId(Index, Version));
+    
+#if CHUNK_MODE
+    public IndexDict<int> Components;
 
     public int Count => Archetype.ComponentCount;
 
     public int this[int type] {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => Components[type];
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         set => Components[type] = value;
     }
 
@@ -37,16 +40,27 @@ internal struct EntityContext : IEquatable<EntityContext> {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet(int type, out int value) => Components.TryGetValue(type, out value);
+#else
+    
+    public IndexDict<int> Components;
 
-    public bool Equals(EntityContext other) {
-        return Index == other.Index && Version == other.Version && Archetype.Equals(other.Archetype) && LocalIndex == other.LocalIndex && Components.Equals(other.Components);
+    public int Count => Archetype.ComponentCount;
+
+    public int this[int type] {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => Components[type];
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        set => Components[type] = value;
     }
 
-    public override bool Equals(object? obj) {
-        return obj is EntityContext other && Equals(other);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public int Get(int type) => Components[type];
 
-    public override int GetHashCode() {
-        return HashCode.Combine(Index, Version, Archetype, LocalIndex, Components);
-    }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool Has(int type) => Components.ContainsKey(type);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool TryGet(int type, out int value) => Components.TryGetValue(type, out value);
+    
+#endif
 }

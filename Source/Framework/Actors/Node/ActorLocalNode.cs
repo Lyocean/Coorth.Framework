@@ -36,7 +36,7 @@ public sealed class ActorLocalNode : ActorNode {
             : Channel.CreateBounded<ActorMail>(new BoundedChannelOptions(options.MailboxSize), mail => Runtime.OnMailOverflow(this, mail));
     }
     
-    protected override ValueTask Receive(in ActorContext context, in IMessage message) {
+    protected override ValueTask Receive(in MessageContext context, in IMessage message) {
         if (Interlocked.CompareExchange(ref status, ActorStatus.BUSY_STATE, ActorStatus.IDLE_STATE) == ActorStatus.IDLE_STATE) {
             Schedule(context, message);
             return new ValueTask();
@@ -45,7 +45,7 @@ public sealed class ActorLocalNode : ActorNode {
         return Mailbox.Writer.WriteAsync(mail);
     }
     
-    private async void Schedule(ActorContext context, IMessage message) {
+    private async void Schedule(MessageContext context, IMessage message) {
         await Actor.ReceiveAsync(context, message);
         if (Mailbox.Reader.Count == 0) {
             Interlocked.CompareExchange(ref status, ActorStatus.IDLE_STATE, ActorStatus.BUSY_STATE);
@@ -56,7 +56,7 @@ public sealed class ActorLocalNode : ActorNode {
                 Interlocked.CompareExchange(ref status, ActorStatus.IDLE_STATE, ActorStatus.BUSY_STATE);
                 return;
             }
-            using var ctx = new ActorContext(this, mail.Sender, CancellationToken.None);
+            using var ctx = new MessageContext(this, mail.Sender, CancellationToken.None);
             await Actor.ReceiveAsync(ctx, message);
         }
         Runtime.ThroughputOverflow(this);

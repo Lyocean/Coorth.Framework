@@ -3,7 +3,7 @@
 namespace Coorth.Framework;
 
 public interface IActor {
-    ValueTask ReceiveAsync(ActorContext context, IMessage m);
+    ValueTask ReceiveAsync(MessageContext context, IMessage m);
 }
 
 internal interface IActorLifetime {
@@ -27,6 +27,6 @@ public abstract class Actor : IActor, IActorLifetime {
         Node = null;
     }
     
-    public abstract ValueTask ReceiveAsync(ActorContext context, IMessage m);
+    public abstract ValueTask ReceiveAsync(MessageContext context, IMessage m);
 
 }

@@ -1,36 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public readonly record struct Archetype {
+    private readonly ArchetypeDefinition definition;
 
-    internal readonly ArchetypeDefinition Definition;
+    public readonly World World;
 
-    public readonly Sandbox Sandbox;
-    
-    public bool IsNull => Sandbox == null || Definition == null;
+    public bool IsNull => World == null || definition == null;
 
-    public int Count => Definition?.ComponentCount ?? 0;
+    public int Count => definition?.ComponentCount ?? 0;
 
-    public bool Has<T>() where T : IComponent => Definition.HasComponent(ComponentType<T>.TypeId);
+    public bool Has<T>() where T : IComponent => definition.HasComponent(ComponentType<T>.TypeId);
 
-    internal Archetype(Sandbox sandbox, ArchetypeDefinition definition) {
-        Sandbox = sandbox;
-        Definition = definition;
+    internal Archetype(World world, ArchetypeDefinition definition) {
+        World = world;
+        this.definition = definition;
     }
 
-    public Entity CreateEntity() => Sandbox.CreateEntity(Definition);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity CreateEntity() => World.CreateEntity(definition);
 
-    public void CreateEntities(Span<Entity> span) => Sandbox.CreateEntities(Definition, span);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateEntities(Span<Entity> span) => World.CreateEntities(definition, span);
 
-    public void CreateEntities(IList<Entity> list, int count) => Sandbox.CreateEntities(Definition, list, count);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateEntities(IList<Entity> list, int count) => World.CreateEntities(definition, list, count);
 
-    public void CreateEntities(IList<Entity> list, int start, int count) => Sandbox.CreateEntities(Definition, list, start, count);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void CreateEntities(IList<Entity> list, int start, int count) => World.CreateEntities(definition, list, start, count);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity[] CreateEntities(int count) {
         var array = new Entity[count];
-        Sandbox.CreateEntities(Definition, array.AsSpan());
+        World.CreateEntities(definition, array.AsSpan());
         return array;
     }
 }

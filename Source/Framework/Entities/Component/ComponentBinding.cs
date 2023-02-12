@@ -2,45 +2,22 @@
 
 public readonly struct ComponentBinding<T> where T: IComponent {
 
-    private readonly Sandbox sandbox;
+    private readonly World world;
         
     private readonly ComponentGroup<T> group;
         
-    internal ComponentBinding(Sandbox sandbox, ComponentGroup<T> group) {
-        this.sandbox = sandbox;
+    internal ComponentBinding(World world, ComponentGroup<T> group) {
+        this.world = world;
         this.group = group;
     }
 
     public ComponentBinding<T> AddDependency<TP1>() where TP1: IComponent{
-        var componentGroup1 = sandbox.GetComponentGroup<TP1>();
+        var componentGroup1 = world.GetComponentGroup<TP1>();
         group.AddDependency(componentGroup1);
-        return this;
-    }
-
-    public ComponentBinding<T> AddDependency<TP1, TP2>()where TP1: IComponent where TP2: IComponent {
-        var componentGroup1 = sandbox.GetComponentGroup<TP1>();
-        var componentGroup2 = sandbox.GetComponentGroup<TP2>();
-        group.AddDependency(componentGroup1);
-        group.AddDependency(componentGroup2);
-        return this;
-    }
-        
-    public ComponentBinding<T> AddDependency<TP1, TP2, TP3>() where TP1: IComponent where TP2: IComponent where TP3: IComponent{
-        var componentGroup1 = sandbox.GetComponentGroup<TP1>();
-        var componentGroup2 = sandbox.GetComponentGroup<TP2>();
-        var componentGroup3 = sandbox.GetComponentGroup<TP3>();
-        group.AddDependency(componentGroup1);
-        group.AddDependency(componentGroup2);
-        group.AddDependency(componentGroup3);
         return this;
     }
 
     public bool HasDependency<TComp2>() where TComp2 : IComponent {
         return group.HasDependency(typeof(TComp2));
-    }
-
-    public ComponentBinding<T> WithFactory(IComponentFactory<T> factory) {
-        group.Factory = factory;
-        return this;
     }
 }

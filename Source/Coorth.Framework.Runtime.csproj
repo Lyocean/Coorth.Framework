@@ -1,74 +1,103 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net6.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net7.0;netstandard2.1</TargetFrameworks>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
-        <LangVersion>10</LangVersion>
+        <LangVersion>11</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Memory" Version="4.5.4" />
-        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-        <PackageReference Include="System.Threading.Channels" Version="6.0.0" />
-		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+        <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="7.0.0-preview.2.22152.2" />
+        <PackageReference Include="System.Threading.Channels" Version="7.0.0-rc.1.22426.10" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Core\Entities\Collection\ComponentCollection.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
-      </None>
-      <None Update="Core\Entities\Collection\EntityCollection.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>EntityCollection.cs</LastGenOutput>
-      </None>
-      <None Update="Core\Entities\Collection\SystemSubscription.ForEachs.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
-      </None>
-      <None Update="Source\Core\Entities\Collection\ComponentCollection.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
-      </None>
-      <None Update="Source\Core\Entities\Collection\SystemSubscription.ForEachs.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
-      </None>
-      <None Update="Framework\Entities\Collection\ComponentCollection.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>ComponentCollection.cs</LastGenOutput>
-      </None>
-      <None Update="Framework\Entities\Collection\EntityCollection.ForEach.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>EntityCollection.ForEach.cs</LastGenOutput>
-      </None>
-      <None Update="Framework\Entities\Collection\SystemSubscription.ForEachs.tt">
-        <Generator>TextTemplatingFileGenerator</Generator>
-        <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
-      </None>
+        <None Update="Core\Entities\Collection\ComponentCollection.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+        </None>
+        <None Update="Core\Entities\Collection\EntityCollection.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>EntityCollection.cs</LastGenOutput>
+        </None>
+        <None Update="Core\Entities\Collection\SystemSubscription.ForEachs.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        </None>
+        <None Update="Source\Core\Entities\Collection\ComponentCollection.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+        </None>
+        <None Update="Source\Core\Entities\Collection\SystemSubscription.ForEachs.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        </None>
+        <None Update="Framework\Entities\Collection\ComponentCollection.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+        </None>
+        <None Update="Framework\Entities\Collection\EntityCollection.ForEach.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>EntityCollection.ForEach.cs</LastGenOutput>
+        </None>
+        <None Update="Framework\Entities\Collection\SystemSubscription.ForEachs.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        </None>
+        <None Update="Common\Base\EventAction.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>EventAction.cs</LastGenOutput>
+        </None>
+        <None Update="Common\Base\Functions.Gen.tt">
+            <Generator>TextTemplatingFileGenerator</Generator>
+            <LastGenOutput>Functions.Gen.cs</LastGenOutput>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Core\Entities\Collection\ComponentCollection.cs">
-        <AutoGen>True</AutoGen>
-        <DesignTime>True</DesignTime>
-        <DependentUpon>ComponentCollection.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Core\Entities\Collection\EntityCollection.cs">
-        <DependentUpon>EntityCollection.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Core\Entities\Collection\SystemSubscription.ForEachs.cs">
-        <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Framework\Entities\Collection\ComponentCollection.cs">
-        <DependentUpon>ComponentCollection.tt</DependentUpon>
-      </Compile>
-      <Compile Update="Framework\Entities\Collection\SystemSubscription.ForEachs.cs">
-        <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
-      </Compile>
+        <Compile Update="Core\Entities\Collection\ComponentCollection.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>ComponentCollection.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Core\Entities\Collection\EntityCollection.cs">
+            <DependentUpon>EntityCollection.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Core\Entities\Collection\SystemSubscription.ForEachs.cs">
+            <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Framework\Entities\Collection\ComponentCollection.cs">
+            <DependentUpon>ComponentCollection.tt</DependentUpon>
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+        </Compile>
+        <Compile Update="Framework\Entities\Collection\EntityCollection.ForEach.cs">
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+            <DependentUpon>EntityCollection.ForEach.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Framework\Entities\Collection\SystemSubscription.ForEachs.cs">
+            <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
+            <DesignTime>True</DesignTime>
+            <AutoGen>True</AutoGen>
+        </Compile>
+        <Compile Update="Common\Base\EventAction.cs">
+            <DependentUpon>EventAction.tt</DependentUpon>
+        </Compile>
+        <Compile Update="Common\Base\Functions.Gen.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Functions.Gen.tt</DependentUpon>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="_Generate" />
     </ItemGroup>
 
 </Project>

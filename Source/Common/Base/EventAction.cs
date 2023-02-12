@@ -1,5 +1,4 @@
-﻿
-namespace Coorth; 
+﻿namespace Coorth;
 
 public delegate void EventAction<TP1>(in TP1 p1);
 
@@ -140,3 +139,4 @@ public delegate TResult EventFuncR6<TP1, TP2, TP3, TP4, TP5, TP6, TP7, out TResu
 public delegate void EventActionR7<TP1, TP2, TP3, TP4, TP5, TP6, TP7>(ref TP1 p1, ref TP2 p2, ref TP3 p3, ref TP4 p4, ref TP5 p5, ref TP6 p6, ref TP7 p7);
 
 public delegate TResult EventFuncR7<TP1, TP2, TP3, TP4, TP5, TP6, TP7, out TResult>(ref TP1 p1, ref TP2 p2, ref TP3 p3, ref TP4 p4, ref TP5 p5, ref TP6 p6, ref TP7 p7);
+

@@ -7,7 +7,7 @@ public sealed class ActorRoot : ActorDomain {
     public ActorRoot(ActorsRuntime runtime) : base(string.Empty, runtime, null) {
     }
 
-    public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         return Runtime.ReceiveAsync(context, m);
     }
 }

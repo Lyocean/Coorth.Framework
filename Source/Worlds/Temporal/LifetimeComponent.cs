@@ -1,7 +1,7 @@
 ﻿using System;
-using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+
+namespace Coorth.Framework; 
 
 [Flags]
 public enum LifetimeMode { Countdown = 1, DelayFrame = 2, Condition = 4 }

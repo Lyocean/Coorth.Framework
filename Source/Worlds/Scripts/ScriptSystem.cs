@@ -6,57 +6,60 @@ namespace Coorth.Framework;
 
 [System, Guid("AECBF415-F47B-4833-8C1D-504E033F34E0")]
 public class ScriptSystem : SystemBase {
-
     public Dispatcher GetDispatcher() => Dispatcher;
-        
+
     private readonly Queue<IScriptStart> starts = new();
     private readonly List<IScriptStepUpdate> stepUpdates = new();
     private readonly List<IScriptTickUpdate> tickUpdates = new();
     private readonly List<IScriptLateUpdate> lateUpdates = new();
 
     protected override void OnAdd() {
-        Sandbox.BindComponent<ScriptComponent>();
+        Subscribe<ComponentAddEvent<ScriptComponent>>().OnEvent(Execute);
+        Subscribe<ComponentRemoveEvent<ScriptComponent>>().OnEvent(Execute);
 
-        Subscribe<EventComponentAdd<ScriptComponent>>().OnEvent(Execute);
-        Subscribe<EventComponentRemove<ScriptComponent>>().OnEvent(Execute);
-            
-        Subscribe<EventStepUpdate>().OnEvent(Execute);
-        Subscribe<EventTickUpdate>().OnEvent(Execute);
-        Subscribe<EventLateUpdate>().OnEvent(Execute);
+        Subscribe<StepUpdateEvent>().OnEvent(OnStepUpdate);
+        Subscribe<TickUpdateEvent>().OnEvent(OnTickUpdate);
+        Subscribe<LateUpdateEvent>().OnEvent(OnLateUpdate);
     }
 
-    private void Execute(EventComponentAdd<ScriptComponent> e) {
+    private void Execute(ComponentAddEvent<ScriptComponent> e) {
         var script = e.Component;
-            
-        if(script is IScriptStart startScript) {
+
+        if (script is IScriptStart startScript) {
             starts.Enqueue(startScript);
         }
-        if(script is IScriptStepUpdate stepScript) {
+
+        if (script is IScriptStepUpdate stepScript) {
             stepUpdates.Add(stepScript);
         }
-        if(script is IScriptTickUpdate tickScript) {
+
+        if (script is IScriptTickUpdate tickScript) {
             tickUpdates.Add(tickScript);
         }
-        if(script is IScriptLateUpdate lateScript) {
+
+        if (script is IScriptLateUpdate lateScript) {
             lateUpdates.Add(lateScript);
         }
     }
-        
-    private void Execute(EventComponentRemove<ScriptComponent> e) {
+
+    private void Execute(ComponentRemoveEvent<ScriptComponent> e) {
         var script = e.Component;
-        if(script is IScriptStepUpdate stepScript) {
+        if (script is IScriptStepUpdate stepScript) {
             stepUpdates.Remove(stepScript);
         }
-        if(script is IScriptTickUpdate tickScript) {
+
+        if (script is IScriptTickUpdate tickScript) {
             tickUpdates.Remove(tickScript);
         }
-        if(script is IScriptLateUpdate lateScript) {
+
+        if (script is IScriptLateUpdate lateScript) {
             lateUpdates.Remove(lateScript);
         }
+
         script.Dispose();
     }
-        
-    private void Execute(EventStepUpdate e) {
+
+    private void OnStepUpdate(StepUpdateEvent e) {
         if (stepUpdates.Count == 0) {
             return;
         }
@@ -69,6 +72,7 @@ public class ScriptSystem : SystemBase {
                 if (script.IsDisposed || !script.IsEnable) {
                     continue;
                 }
+
                 script.OnStepUpdate(e);
             }
         }
@@ -78,23 +82,24 @@ public class ScriptSystem : SystemBase {
     }
 
     private void InvokeScriptStart() {
-        while (starts.Count > 0){
+        while (starts.Count > 0) {
             var start = starts.Dequeue();
             if (start.IsDisposed) {
                 continue;
             }
+
             if (!start.IsEnable) {
                 starts.Enqueue(start);
             }
         }
     }
-        
-    private void Execute(EventTickUpdate e) {
+
+    private void OnTickUpdate(TickUpdateEvent e) {
         InvokeScriptStart();
         if (tickUpdates.Count == 0) {
             return;
         }
-            
+
         TempList<IScriptTickUpdate> tempList = default;
         try {
             tempList = new TempList<IScriptTickUpdate>(tickUpdates);
@@ -103,6 +108,7 @@ public class ScriptSystem : SystemBase {
                 if (script.IsDisposed || !script.IsEnable) {
                     continue;
                 }
+
                 script.OnTickUpdate(e);
             }
         }
@@ -110,11 +116,12 @@ public class ScriptSystem : SystemBase {
             tempList.Dispose();
         }
     }
-        
-    private void Execute(EventLateUpdate e) {
+
+    private void OnLateUpdate(LateUpdateEvent e) {
         if (lateUpdates.Count == 0) {
             return;
         }
+
         TempList<IScriptLateUpdate> tempList = default;
         try {
             tempList = new TempList<IScriptLateUpdate>(lateUpdates);
@@ -123,6 +130,7 @@ public class ScriptSystem : SystemBase {
                 if (script.IsDisposed || !script.IsEnable) {
                     continue;
                 }
+
                 script.OnLateUpdate(e);
             }
         }

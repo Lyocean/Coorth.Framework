@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Coorth.Logs;
 using NUnit.Framework;
 
 namespace Coorth.Framework; 
@@ -10,7 +11,7 @@ public class ActorTest {
 
     [SetUp]
     public void Setup() {
-        container = new ActorsRuntime();
+        container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
     }
 
     [Test]
@@ -88,7 +89,7 @@ public class ActorDispatchForTest : Actor, IActorTest {
 
     public bool Requested = false;
 
-    public override ValueTask ReceiveAsync(ActorContext context, IMessage m) {
+    public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         if (m is MessageTestAdd message) {
             Count++;
         }else if (m is MessageTestRequest request) {

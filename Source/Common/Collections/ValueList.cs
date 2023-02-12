@@ -119,9 +119,7 @@ public struct ValueList<T> : IList<T> {
                 span[i] = span[i + 1];
             }
         }
-#nullable disable
-        span[Count] = default;
-#nullable restore
+        span[Count] = default!;
     }
 
     T IList<T>.this[int index] { get => Span[index]; set => Span[index] = value; }
@@ -129,10 +127,7 @@ public struct ValueList<T> : IList<T> {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveLast() {
         Count--;
-#nullable disable
-        values.Span[Count] = default;
-#nullable restore
-
+        values.Span[Count] = default!;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -142,9 +137,7 @@ public struct ValueList<T> : IList<T> {
         var item = span[Count];
         
         span.Clear();
-#nullable disable
-        span[Count] = default;
-#nullable restore
+        span[Count] = default!;
         return item;
     }
 
@@ -224,6 +217,8 @@ public struct ValueList<T> : IList<T> {
         return HashCode.Combine(values, Count);
     }
     
+#nullable disable
+
     public struct Enumerator : IEnumerator<T> {
 
         private readonly ReadOnlyMemory<T> values;
@@ -236,7 +231,6 @@ public struct ValueList<T> : IList<T> {
 
         public T Current => current;
 
-#nullable disable
         object IEnumerator.Current => current;
 
         public Enumerator(ReadOnlyMemory<T> values, int length) {
@@ -245,7 +239,6 @@ public struct ValueList<T> : IList<T> {
             this.index = 0;
             this.current = default;
         }
-#nullable restore
 
         public bool MoveNext() {
             if (index < length) {
@@ -253,22 +246,19 @@ public struct ValueList<T> : IList<T> {
                 index++;
                 return true;
             }
-#nullable disable
             current = default;
-#nullable restore
             index = length + 1;
             return false;
         }
 
         public void Reset() {
-#nullable disable
             current = default;
-#nullable restore
             index = 0;
         }
 
         public void Dispose() { }
     }
+#nullable restore
 
     public Enumerator GetEnumerator() => new(values, Count);
 

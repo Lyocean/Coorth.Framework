@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Coorth.Framework;
 
-namespace Coorth.Worlds; 
+namespace Coorth.Framework; 
 
 [Component]
 public struct WorldMatrixComponent : IComponent {
