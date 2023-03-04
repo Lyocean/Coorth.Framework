@@ -1,17 +1,17 @@
 # Coorth.Framework
 
-## 简介
+## Introduction
 
-一个独立于引擎的游戏开发框架，可用于客户端或者服务器。
+An engine-independent game development framework, can be used for game client or server.
 
-## 设计
+## Design
 
-1. 基于**事件**逻辑驱动：Event-Dispatcher-Reaction
-2. 基于**组件**结构组合：Entity-Component-System
-3. 基于**消息**数据通信：Actor-Message-Proxy
-4. 基于**节点**动态逻辑：Node-Graph-Process
+1. **Event**: Event-Dispatcher-Reaction
+2. **Component**: Entity-Component-System
+3. **Message** : Actor-Message-Proxy
+4. **Node**: Node-Graph-Process
 
-## 范例
+## Example
 
 ```csharp
 
@@ -36,37 +36,33 @@ public class MovementSystem : SystemBase {
 
 ```
 
-## 游戏世界
+## World
 
-### 世界的构成：世界-实体-组件-系统
-
-#### 世界(World)
-
-每个World有自己的一套System集合，因而每个世界的运行逻辑是不同的。一个世界是Entity集合的边界，Entity不能跨越World，跨World传递Entity只能序列化反序列化。
+Each `world` has its own set of System collections, and thus each `world` operates with a different logic. A `world` is the boundary of an Entity collection, Entities cannot cross Worlds, and passing Entities across Worlds can only be serialized and deserialize.
 
 ```csharp
-//创建世界
+// Create Worlds
 var options = new WorldOptions() {
-    Name = "World-Sample",
+    Name = "Sandbox-Sample",
     Services = Services,
     Dispatcher = Dispatcher.CreateChild(),
     Logger = new ConsoleLogger(),
 };
 var world = new World(options);
 
-//销毁世界
+// Destroy the world
 world.Dispose();
 
 ```
 
-#### 实体(Entity)
+#### Entity
 
-Entity结构非常简单，由EntityId和Sandbox的引用两部分组成；其中EntityId包含两部分：Index和Version。其中Index是复用的，每复用Version加1。
+`Entity` structure is very simple, consisting of two parts: EntityId and `world` reference; where `EntityId` contains two parts: index and version. where index is multiplexed, and each multiplexed Version plus 1.
 
-**实体结构：**
+**Entity structure:**
 
 ```csharp
-// Entity 内存结构 
+// Entity memory structure 
 // +-----------------+---------+
 // |    EntityId     |         |
 // +-------+---------+  World  |
@@ -86,16 +82,16 @@ public readonly record struct Entity {
 }
 ```
 
-**实体操作：**
+**Entity operations:**
 
 ```csharp
-//直接创建
+// Create directly
 var entity = world.CreateEntity();
 entity.Add<PositionComponent>();
 entity.Add<RotationComponent>();
 entity.Add<VelocityComponent>();
 
-//基于原型创建
+//create based on prototype
 var archetype = world.CreateArchetype()
                     .Add<PositionComponent>()
                     .Add<RotationComponent>()
@@ -105,17 +101,17 @@ var archetype = world.CreateArchetype()
 var entity = archetype.CreateEntity();
 var entities = archetype.CreateEntities(10);
 
-//销毁实体
-entity.Dispose()
+// Destroy the entity
+Dispose()
 
-//复制实体
+//Clone the entity
 var clone = entity.Clone();
 
 ```
 
-#### 组件
+#### Components
 
-组件系统采用了一种Archetype和Sparse Array的混合结构，来达到兼顾查询效率和缓存友好性的目的。
+The component uses a hybrid structure of archetype and sparse array to achieve a balance of query efficiency and cache friendly.
 
 ```csharp
 // Component Chunk Array
@@ -137,57 +133,59 @@ var clone = entity.Clone();
 
 ```
 
-常见组件操作
+Common component operations
+
 
 ```csharp
-//定义struct组件
 public struct PositionComponent : IComponent {
     public Vector3 Value;
 }
 
-//定义class组件
 public class TransformComponent : RefComponent {
     public Vector3 Position;
     public Quaternion Rotation;
     public Vector3 Scaling;
 }
 
-//添加组件
+//Add component
 ref var component = ref entity.Add<PositionComponent>();
 var component = entity.Add<PositionComponent>();
-//添加组件：链式调用
+
+//Add component: fluent invoke
 entity.With<PositionComponent>().With<VelocityComponent>();
-//检查组件是否存在
+
+//Check if the component exists
 entity.Has<PositionComponent>();
-//移除组件
+
+//Remove the component
 entity.Remove<PositionComponent>();
 
-//获取组件，组件不存在抛出异常
+//Get component, throw exception when component does not exist
 ref var component = ref entity.Get<PositionComponent>();
 var component = entity.Get<PositionComponent>();
 
-//获取组件，组件不存在创建组件
+//Get component, create component when component does not exist 
 ref var position = ref entity.Offer<PositionComponent>();
 var position = entity.Offer<PositionComponent>();
 
-//获取组件：组件不存在返回false
+//Get component: return false if component does not exist
 var result = entity.TryGet<PositionComponent>(out var component);
 
-//获取组件：组件不存在返回null
+//Get component: return null when component does not exist 
 PositionComponent? position = entity.TryGet<PositionComponent>();
 
-//清空组件
+//Clear all components
 entity.Clear();
 
-//单例组件
+// Singleton component
 var component = world.Singleton<InputComponent>();
 ```
 
-#### 系统
+#### System
 
-系统代表着游戏世界的运行规则，通常纯ECS架构中System中是不含逻辑的，System订阅某个事件，并在收到事件后对一组Component进行更新。
+System represents the rules for running the game world. Usually there is no logic in System in pure ECS architecture, system subscribes some event and updates a set of components upon receipt of the event.
 
-系统以树状结构组织
+System is organized in a tree-liked structure
 
 ```csharp
 // RootSystem -+- CharacterSystems -+- MovementSystem 
@@ -198,7 +196,7 @@ var component = world.Singleton<InputComponent>();
 ```
 
 ```csharp
-//定义系统
+//Define the system
 public class TranslateSystem : SystemBase {
 
     protected override void OnActive() {
@@ -211,10 +209,10 @@ public class TranslateSystem : SystemBase {
 }
 
 
-//创建并添加系统
+//Create and add a system
 var movement_system = world.AddSystem<MovementSystem>();
 
-//添加子系统(方式1)
+//add subsystem
 public class MovementSystem : SystemBase {
 
     protected override void OnAdd() {
@@ -222,24 +220,25 @@ public class MovementSystem : SystemBase {
         AddSystem<RotateSystem>();
     }
 }
-//添加子系统(方式2)
+//Add a subsystem 
 world.GetSystem<MovementSystem>().AddSystem<TranslateSystem>();
 world.GetSystem<MovementSystem>().AddSystem<RotateSystem>();
 ```
 
-### 世界的运转：事件-消息-分发-响应
+### The world works: event-message-distribution-response
 
-只有Entity, Component, System构成的世界是静态的，为了让世界变化，需要对世界进行更新。通常在游戏中表现为各种Update和FixedUpdate函数，游戏事件，消息等等。在这里我们将其简化为事件和消息。
+The world consisting of only Entity, Component, and System is static and needs to be updated in order for the world to change. This is usually expressed in the game as various Update and FixedUpdate functions, game events, messages, etc. Here we will simplify it to events and messages.
 
-### 事件
+### Events
 
-```cs
-//广播
+```csharp
+// Broadcast
 world.Publish<LateUpdateEvent>(new LateUpdateEvent());
 world.Publish<int>(12054);
 world.Publish<string>("event_name");
 
-//订阅
+//Subscribe
 Subscribe<TickUpdateEvent>().OnEvent((in e) => { /**/ });
 
 ```
+
