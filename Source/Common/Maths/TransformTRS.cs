@@ -17,6 +17,7 @@ public partial record struct TransformTRS {
         
     public static TransformTRS Identity => new(Vector3.Zero);
 
+    
     public TransformTRS(Vector3 position) : this(position, Quaternion.Identity, Vector3.One) {  }
 
     public TransformTRS(Vector3 position, Quaternion rotation) : this(position, rotation, Vector3.One) {  }
@@ -30,6 +31,8 @@ public partial record struct TransformTRS {
     public TransformTRS(in Matrix4x4 matrix) {
         matrix.Decompose(out Position, out Rotation, out Scaling);
     }
+
+    public Matrix4x4 ToMatrix() => MathUtil.Transformation(in Position, in Rotation, in Scaling);
 
     public static TransformTRS FromPos(float x, float y, float z) {
         return new TransformTRS(new Vector3(x, y, z));

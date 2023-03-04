@@ -6,6 +6,10 @@ public readonly partial struct EntityCollection {
 
     #region Component1
 
+    public void ForEachComps<T>(EventAction<T> action) {
+        var world = archetypeGroup.World;
+    }
+
     public void ForEach<T1>(Action<T1> action) where T1 : IComponent {
         var world = archetypeGroup.World;
         var archetypes = archetypeGroup.Archetypes;

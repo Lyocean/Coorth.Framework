@@ -85,6 +85,12 @@ public static partial class MathUtil {
         var temp = (float) Math.Acos(MathUtil.Clamp(Vector2.Dot(from, to) / num, -1f, 1f));
         return (double) num <= float.Epsilon ? 0.0f : temp * MathUtil.RAD_2_DEG;
     }
+    
+    public static float SignedAngle(in Vector2 from, in Vector2 to) {
+        var angle = Angle(in from, in to);
+        var sign = Math.Sign((float)((double)from.X * to.Y - (double)from.Y * to.X));
+        return angle * (sign == 0 ? 1 : sign);
+    }
 
     public static Vector2 Lerp(in Vector2 start, in Vector2 end, float amount) {
         Lerp(in start, in end, amount, out var result);

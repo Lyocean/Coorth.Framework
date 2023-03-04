@@ -1,6 +1,4 @@
-﻿#define CHUNK_MODE
-
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 
 namespace Coorth.Framework;
@@ -20,47 +18,24 @@ internal record struct EntityContext {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity GetEntity(World world) => new(world, new EntityId(Index, Version));
     
-#if CHUNK_MODE
     public IndexDict<int> Components;
-
+    
     public int Count => Archetype.ComponentCount;
 
     public int this[int type] {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Components[type];
+        get => Archetype.GetComponentIndex(ref this, type);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Components[type] = value;
+        set => Archetype.SetComponentIndex(ref this, type, value);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Get(int type) => Components[type];
+    public int Get(int type) => Archetype.GetComponentIndex(ref this, type);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Has(int type) => Components.ContainsKey(type);
+    public bool Has(int type) => Archetype.HasComponent(ref this, type);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGet(int type, out int value) => Components.TryGetValue(type, out value);
-#else
-    
-    public IndexDict<int> Components;
+    public bool TryGet(int type, out int value) => Archetype.TryGetComponentIndex(ref this, type, out value);
 
-    public int Count => Archetype.ComponentCount;
-
-    public int this[int type] {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => Components[type];
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        set => Components[type] = value;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int Get(int type) => Components[type];
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool Has(int type) => Components.ContainsKey(type);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGet(int type, out int value) => Components.TryGetValue(type, out value);
-    
-#endif
 }

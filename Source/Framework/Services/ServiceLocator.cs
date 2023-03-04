@@ -16,12 +16,12 @@ public interface IServiceLocator : IServiceCollection {
 
     IServiceLocator CreateChild();
     
-    T Add<T>(T value) where T: class;
+    T AddService<T>(T value) where T: class;
     
-    IServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class;
-    IServiceBinding<T> Bind<T>(Func<ServiceLocator, object, T> provider) where T: class;
-    IServiceBinding<T> Bind<T>() where T : class, new();
-    IServiceBinding<T> Bind<T, TImpl>() where T: class where TImpl : class, T, new();
+    IServiceBinding<T> AddFactory<T>(Func<ServiceLocator, T> provider) where T: class;
+    IServiceBinding<T> AddFactory<T>(Func<ServiceLocator, object, T> provider) where T: class;
+    IServiceBinding<T> AddFactory<T>() where T : class, new();
+    IServiceBinding<T> AddFactory<T, TImpl>() where T: class where TImpl : class, T, new();
 
     IServiceBinding GetBinding(Type type);
     IServiceBinding<T> GetBinding<T>() where T : class;
@@ -61,42 +61,42 @@ public sealed class ServiceLocator : Disposable, IServiceLocator {
         children.Remove(child);
     }
 
-    public T Add<T>(T value) where T: class {
+    public T AddService<T>(T value) where T: class {
         var key = typeof(T);
         var binding = new ServiceSingleton<T>(key, value);
         bindings.Add(key, binding);
         return value;
     }
     
-    public IServiceBinding<T> Bind<T>(Func<T> provider) where T: class {
+    public IServiceBinding<T> AddFactory<T>(Func<T> provider) where T: class {
         var key = typeof(T);
         var binding = new ServiceFactory<T>(key, provider);
         bindings.Add(key, binding);
         return binding;
     }
     
-    public IServiceBinding<T> Bind<T>(Func<ServiceLocator, T> provider) where T: class {
+    public IServiceBinding<T> AddFactory<T>(Func<ServiceLocator, T> provider) where T: class {
         var key = typeof(T);
         var binding = new ServiceFactory<T>(key, provider);
         bindings.Add(key, binding);
         return binding;
     }
     
-    public IServiceBinding<T> Bind<T>(Func<ServiceLocator, object, T> provider) where T: class {
+    public IServiceBinding<T> AddFactory<T>(Func<ServiceLocator, object, T> provider) where T: class {
         var key = typeof(T);
         var binding = new ServiceFactory<T>(key, provider);
         bindings.Add(key, binding);
         return binding;
     }
     
-    public IServiceBinding<T> Bind<T>() where T : class, new() {
+    public IServiceBinding<T> AddFactory<T>() where T : class, new() {
         var key = typeof(T);
         var binding = new ServiceFactory<T>(key, (ServiceLocator _) => Activator.CreateInstance<T>());
         bindings.Add(key, binding);
         return binding;
     }
 
-    public IServiceBinding<T> Bind<T, TImpl>() where T: class where TImpl : class, T, new() {
+    public IServiceBinding<T> AddFactory<T, TImpl>() where T: class where TImpl : class, T, new() {
         var key = typeof(T);
         var binding = new ServiceFactory<T>(key, Activator.CreateInstance<TImpl>);
         bindings.Add(key, binding);

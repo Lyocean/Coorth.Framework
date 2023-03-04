@@ -1,6 +1,7 @@
 ﻿namespace Coorth.Framework;
 
 public readonly struct ComponentPtr<T> where T : IComponent {
+    
     private readonly ComponentGroup<T> group;
 
     private readonly int index;

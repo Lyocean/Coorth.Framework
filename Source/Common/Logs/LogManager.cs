@@ -15,7 +15,7 @@ public interface ILogManager {
 }
 
 [Manager]
-public sealed class LogManager : Manager, ILogManager {
+public class LogManager : Manager, ILogManager {
 
     private readonly Func<string, ILogger> provider;
 

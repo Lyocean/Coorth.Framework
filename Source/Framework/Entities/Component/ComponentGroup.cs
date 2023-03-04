@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Coorth.Collections;
 using Coorth.Serialize;
@@ -62,9 +63,12 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
 
     private ValueList<IComponentGroup> dependency = new(1);
 
-    public ComponentGroup(World world, int indexCapacity, int chunkCapacity) {
+    public ComponentGroup(World world) {
         World = world;
         var attribute = ComponentType<T>.Attribute;
+        var indexCapacity = world.Options.ComponentDataCapacity.Index;
+        var chunkCapacity = world.Options.ComponentDataCapacity.Chunk;
+        
         if (attribute != null) {
             indexCapacity = attribute.IndexCapacity > 0 ? attribute.IndexCapacity : indexCapacity;
             chunkCapacity = attribute.ChunkCapacity > 0 ? attribute.ChunkCapacity : chunkCapacity;
@@ -101,6 +105,11 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
 
         return false;
     }
+
+    public ValueList<IComponentGroup> GetDependencies() {
+        return dependency;
+    }
+    
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetEntityIndex(int componentIndex) {
@@ -149,13 +158,11 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
             component = value;
             Factory?.Attach(in entity, ref component);
         }
-
-
         return index;
     }
 
     public void OnAdd(in EntityId id, int index) {
-        World.Dispatch(new EventComponentAdd(id, this, index));
+        World.Dispatch(new ComponentAddEvent(id, this, index));
         World.Dispatch(new ComponentAddEvent<T>(id, this, index));
     }
 
@@ -174,7 +181,7 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     }
 
     public void OnModify(in EntityId id, int index) {
-        World.Dispatch(new EventComponentModify(id, this, index));
+        World.Dispatch(new ComponentModifyEvent(id, this, index));
         World.Dispatch(new ComponentModifyEvent<T>(id, this, index));
     }
 
@@ -205,7 +212,7 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     }
 
     public void OnRemove(in EntityId id, int index) {
-        World.Dispatcher.Dispatch(new EventComponentRemove(id, this, index));
+        World.Dispatcher.Dispatch(new ComponentRemoveEvent(id, this, index));
         World.Dispatcher.Dispatch(new ComponentRemoveEvent<T>(id, this, index));
     }
 
@@ -296,7 +303,7 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     }
 
     private void OnComponentEnable(EntityId id, int index, bool enable) {
-        World.Dispatch(new EventComponentEnable<T>(id, this, index, enable));
+        World.Dispatch(new ComponentEnableEvent<T>(id, this, index, enable));
     }
 
     #endregion

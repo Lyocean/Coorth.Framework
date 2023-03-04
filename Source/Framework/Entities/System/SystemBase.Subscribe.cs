@@ -170,7 +170,7 @@ public abstract partial class SystemBase {
     /// <param name="action">响应函数</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentEnable<T>(EventActionR<Entity, bool, T> action) where T : IComponent {
-        Subscribe<EventComponentEnable<T>>().OnEvent(_ => action(_.Entity, _.IsEnable, ref _.Get()));
+        Subscribe<ComponentEnableEvent<T>>().OnEvent(_ => action(_.Entity, _.IsEnable, ref _.Get()));
     }
 
     /// <summary>
@@ -180,7 +180,7 @@ public abstract partial class SystemBase {
     /// <param name="isEnable">Enable</param>
     /// <typeparam name="T">组件</typeparam>
     protected void OnComponentEnable<T>(EventActionR<Entity, T> action, bool isEnable) where T : IComponent {
-        Subscribe<EventComponentEnable<T>>().OnEvent(_ => {
+        Subscribe<ComponentEnableEvent<T>>().OnEvent(_ => {
             if (_.IsEnable == isEnable) {
                 action(_.Entity, ref _.Get());
             }
@@ -328,11 +328,11 @@ public abstract partial class SystemBase {
                 onAdd(entity);
             }
 
-            Subscribe<EventEntityCreate>().OnEvent(_ => onAdd(_.Entity));
+            Subscribe<EntityCreateEvent>().OnEvent(_ => onAdd(_.Entity));
         }
 
         if (onRemove != null) {
-            Subscribe<EventEntityRemove>().OnEvent(_ => onRemove(_.Entity));
+            Subscribe<EntityRemoveEvent>().OnEvent(_ => onRemove(_.Entity));
         }
     }
 
@@ -342,8 +342,8 @@ public abstract partial class SystemBase {
             action(entity, true);
         }
 
-        Subscribe<EventEntityCreate>().OnEvent(e => action(e.Entity, true));
-        Subscribe<EventEntityRemove>().OnEvent(e => action(e.Entity, true));
+        Subscribe<EntityCreateEvent>().OnEvent(e => action(e.Entity, true));
+        Subscribe<EntityRemoveEvent>().OnEvent(e => action(e.Entity, true));
     }
 
     #endregion

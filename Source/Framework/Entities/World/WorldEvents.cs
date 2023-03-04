@@ -3,21 +3,21 @@
 namespace Coorth.Framework;
 
 [Event]
-public readonly record struct EventEntityCreate(Entity Entity) {
+public readonly record struct EntityCreateEvent(Entity Entity) {
     public readonly Entity Entity = Entity;
     public EntityId Id => Entity.Id;
     public World World => Entity.World;
 }
 
 [Event]
-public readonly record struct EventEntityRemove(Entity Entity) {
+public readonly record struct EntityRemoveEvent(Entity Entity) {
     public readonly Entity Entity = Entity;
     public EntityId Id => Entity.Id;
     public World World => Entity.World;
 }
 
 [Event]
-public readonly struct EventComponentAdd {
+public readonly struct ComponentAddEvent {
     public readonly EntityId Id;
     private readonly IComponentGroup group;
     private readonly int index;
@@ -28,7 +28,7 @@ public readonly struct EventComponentAdd {
     public IComponent Component => group.Get(index);
     public ref T Get<T>() where T : struct, IComponent => ref ((ComponentGroup<T>)group).Get(index);
 
-    internal EventComponentAdd(EntityId id, IComponentGroup group, int index) {
+    internal ComponentAddEvent(EntityId id, IComponentGroup group, int index) {
         this.Id = id;
         this.group = group;
         this.index = index;
@@ -55,7 +55,7 @@ public readonly struct ComponentAddEvent<T> where T : IComponent {
 }
 
 [Event]
-public readonly struct EventComponentModify {
+public readonly struct ComponentModifyEvent {
     public readonly EntityId Id;
     private readonly IComponentGroup group;
     private readonly int index;
@@ -66,7 +66,7 @@ public readonly struct EventComponentModify {
     public IComponent Component => group.Get(index);
     public ref T Get<T>() where T : struct, IComponent => ref ((ComponentGroup<T>)group).Get(index);
 
-    internal EventComponentModify(EntityId id, IComponentGroup group, int index) {
+    internal ComponentModifyEvent(EntityId id, IComponentGroup group, int index) {
         this.Id = id;
         this.group = group;
         this.index = index;
@@ -93,7 +93,7 @@ public readonly struct ComponentModifyEvent<T> where T : IComponent {
 }
 
 [Event]
-public readonly struct EventComponentRemove {
+public readonly struct ComponentRemoveEvent {
     public readonly EntityId Id;
     private readonly IComponentGroup group;
     private readonly int index;
@@ -104,7 +104,7 @@ public readonly struct EventComponentRemove {
     public IComponent Component => group.Get(index);
     public ref T Get<T>() where T : struct, IComponent => ref ((ComponentGroup<T>)group).Get(index);
 
-    internal EventComponentRemove(EntityId id, IComponentGroup group, int index) {
+    internal ComponentRemoveEvent(EntityId id, IComponentGroup group, int index) {
         this.Id = id;
         this.group = group;
         this.index = index;
@@ -131,7 +131,7 @@ public readonly struct ComponentRemoveEvent<T> where T : IComponent {
 }
 
 [Event]
-public readonly struct EventComponentEnable<T> where T : IComponent {
+public readonly struct ComponentEnableEvent<T> where T : IComponent {
     public World World => group.World;
     public readonly EntityId Id;
     private readonly ComponentGroup<T> group;
@@ -145,7 +145,7 @@ public readonly struct EventComponentEnable<T> where T : IComponent {
 
     public ref T Get() => ref group.Get(index);
 
-    internal EventComponentEnable(EntityId id, ComponentGroup<T> group, int index, bool enable) {
+    internal ComponentEnableEvent(EntityId id, ComponentGroup<T> group, int index, bool enable) {
         this.Id = id;
         this.group = group;
         this.index = index;
@@ -154,14 +154,14 @@ public readonly struct EventComponentEnable<T> where T : IComponent {
 }
 
 [Event]
-public readonly record struct EventSystemAdd(World World, Type Type, SystemBase System) {
+public readonly record struct SystemAddEvent(World World, Type Type, SystemBase System) {
     public readonly World World = World;
     public readonly Type Type = Type;
     public readonly SystemBase System = System;
 }
 
 [Event]
-public readonly record struct EventSystemRemove(World World, Type Type, SystemBase System) {
+public readonly record struct SystemRemoveEvent(World World, Type Type, SystemBase System) {
     public readonly World World = World;
     public readonly Type Type = Type;
     public readonly SystemBase System = System;

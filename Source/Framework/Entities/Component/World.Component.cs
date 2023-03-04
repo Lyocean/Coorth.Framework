@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace Coorth.Framework; 
 
@@ -12,16 +13,13 @@ public partial class World {
     #region Fields
 
     private IComponentGroup?[] componentGroups = Array.Empty<IComponentGroup?>();
-
-    private (int Index, int Chunk) componentCapacity;
-
+    
     internal static int ComponentTypeCount;
         
     internal static readonly ConcurrentDictionary<Type, int> ComponentTypeIds = new();
         
-    private void InitComponents(int groupCapacity, int indexCapacity, int chunkCapacity) {
-        componentCapacity = (indexCapacity, chunkCapacity);
-        componentGroups = new IComponentGroup[groupCapacity];
+    private void InitComponents(WorldOptions options) {
+        componentGroups = new IComponentGroup[options.ComponentGroupCapacity];
     }
 
     private void ClearComponents() {
@@ -71,9 +69,9 @@ public partial class World {
         if (typeId >= componentGroups.Length) {
             ResizeComponentGroup(typeId + 1);
         }
-        ref var componentGroup = ref componentGroups[typeId];
-        componentGroup ??= new ComponentGroup<T>(this, componentCapacity.Index, componentCapacity.Chunk);
-        return (ComponentGroup<T>)componentGroup;
+        ref var group = ref componentGroups[typeId];
+        group ??= new ComponentGroup<T>(this);
+        return (ComponentGroup<T>)group;
     }
 
     internal ComponentGroup<T> GetComponentGroup<T>() where T : IComponent {
@@ -117,11 +115,13 @@ public partial class World {
 
     public IEnumerable<Type> ComponentTypes(EntityId id) {
         var context = GetContext(id.Index);
-        foreach (var pair in context.Components) {
-            var group = GetComponentGroup(pair.Key);
+        foreach (var type in context.Archetype.Types) {
+            var group = GetComponentGroup(type);
             yield return group.Type;
         }
     }
+
+    public int GetComponentTypeCount() => ComponentTypeCount;
 
     #endregion
 
@@ -130,10 +130,10 @@ public partial class World {
     public ref T AddComponent<T>(EntityId id) where T : IComponent {
         ref var context = ref GetContext(id.Index);
         var typeId = ComponentType<T>.TypeId;
-#if DEBUG
+        
         Debug.Assert(context.Version == id.Version);
         Debug.Assert(!context.Has(typeId), $"Component has exist: {typeof(T)}");
- #endif
+      
         var group = GetComponentGroup<T>(typeId);
         var index = group.Add(context.GetEntity(this));
         context.Archetype.OnAddComponent(ref context, typeId, index);
@@ -144,7 +144,10 @@ public partial class World {
     public ref T AddComponent<T>(EntityId id, T component) where T : IComponent {
         ref var context = ref GetContext(id.Index);
         var typeId = ComponentType<T>.TypeId;
-        Debug.Assert(context.Version == id.Version && !context.Has(typeId));
+        
+        Debug.Assert(context.Version == id.Version, "Entity version error.");
+        Debug.Assert(!context.Has(typeId), $"Component has exist: {typeof(T)}");
+
         var group = GetComponentGroup<T>();
         var index = group.Add(context.GetEntity(this), in component);
         context.Archetype.OnAddComponent(ref context, typeId, index);
@@ -197,12 +200,24 @@ public partial class World {
     #region Get
 
     public ComponentPtr<T> PtrComponent<T>(in EntityId id) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
         ref var context = ref GetContext(id.Index);
+        var typeId = ComponentType<T>.TypeId;
         var group = GetComponentGroup<T>();
         return new ComponentPtr<T>(group, context.Get(typeId));
     }
-        
+
+    // public ref T GetComponent2<T>(EntityId id) where T : IComponent {
+    //     ref var context = ref GetContext(id.Index);
+    //     var type = ComponentType<T>.TypeId;
+    //     Debug.Assert(context.Version == id.Version);
+    //     Debug.Assert(!context.Has(type), $"Component has exist, entity:{id}, component:{typeof(T)}");
+    //     if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
+    //         return ref context.Archetype.GetComponent<T>(ref context, context.Get(type));
+    //     }
+    //     var group = GetComponentGroup<T>();
+    //     return ref group.Get(context.Get(type));
+    // }
+    //
     public ref T GetComponent<T>(EntityId id) where T : IComponent {
         var typeId = ComponentType<T>.TypeId;
         ref var context = ref GetContext(id.Index);
@@ -238,9 +253,10 @@ public partial class World {
         
     public IEnumerable<IComponent> GetAllComponents(EntityId id) {
         var context = GetContext(id.Index);
-        foreach (var pair in context.Components) {
-            var group = GetComponentGroup(pair.Key);
-            yield return group.Get(pair.Value);
+        foreach (var typeId in context.Archetype.Types) {
+            var group = GetComponentGroup(typeId);
+            var index = context.Get(typeId);
+            yield return group.Get(index);
         }
     }
         
@@ -346,13 +362,15 @@ public partial class World {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void _ClearComponents(ref EntityContext context, in Entity entity) {
         var id = entity.Id;
-        foreach (var pair in context.Components) {
-            var group = GetComponentGroup(pair.Key);
-            group.OnRemove(id, pair.Value);
+        foreach (var type in context.Archetype.Types) {
+            var group = GetComponentGroup(type);
+            var index = context.Get(type);
+            group.OnRemove(id, index);
         }
-        foreach (var pair in context.Components) {
-            var group = GetComponentGroup(pair.Key);
-            group.Remove(in entity, pair.Value);
+        foreach (var type in context.Archetype.Types) {
+            var group = GetComponentGroup(type);
+            var index = context.Get(type);
+            group.Remove(in entity, index);
         }
     }
         
@@ -372,7 +390,7 @@ public partial class World {
         var typeId = ComponentType<T>.TypeId;
         ref var context = ref GetContext(id.Index);
         var group = GetComponentGroup<T>(typeId);
-        var index = context.Components[typeId];
+        var index = context.Get(typeId);
         return new ComponentPtr<T>(group, index);
     }
 

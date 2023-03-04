@@ -51,4 +51,7 @@ public static class BitOpUtil {
         return (value & value - 1) == 0 && value > 0;
 #endif
     }
+
 }
+
+

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace Coorth.Framework; 
@@ -15,6 +16,8 @@ public static class ComponentType<T> {
     public static readonly bool IsValueType;
         
     public static readonly bool IsPinned;
+
+    public static readonly bool IsUnmanaged;
         
     static ComponentType() {
         Type = typeof(T);
@@ -22,6 +25,7 @@ public static class ComponentType<T> {
         TypeId = Interlocked.Increment(ref World.ComponentTypeCount);
         World.ComponentTypeIds[Type] = TypeId;
         IsValueType = typeof(T).IsValueType;
-        IsPinned = (Attribute != null) && Attribute.IsPinned;
+        IsPinned    = (Attribute != null) && Attribute.IsPinned;
+        IsUnmanaged = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
     }
 }

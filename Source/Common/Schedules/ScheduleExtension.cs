@@ -12,7 +12,7 @@ public static class ScheduleExtension {
             throw new ArgumentNullException();
         }
         if (task.Exception != null) {
-            throw task.Exception.InnerException ?? task.Exception;
+            throw task.Exception;
         }
     }
         

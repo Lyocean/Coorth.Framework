@@ -7,17 +7,18 @@ public sealed class EntityPack {
     private EntityPack(int capacity) {
         Components = new ComponentPack[capacity];
     }
-        
+
     public static EntityPack Pack(Entity entity) {
         var world = entity.World;
         ref var context = ref entity.World.GetContext(entity.Id.Index);
         var entityPack = new EntityPack(context.Count);
-        var index = 0;
-        foreach (var pair in context.Components) {
-            var componentGroup = world.GetComponentGroup(pair.Key);
-            var componentPack = componentGroup.Pack(entity, pair.Value);
-            entityPack.Components[index] = componentPack;
-            index++;
+        var count = 0;
+        foreach (var type in context.Archetype.Types) {
+            var group = world.GetComponentGroup(type);
+            var index = context.Get(type);
+            var componentPack = group.Pack(entity, index);
+            entityPack.Components[count] = componentPack;
+            count++;
         }
         return entityPack;
     }

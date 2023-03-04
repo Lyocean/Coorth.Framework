@@ -4,16 +4,13 @@ namespace Coorth.Framework;
 
 public sealed class ActorRemoteDomain : ActorDomain {
 
-    public readonly ISession Session;
+    public readonly IActorSession Session;
     
-    public ActorRemoteDomain(string name, ActorsRuntime runtime, ISession session, ActorNode? parent) : base(name, runtime, parent) {
+    public ActorRemoteDomain(string name, ActorsRuntime runtime, IActorSession session, ActorNode? parent) : base(name, runtime, parent, session) {
         Session = session;
     }
     
     public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
-        
-        
-        
         return new ValueTask();
     }
 

@@ -58,6 +58,14 @@ public sealed partial class Dispatcher : Disposable {
                 try {
                     ((Reaction<T>)reaction).Execute(in e);
                 }
+                catch (AggregateException exception) {
+                    if (exception.InnerException != null) {
+                        LogUtil.Exception(exception.InnerException);
+                    }
+                    else {
+                        LogUtil.Exception(exception);
+                    }
+                }
                 catch (Exception exception) {
                     LogUtil.Exception(exception);
                 }
@@ -208,31 +216,37 @@ public sealed partial class Dispatcher {
 public partial class Dispatcher {
 
     public Reaction<T> Subscribe<T>(EventAction<T> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
 
     public Reaction<T> Subscribe<T>(Action<T> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
 
     public Reaction<T> Subscribe<T>(EventFunc<T, ValueTask> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
 
     public Reaction<T> Subscribe<T>(Func<T, ValueTask> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
 
     public Reaction<T> Subscribe<T>(EventFunc<T, Task> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
 
     public Reaction<T> Subscribe<T>(Func<T, Task> action) where T : notnull {
+        System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }

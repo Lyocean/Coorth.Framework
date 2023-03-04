@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,11 @@ public partial class World : IDisposable {
 
     private static int currIndex;
     public readonly int Index;
-    
+
+    private static readonly Dictionary<int, World> worlds = new(1);
+    public static IReadOnlyDictionary<int, World> Worlds => worlds;
+
+
     public readonly WorldOptions Options;
 
     public readonly TaskSyncContext SyncContext;
@@ -25,6 +30,8 @@ public partial class World : IDisposable {
     public readonly IServiceLocator Services;
 
     public readonly ILogger Logger;
+
+    public readonly WorldActor Actor;
         
     private volatile int disposed;
     public bool IsDisposed => disposed != 0;
@@ -35,15 +42,18 @@ public partial class World : IDisposable {
         
         Name = Options.Name;
         Index = ++currIndex;
+        worlds.Add(Index, this);
+        
         Services = options.Services;
         Dispatcher = options.Dispatcher;
         SyncContext = options.SyncContext;
         Router = new Router<MessageContext>();
+        Actor = new WorldActor(this);
 
-        InitArchetypes(Options.ArchetypeCapacity.Index, Options.ArchetypeCapacity.Chunk, out emptyArchetype);
+        InitArchetypes(out emptyArchetype);
 
         InitEntities(Options.EntityCapacity.Index, Options.EntityCapacity.Chunk);
-        InitComponents(Options.ComponentGroupCapacity, Options.ComponentDataCapacity.Index, Options.ComponentDataCapacity.Chunk);
+        InitComponents(Options);
 
         InitSystems(out RootSystem);
             
@@ -63,11 +73,14 @@ public partial class World : IDisposable {
         }
     }
 
+
+
     private void OnDispose() {
         if (!SyncContext.IsMain) {
             Logger.Error("Dispose can must be call in world main thread.");
             return;
         }
+        worlds.Remove(Index);
         ClearEntities();
         ClearComponents();
         ClearSystems();

@@ -30,14 +30,14 @@ public partial class World {
     
     internal void OnSystemAdd(Type key, SystemBase system) {
         systems.Add(key, system);
-        Dispatcher.Dispatch(new EventSystemAdd(this, key, system));
+        Dispatcher.Dispatch(new SystemAddEvent(this, key, system));
     }
 
     internal bool OnSystemRemove(Type key) {
         if (!systems.TryGetValue(key, out var system)) {
             return false;
         }
-        Dispatcher.Dispatch(new EventSystemRemove(this, key, system));
+        Dispatcher.Dispatch(new SystemRemoveEvent(this, key, system));
         return systems.Remove(key);
     }
 

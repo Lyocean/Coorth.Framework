@@ -7,12 +7,15 @@ namespace Coorth.Framework;
 [AttributeUsage(AttributeTargets.Interface | AttributeTargets.Class)]
 public class ModuleAttribute : Attribute { }
 
-public interface IModule { }
+public interface IModule : IActor { }
 
-public abstract class ModuleBase : ServiceNode<ModuleBase>, IModule {
+public abstract class ModuleBase : ServiceNode<ModuleBase>, IModule, IActorLifetime {
     
     public virtual AppBase App => Root.App;
 
+    private ActorLocalNode? node;
+    public ActorLocalNode Node => node ?? throw new NullReferenceException();
+    
     protected override IServiceLocator Services => Root.Services;
 
     protected override Dispatcher Dispatcher => Root.Dispatcher;
@@ -43,6 +46,21 @@ public abstract class ModuleBase : ServiceNode<ModuleBase>, IModule {
     protected override void OnChildRemove(ModuleBase child) {
         App.OnRemoveModule(child.Key, child);
     }
+
+    public void Setup(ActorLocalNode value) {
+        node = value;
+        OnSetup();
+    }
+    
+    protected virtual void OnSetup() { }
+
+    public void Clear() {
+        OnClear();
+        node = null;
+    }
+    
+    protected virtual void OnClear() { }
+
 }
 
 public sealed class ModuleRoot : ModuleBase {

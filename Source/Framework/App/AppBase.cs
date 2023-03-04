@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
@@ -24,19 +25,24 @@ public interface IApplication {
 
 public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
+    #region Fields & Properties
+
     public int Id { get; }
 
+    public AppKey Key { get; }
+
     public string Name { get; }
+
+    public readonly TaskSyncContext SyncContext;
 
     public Dispatcher Dispatcher { get; }
 
     public ServiceLocator Services { get; }
 
-    protected readonly ActorsRuntime Actors;
-
-    public readonly TaskSyncContext SyncContext;
+    public readonly ActorsRuntime Actors;
+    public readonly ActorLocalDomain Domain;
     
-    private readonly ModuleRoot root;
+    private readonly ModuleRoot rootModule;
 
     private readonly Dictionary<Type, ModuleBase> modules = new();
 
@@ -53,23 +59,31 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     protected bool isLoaded;
     
     protected ILogger Logger { get; }
+
+    #endregion
     
+    #region Liftime
+
     protected AppBase(AppBuilder builder) {
+        //Common
         Id = builder.Id;
+        Key = builder.GetKey();
         Name = !string.IsNullOrWhiteSpace(builder.Name) ? builder.Name : "App-Default";
         Logger = builder.Logger;
-
+        //Features
+        features.AddRange(builder.Features);
+        //Services
         Services = builder.Services;
+        //Dispatcher & Scheduler
         Dispatcher = builder.Dispatcher;
         SyncContext = new TaskSyncContext(Thread.CurrentThread);
         SynchronizationContext.SetSynchronizationContext(SyncContext);
-
+        //Actors & Modules
         Actors = new ActorsRuntime(Dispatcher, Services, Logger);
-        root = new ModuleRoot(this, Services, Dispatcher, Actors);
-        root.SetActive(false);
+        rootModule = new ModuleRoot(this, Services, Dispatcher, Actors);
+        Domain = Actors.CreateDomain("App", rootModule);
+        rootModule.SetActive(false);
 
-        features.AddRange(builder.Features);
-        
         foreach (var feature in features) {
             try {
                 feature.Install(this);
@@ -78,6 +92,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
                 Logger.Exception(LogLevel.Error, e);
             }
         }
+        Applications.Add(this);
     }
     
     public AppBase Setup() {
@@ -130,7 +145,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         Logger.Trace(nameof(Start));
 
         isRunning = true;
-        root.SetActive(true);
+        rootModule.SetActive(true);
         OnStartup();
         Dispatcher.Dispatch(new ApplicationStartEvent(this));
     }
@@ -192,12 +207,12 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         Logger.Trace(nameof(Close));
         Dispatcher.Dispatch(new ApplicationCloseEvent());
         OnClose();
-        root.SetActive(false);
+        rootModule.SetActive(false);
 
         isRunning = false;
         OnDestroy();
         foreach (var key in modules.Keys.ToArray()) {
-            Remove(key);
+            RemoveModule(key);
         }
         SyncContext.Cancel();
         
@@ -206,6 +221,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     protected virtual void OnClose() { }
 
     protected override void OnDispose(bool dispose) {
+        Applications.Remove(this);
         Close();
     }
 
@@ -215,63 +231,10 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         SyncContext.Cancel();
     }
  
-    internal void OnAddModule(Type key, ModuleBase module) {
-        Logger.Trace($"AddModule:{key.Name} - {module.GetType().Name}");
-        modules[key] = module;
-        Dispatcher.Dispatch(new ModuleAddEvent(key, module));
-    }
-    
-    internal void OnRemoveModule(Type key, ModuleBase module) {
-        if (!modules.Remove(key)) {
-            return;
-        }
-        Dispatcher.Dispatch(new ModuleRemoveEvent(key, module));
-    }
-    
-    public TModule Bind<TModule>(TModule module) where TModule : IModule {
-        root.AddChild(typeof(TModule), (ModuleBase)(object)module);
-        return module;
-    }
-    
-    public TKey Bind<TKey, TModule>(Func<AppBase, TModule> func)  where TModule : ModuleBase, TKey where TKey : IModule {
-        var module = func(this);
-        return Bind<TKey, TModule>(module);
-    }
-        
-    public TModule Bind<TModule>() where TModule : ModuleBase, new() {
-        var module = new TModule();
-        return Bind<TModule, TModule>(module);
-    }
-    
-    public TModule Bind<TKey, TModule>(TModule module) where TModule : ModuleBase, TKey where TKey : IModule {
-        root.AddChild(typeof(TKey), module);
-        return module;
-    }
 
-    public TKey Get<TKey>() where TKey : IModule {
-        return modules.TryGetValue(typeof(TKey), out var module) ? (TKey)(object)module : throw new KeyNotFoundException();
-    }
-    
-    public TKey? Find<TKey>() where TKey : IModule {
-        return modules.TryGetValue(typeof(TKey), out var module) ? (TKey)(object)module : default;
-    }
-    
-    public ModuleBase Get(Type key) {
-        return modules.TryGetValue(key, out var module) ? module : throw new KeyNotFoundException();
-    }
-    
-    public bool Remove(Type key) {
-        if (!modules.TryGetValue(key, out var module)) {
-            return false;
-        }
-        module.Dispose();
-        modules.Remove(key);
-        return true;
-    }
-    
-    public bool Remove<TKey>() where TKey : IModule {
-        return Remove(typeof(TKey));
-    }
+    #endregion
+
+    #region Service
 
     public object GetService(Type serviceType) {
         if (modules.TryGetValue(serviceType, out var moduleBase)) {
@@ -294,4 +257,108 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     public T? FindService<T>() where T : class {
         return GetService(typeof(T)) as T;
     }
+
+    #endregion
+
+    #region Module
+    
+    internal void OnAddModule(Type key, ModuleBase module) {
+        Logger.Trace($"AddModule:{key.Name} - {module.GetType().Name}");
+        modules[key] = module;
+        var option = new ActorOptions(key.Name, -1, -1);
+        Domain.CreateActor(key, module, option);
+        Dispatcher.Dispatch(new ModuleAddEvent(key, module));
+    }
+    
+    internal void OnRemoveModule(Type key, ModuleBase module) {
+        if (!modules.Remove(key)) {
+            return;
+        }
+        Domain.RemoveActor(module.Node.Ref);
+        Dispatcher.Dispatch(new ModuleRemoveEvent(key, module));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void _AddModule(Type key, ModuleBase module) {
+        Domain.CreateActor(module);
+        rootModule.AddChild(key, module);
+    }
+    
+    public TModule AddModule<TModule>(TModule module) where TModule : class, IModule {
+        _AddModule(typeof(TModule), (ModuleBase)(object)module);
+        return module;
+    }
+    
+    public TKey AddModule<TKey, TModule>(Func<AppBase, TModule> func)  where TModule : ModuleBase, TKey where TKey : IModule {
+        var module = func(this);
+        _AddModule(typeof(TKey), module);
+        return module;
+    }
+        
+    public TModule AddModule<TModule>() where TModule : ModuleBase, new() {
+        var module = new TModule();
+        _AddModule(typeof(TModule), module);
+        return module;
+    }
+    
+    public TModule AddModule<TKey, TModule>(TModule module) where TModule : ModuleBase, TKey where TKey : IModule {
+        _AddModule(typeof(TKey), module);
+        return module;
+    }
+
+    public TKey GetModule<TKey>() where TKey : IModule {
+        return modules.TryGetValue(typeof(TKey), out var module) ? (TKey)(object)module : throw new KeyNotFoundException();
+    }
+    
+    public TKey? FindModule<TKey>() where TKey : IModule {
+        return modules.TryGetValue(typeof(TKey), out var module) ? (TKey)(object)module : default;
+    }
+    
+    public ModuleBase GetModule(Type key) {
+        return modules.TryGetValue(key, out var module) ? module : throw new KeyNotFoundException();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private bool _RemoveModule(Type key) {
+        if (!modules.TryGetValue(key, out var module)) {
+            return false;
+        }
+        module.ClearChildren();
+        modules.Remove(key);
+        Domain.RemoveActor(module.Node.Ref);
+        module.Dispose();
+        return true;
+    }
+    
+    public bool RemoveModule(Type key) {
+        return _RemoveModule(key);
+    }
+    
+    public bool RemoveModule<TKey>() where TKey : IModule {
+        return _RemoveModule(typeof(TKey));
+    }
+
+    #endregion
+    
+}
+
+public static class Applications {
+
+    private static Dictionary<AppKey, AppBase> apps = new();
+    public static IReadOnlyDictionary<AppKey, AppBase> Apps => apps;
+
+    internal static void Add(AppBase app) {
+        apps.Add(app.Key, app);
+    }
+
+    internal static void Remove(AppBase app) {
+        apps.Remove(app.Key);
+    }
+    
+    
+}
+
+public readonly record struct AppKey(Guid Guid) {
+    public readonly Guid Guid = Guid;
+    public override int GetHashCode() => Guid.GetHashCode();
 }

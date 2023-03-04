@@ -66,7 +66,7 @@ public partial class World {
         ref var context = ref CreateContext();
         archetype.EntityCreate(ref context);
         var entity = context.GetEntity(this);
-        Dispatch(new EventEntityCreate(entity));
+        Dispatch(new EntityCreateEvent(entity));
         return entity;
     }
 
@@ -77,7 +77,7 @@ public partial class World {
         var archetype = srcContext.Archetype;
         archetype.EntityClone(ref srcContext, ref dstContext);
         var dstEntity = dstContext.GetEntity(this);
-        Dispatch(new EventEntityCreate(dstEntity));
+        Dispatch(new EntityCreateEvent(dstEntity));
         return dstEntity;
     }
 
@@ -176,7 +176,7 @@ public partial class World {
         }
 
         var entity = new Entity(this, id);
-        Dispatch(new EventEntityRemove(entity));
+        Dispatch(new EntityRemoveEvent(entity));
         
         _ClearComponents(ref context, in entity);
         context.Archetype.EntityRemove(ref context, emptyArchetype);

@@ -188,7 +188,6 @@ public abstract class ServiceNode<T> : ServiceBase, IDisposable where T : Servic
         if (IsDisposed) {
             return;
         }
-
         IsDisposed = true;
         ClearChildren();
         parent?._RemoveChild(Key);

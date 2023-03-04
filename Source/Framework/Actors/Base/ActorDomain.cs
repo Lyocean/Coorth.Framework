@@ -4,13 +4,11 @@ namespace Coorth.Framework;
 
 public abstract class ActorDomain : ActorNode, IActor {
     
-    public override IActor Actor => this;
-
     public override ActorsRuntime Runtime { get; }
 
     public override ActorDomain Domain => this;
     
-    protected ActorDomain(string? name, ActorsRuntime runtime, ActorNode? parent) : base(ActorId.New(), name, parent) {
+    protected ActorDomain(string? name, ActorsRuntime runtime, ActorNode? parent, IActor actor) : base(ActorId.New(), name, parent, actor, actor as IActorProcessor) {
         Runtime = runtime;
     }
 

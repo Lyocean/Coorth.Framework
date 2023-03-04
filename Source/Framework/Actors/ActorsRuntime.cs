@@ -6,7 +6,7 @@ using Coorth.Logs;
 
 namespace Coorth.Framework;
 
-public sealed class ActorsRuntime : IActor {
+public sealed class ActorsRuntime : IActor, IActorProcessor {
 
     public readonly Dispatcher Dispatcher;
     
@@ -22,6 +22,8 @@ public sealed class ActorsRuntime : IActor {
 
     public ActorsRuntime Runtime => this;
 
+    public readonly ActorDeath Death = new();
+
     #region Lifecycle
 
     public ActorsRuntime(Dispatcher dispatcher, ServiceLocator services, ILogger logger) {
@@ -35,12 +37,12 @@ public sealed class ActorsRuntime : IActor {
 
     #region Domain
     
-    public ActorLocalDomain CreateDomain(string? name = null) {
-        var domain = new ActorLocalDomain(name, this, Root);
+    public ActorLocalDomain CreateDomain(string? name = null, IActor? actor = null) {
+        var domain = new ActorLocalDomain(name, this, Root, actor ?? Death);
         return domain;
     }
 
-    public ActorRemoteDomain CreateDomain(string name, ISession session) {
+    public ActorRemoteDomain CreateDomain(string name, IActorSession session) {
         var domain = new ActorRemoteDomain(name, this, session, Root);
         return domain;
     }
@@ -92,6 +94,10 @@ public sealed class ActorsRuntime : IActor {
     public ValueTask ReceiveAsync(MessageContext context, IMessage m) {
         Logger.Log(LogLevel.Error, $"Actor runtime receive message: {m}");
         return new ValueTask();
+    }
+
+    internal void OnDeath(MessageContext context, IMessage m) {
+        Logger.Error($"Death message, sender: {context.Sender.Id}, receiver: {context.Self.Id}, message: {m}");
     }
 
     #endregion

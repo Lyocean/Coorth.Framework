@@ -10,9 +10,7 @@ public static class ActorStatus {
 }
 
 public sealed class ActorLocalNode : ActorNode {
-
-    public override IActor Actor { get; }
-
+    
     private readonly ActorLocalDomain domain;
     public override ActorDomain Domain => domain;
     
@@ -26,8 +24,7 @@ public sealed class ActorLocalNode : ActorNode {
 
     public readonly int Throughput;
     
-    public ActorLocalNode(ActorOptions options, IActor actor, ActorLocalDomain localDomain, ActorNode? parent) : base(ActorId.New(), options.Name, parent) {
-        Actor = actor;
+    public ActorLocalNode(ActorId id, ActorOptions options, IActor actor, ActorLocalDomain localDomain, ActorNode? parent) : base(id, options.Name, parent, actor, actor as IActorProcessor) {
         domain = localDomain;
         Runtime = localDomain.Runtime;
         Throughput = options.Throughput;
@@ -46,7 +43,9 @@ public sealed class ActorLocalNode : ActorNode {
     }
     
     private async void Schedule(MessageContext context, IMessage message) {
-        await Actor.ReceiveAsync(context, message);
+        if (Processor != null) {
+            await Processor.ReceiveAsync(context, message);
+        }
         if (Mailbox.Reader.Count == 0) {
             Interlocked.CompareExchange(ref status, ActorStatus.IDLE_STATE, ActorStatus.BUSY_STATE);
             return;
@@ -57,16 +56,17 @@ public sealed class ActorLocalNode : ActorNode {
                 return;
             }
             using var ctx = new MessageContext(this, mail.Sender, CancellationToken.None);
-            await Actor.ReceiveAsync(ctx, message);
+            if (Processor != null) {
+                await Processor.ReceiveAsync(ctx, message);
+            }
         }
         Runtime.ThroughputOverflow(this);
     }
     
-    public ActorLocalNode CreateChild(ActorOptions options, IActor actor) {
-        var node = new ActorLocalNode(options, actor, domain, this);
+    public ActorLocalNode CreateChild(ActorId id, ActorOptions options, IActor actor) {
+        var node = new ActorLocalNode(id, options, actor, domain, this);
+        (actor as IActorLifetime)?.Setup(node);
         return node;
     }
-    
-
 }
 

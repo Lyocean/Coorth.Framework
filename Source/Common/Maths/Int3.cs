@@ -45,4 +45,8 @@ public partial record struct Int3(int X, int Y, int Z) {
     public static Int3 operator *(int l, Int3 r) {
         return new Int3(l * r.X, l * r.Y, l * r.Z);
     }
+    
+    public static implicit operator Int3((int x, int y, int z) value) {
+        return new Int3(value.x, value.y, value.z);
+    }
 }

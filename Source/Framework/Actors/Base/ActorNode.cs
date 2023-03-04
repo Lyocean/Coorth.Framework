@@ -11,7 +11,9 @@ public abstract class ActorNode : Disposable {
     
     public readonly ActorPath Path;
 
-    public abstract IActor Actor { get; }
+    public IActor Actor { get; }
+
+    public IActorProcessor? Processor { get; }
 
     public abstract ActorDomain Domain { get; }
 
@@ -31,15 +33,17 @@ public abstract class ActorNode : Disposable {
 
     #region Lifecycle
     
-    protected ActorNode(ActorId id, string? name, ActorNode? parent) {
+    protected ActorNode(ActorId id, string? name, ActorNode? parent, IActor actor, IActorProcessor? processor) {
         Id = id;
         name ??= id.Id.ToString();
         Path = new ActorPath(parent?.Path.FullPath ?? string.Empty, name);
         Parent = parent;
+        Actor = actor;
+        Processor = processor;
         Parent?.AddChild(this);
     }
 
-    private void AddChild(ActorNode child) {
+    protected void AddChild(ActorNode child) {
         children ??= new Dictionary<ActorId, ActorNode>();
         children.Add(child.Id, child);
         Runtime.OnActorNodeAttach(child.Id, child);

@@ -83,7 +83,7 @@ public interface IActorTest {
         
 }
 
-public class ActorDispatchForTest : Actor, IActorTest {
+public class ActorDispatchForTest : ActorBase, IActorTest {
 
     public int Count = 0;
 

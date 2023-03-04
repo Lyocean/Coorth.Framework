@@ -7,7 +7,7 @@ public sealed class ActorLocalDomain : ActorDomain {
 
     #region Node
 
-    public ActorLocalDomain(string? name, ActorsRuntime runtime, ActorNode? parent) : base(name, runtime, parent) {
+    public ActorLocalDomain(string? name, ActorsRuntime runtime, ActorNode? parent, IActor actor) : base(name, runtime, parent, actor) {
     }
     
     public override ValueTask ReceiveAsync(MessageContext context, IMessage m) {
@@ -15,8 +15,8 @@ public sealed class ActorLocalDomain : ActorDomain {
         return new ValueTask();
     }
 
-    private ActorLocalNode CreateChild(ActorOptions options, IActor actor) {
-        var node = new ActorLocalNode(options, actor, this, this);
+    private ActorLocalNode CreateChild(ActorId id, ActorOptions options, IActor actor) {
+        var node = new ActorLocalNode(id, options, actor, this, this);
         (actor as IActorLifetime)?.Setup(node);
         return node;
     }
@@ -35,7 +35,7 @@ public sealed class ActorLocalDomain : ActorDomain {
     #region Actor
 
     public ActorRef CreateActor(Type key, IActor actor, ActorOptions options) {
-        var node = CreateChild(options, actor);
+        var node = CreateChild(ActorId.New(), options, actor);
         Runtime.Dispatcher.Dispatch(new EventActorCreate(node.Ref, key, actor));
         return node.Ref;
     }

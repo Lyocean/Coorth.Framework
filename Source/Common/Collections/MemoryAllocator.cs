@@ -10,6 +10,7 @@ public interface IMemoryAllocator {
 }
 
 public class MemoryAllocator : IMemoryAllocator {
+    
     public Memory<T> Alloc<T>(int size) {
         var array = ArrayPool<T>.Shared.Rent(size);
         return array.AsMemory();

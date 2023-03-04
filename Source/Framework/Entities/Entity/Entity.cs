@@ -58,13 +58,7 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent =>
         World.TryGetComponent(Id, out component);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ComponentPtr<T> Ptr<T>() where T : IComponent => World.PtrComponent<T>(Id);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ComponentPtr<T> Wrap<T>() where T : IComponent => World.GetComponentPtr<T>(Id);
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IEnumerable<IComponent> GetAll() => World.GetAllComponents(Id);
 

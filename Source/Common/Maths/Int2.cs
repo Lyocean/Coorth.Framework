@@ -41,4 +41,8 @@ public partial record struct Int2(int X, int Y) {
     public static Int2 operator *(int l, Int2 r) {
         return new Int2(l * r.X, l * r.Y);
     }
+
+    public static implicit operator Int2((int x, int y) value) {
+        return new Int2(value.x, value.y);
+    }
 }

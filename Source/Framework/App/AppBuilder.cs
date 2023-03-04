@@ -70,6 +70,10 @@ public class AppBuilder {
         return this;
     }
 
+    public AppKey GetKey() {
+        return new AppKey(Guid.NewGuid());
+    }
+
     public T Build<T>() where T: AppBase {
         var app = Activator.CreateInstance(typeof(T), this) as T;
         if (app == null) {

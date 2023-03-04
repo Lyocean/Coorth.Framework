@@ -28,7 +28,7 @@ public partial class World {
     public void ReadEntity(ISerializeReader reader, EntityId entityId) {
         reader.BeginData(typeof(Entity));
         var count = reader.ReadField<int>(nameof(Entity.Count), 1);
-        reader.ReadTag(nameof(EntityContext.Components), 2);
+        reader.ReadTag(nameof(ArchetypeDefinition.Components), 2);
         reader.BeginDict(typeof(Type), typeof(IComponent), out var _);
         for (var i = 0; i < count; i++) {
             var type = reader.ReadKey<Type>();
@@ -49,12 +49,13 @@ public partial class World {
         writer.BeginData<Entity>(2);
         ref var context = ref GetContext(entityId.Index);
         writer.WriteField(nameof(Entity.Count), 1, context.Count);
-        writer.WriteTag(nameof(EntityContext.Components), 2);
+        writer.WriteTag(nameof(ArchetypeDefinition.Components), 2);
         writer.BeginDict(typeof(Type), typeof(IComponent), context.Count);
-        foreach (var pair in context.Components) {
-            var componentGroup = GetComponentGroup(pair.Key);
-            writer.WriteKey(componentGroup.Type);
-            componentGroup.Write(writer, pair.Value);
+        foreach (var type in context.Archetype.Types) {
+            var group = GetComponentGroup(type);
+            var index = context.Get(type);
+            writer.WriteKey(group.Type);
+            group.Write(writer, index);
         }
 
         writer.EndDict();

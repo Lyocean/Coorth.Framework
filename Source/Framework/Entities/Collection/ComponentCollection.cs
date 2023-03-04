@@ -11,10 +11,8 @@ public readonly struct ComponentCollection<T1> : IEnumerable<(Entity, T1)> where
 
     private readonly ComponentGroup<T1> group1;
 
-
     internal ComponentCollection(World world) {
         this.group1 = world.GetComponentGroup<T1>();
-
     }
  
 
@@ -873,14 +871,13 @@ public readonly struct ComponentCollection<T1, T2, T3> : IEnumerable<(Entity, T1
     
 #endregion
 
+public static class ComponentCollectionExtension {
 
-    public static class ComponentCollectionExtension {
+     public static ComponentCollection<T1, T2> GetComponents<T1, T2>(this World world) where T1 : IComponent where T2 : IComponent {
+         return new ComponentCollection<T1, T2>(world);
+     }   
 
-         public static ComponentCollection<T1, T2> GetComponents<T1, T2>(this World world) where T1 : IComponent where T2 : IComponent {
-             return new ComponentCollection<T1, T2>(world);
-         }   
-
-         public static ComponentCollection<T1, T2, T3> GetComponents<T1, T2, T3>(this World world) where T1 : IComponent where T2 : IComponent where T3 : IComponent {
-             return new ComponentCollection<T1, T2, T3>(world);
-         }   
+     public static ComponentCollection<T1, T2, T3> GetComponents<T1, T2, T3>(this World world) where T1 : IComponent where T2 : IComponent where T3 : IComponent {
+         return new ComponentCollection<T1, T2, T3>(world);
+     }   
 }

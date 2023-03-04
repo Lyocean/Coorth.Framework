@@ -38,6 +38,13 @@ public class ArchetypeBuilder {
         world.BindComponent<T>();
         Validate(typeof(T));
         var typeId = ComponentType<T>.TypeId;
+        var group = world.GetComponentGroup<T>();
+        // var dependencies = group.GetDependencies();
+        // if (dependencies.Count > 0) {
+        //     foreach (var dependency in dependencies) {
+        //         definition = definition.AddComponent(typeId);
+        //     }
+        // }
         definition = definition.AddComponent(typeId);
         return this;
     }

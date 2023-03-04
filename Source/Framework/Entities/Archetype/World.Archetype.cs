@@ -12,10 +12,7 @@ public partial class World {
 
     private readonly Dictionary<ArchetypeMatcher, ArchetypeGroup> matcherToGroups = new();
 
-    internal (int Index, int Chunk) ArchetypeCapacity;
-
-    private void InitArchetypes(int indexCapacity, int chunkCapacity, out ArchetypeDefinition empty) {
-        ArchetypeCapacity = (indexCapacity, chunkCapacity);
+    private void InitArchetypes(out ArchetypeDefinition empty) {
         empty = new ArchetypeDefinition(this);
     }
 
