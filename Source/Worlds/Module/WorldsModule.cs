@@ -6,9 +6,10 @@ using Coorth.Logs;
 namespace Coorth.Framework;
 
 public interface IWorldsModule : IModule {
-    ValueTask<IWorldActor> GetActiveAsync();
-    ValueTask<IWorldActor> CreateWorldAsync(string name);
-    ValueTask<IWorldActor?> FindWorldAsync(ActorId id);
+    ValueTask<IWorldActor> GetActive();
+    ValueTask<IWorldActor> CreateWorld(string name);
+    ValueTask<IWorldActor?> FindWorld(ActorId id);
+    ValueTask RemoveWorld(ActorId id);
 }
 
 [Module, Guid("26D3438C-F2CC-4DC3-AAAF-D5EC74E97E9D")]
@@ -24,9 +25,11 @@ public class WorldsModule : ModuleBase, IWorldsModule {
 
     private ILogger Logger { get; set; } = LoggerNull.Instance;
 
+    private const string ACTIVE_WORLD_NAME = "Active";
+    
     protected override void OnAdd() {
         Logger = Services.Get<ILogManager>().Create("Worlds");
-        active = CreateWorld("Active");
+        active = _CreateWorld(ACTIVE_WORLD_NAME);
     }
 
     protected override void OnActive() {
@@ -55,7 +58,7 @@ public class WorldsModule : ModuleBase, IWorldsModule {
         }
     }
 
-    public World CreateWorld(string name) {
+    private World _CreateWorld(string name) {
         
         Logger.Trace($"CreateWorld: {name}");
         var logger = Services.Get<ILogManager>().Create($"World:{name}");
@@ -77,21 +80,42 @@ public class WorldsModule : ModuleBase, IWorldsModule {
         return world;
     }
 
-    public ValueTask<IWorldActor> GetActiveAsync() {
+    private void _RemoveWorld(World world) {
+        Logger.Trace($"RemoveWorld: {world.Name}");
+        worlds.Remove(world);
+        world.Dispose();
+    }
+    
+    public ValueTask<IWorldActor> GetActive() {
         return new ValueTask<IWorldActor>(Active.Actor);
     }
 
-    public ValueTask<IWorldActor> CreateWorldAsync(string name) {
-        var world = CreateWorld(name);
+    public ValueTask<IWorldActor> CreateWorld(string name) {
+        var world = _CreateWorld(name);
         return new ValueTask<IWorldActor>(world.Actor);
     }
 
-    public ValueTask<IWorldActor?> FindWorldAsync(ActorId id) {
+    public ValueTask<IWorldActor?> FindWorld(ActorId id) {
         foreach (var world in worlds) {
             if (world.Actor.ActorId == id) {
                 return new ValueTask<IWorldActor?>(world.Actor);
             }
         }
         return new ValueTask<IWorldActor?>(null as IWorldActor);
+    }
+
+    public ValueTask RemoveWorld(ActorId id) {
+        if (Active.Actor.ActorId == id) {
+            _RemoveWorld(Active);
+            _CreateWorld(ACTIVE_WORLD_NAME);
+            return new ValueTask();
+        }
+        foreach (var world in worlds) {
+            if (world.Actor.ActorId != id) {
+                continue;
+            }
+            _RemoveWorld(Active);
+        }
+        return new ValueTask();
     }
 }

@@ -15,6 +15,7 @@ public interface IWorldActor {
 
     ValueTask Send<TMessage>(TMessage message) where TMessage : notnull;
     ValueTask<TResponse> Request<TRequest, TResponse>(TRequest request) where TRequest : notnull;
+
 }
 
 public sealed class WorldActor : ActorBase, IWorldActor {
