@@ -22,4 +22,3 @@ public class StoreMemberAttribute : Attribute {
         Order = order;
     }
 }
-

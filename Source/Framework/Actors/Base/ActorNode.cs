@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Coorth.Framework;
 
@@ -66,7 +67,8 @@ public abstract class ActorNode : Disposable {
         if (children == null) {
             return;
         }
-        foreach (var (_, node) in children) {
+        var nodes = children.Values.ToArray();
+        foreach (var node in nodes) {
             node.Dispose();
         }
         children.Clear();

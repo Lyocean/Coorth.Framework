@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace Coorth.Framework; 
+﻿namespace Coorth.Framework; 
 
 public interface IActorProxy : IActor {
 
@@ -12,10 +10,5 @@ public abstract class ActorProxy : IActor {
     
     public ActorProxy(ActorRef value) {
         Ref = value;
-    }
-    
-    public ValueTask ReceiveAsync(MessageContext context, IMessage m) {
-        Ref.Send(m);
-        return new ValueTask();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Coorth.Logs;
 using NUnit.Framework;
 
 namespace Coorth.Framework;

@@ -106,7 +106,7 @@ internal class ArchetypeDefinition {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void RemoveEntity(ref EntityContext context) {
-        var position = context.Index;
+        var position = context.LocalIndex;
         var chunk_index = position / chunkCapacity;
         var local_index = position % chunkCapacity;
         ref var entity_chunk = ref chunks[chunk_index];
@@ -303,7 +303,7 @@ internal class ArchetypeDefinition {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGetComponentIndex(ref EntityContext context, int type, out int value) {
         return context.Components.TryGetValue(type, out value);
-    } 
+    }
 
 }
 

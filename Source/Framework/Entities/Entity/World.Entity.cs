@@ -28,13 +28,11 @@ public partial class World {
     }
 
     private void ClearEntities() {
-        var list = new List<EntityId>();
         for (var i = 0; i < contexts.Count; i++) {
-            list.Add(contexts[i].Id);
+            ref var context = ref contexts.Ref(i);
+            _DestroyEntity(ref context);
         }
-        foreach (var id in list) {
-            DestroyEntity(id);
-        }
+        contexts.Clear();
     }
 
     public void Clear() {
@@ -166,6 +164,20 @@ public partial class World {
 
     #region Destroy Entity
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void _DestroyEntity(ref EntityContext context) {
+        var entity = context.GetEntity(this);
+        Dispatch(new EntityRemoveEvent(entity));
+        
+        _ClearComponents(ref context, in entity);
+        context.Archetype.EntityRemove(ref context, emptyArchetype);
+        
+        context.Version++;
+        context.Index = reusingIndex;
+        reusingIndex = context.Index;
+        entityCount--;
+    }
+    
     public bool DestroyEntity(EntityId id) {
         if (id.Index >= contexts.Count) {
             return false;
@@ -174,17 +186,7 @@ public partial class World {
         if (context.Index != id.Index || context.Version != id.Version) {
             return false;
         }
-
-        var entity = new Entity(this, id);
-        Dispatch(new EntityRemoveEvent(entity));
-        
-        _ClearComponents(ref context, in entity);
-        context.Archetype.EntityRemove(ref context, emptyArchetype);
-        
-        context.Version++;
-        context.Index = reusingIndex;
-        reusingIndex = id.Index;
-        entityCount--;
+        _DestroyEntity(ref context);
         return true;
     }
 

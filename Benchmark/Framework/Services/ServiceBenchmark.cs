@@ -7,7 +7,7 @@ namespace Coorth.Framework;
 [MemoryDiagnoser]
 public class ServiceBenchmark {
 
-    private const int BIND_TEST_COUNT = 10_000;
+    private const int BIND_TEST_COUNT = 100_000;
     
     private const int GET_TEST_COUNT = 100_000;
     
@@ -18,7 +18,7 @@ public class ServiceBenchmark {
     private readonly ServiceLocator repeat = new();
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void _BindServices(ServiceLocator services) {
+    private static void _AddServices(ServiceLocator services) {
         services.AddFactory<IServiceApi1>(_ => new ServiceImpl1());
         services.AddService<IServiceApi2>(new ServiceImpl2());
         services.AddFactory<ServiceInst1>();
@@ -38,7 +38,7 @@ public class ServiceBenchmark {
         for (var i = 0; i < BIND_TEST_COUNT; i++) {
             locators[i] = new ServiceLocator();
         }
-        _BindServices(repeat);
+        _AddServices(repeat);
         _GetServices(repeat);
     } 
     
@@ -48,7 +48,7 @@ public class ServiceBenchmark {
             locators[i] = new ServiceLocator();
         }
         first.Clear();
-        _BindServices(first);
+        _AddServices(first);
     }
 
     [IterationCleanup]
@@ -59,13 +59,22 @@ public class ServiceBenchmark {
     }
     
     [Benchmark]
-    public void BindService() {
+    public void AddService() {
+        var service_impl2 = new ServiceImpl2();
+        var service_inst2 = new ServiceInst2();
+        for (var i = 1; i < BIND_TEST_COUNT; i++) {
+            var services = locators[i];
+            services.AddService<IServiceApi2>(service_impl2);
+            services.AddService(service_inst2);
+        }
+    }
+    
+    [Benchmark]
+    public void AddFactory() {
         for (var i = 1; i < BIND_TEST_COUNT; i++) {
             var services = locators[i];
             services.AddFactory<IServiceApi1>(_ => new ServiceImpl1());
-            services.AddService<IServiceApi2>(new ServiceImpl2());
             services.AddFactory<ServiceInst1>();
-            services.AddService(new ServiceInst2());
         }
     }
 

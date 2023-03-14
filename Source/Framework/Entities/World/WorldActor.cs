@@ -6,16 +6,14 @@ using Coorth.Serialize;
 namespace Coorth.Framework;
 
 public interface IWorldActor {
-    ValueTask AddSystem(Type type);
-    ValueTask AddSystems(params Type[] types);
-    ValueTask<bool> HasSystem(Type type);
-    ValueTask<bool> HasSystems(params Type[] types);
-    ValueTask RemoveSystem(Type type);
-    ValueTask RemoveSystems(params Type[] types);
-
-    ValueTask Send<TMessage>(TMessage message) where TMessage : notnull;
-    ValueTask<TResponse> Request<TRequest, TResponse>(TRequest request) where TRequest : notnull;
-
+    [StoreMethod(1)] ValueTask AddSystem(Type type);
+    [StoreMethod(2)] ValueTask AddSystems(params Type[] types);
+    [StoreMethod(3)] ValueTask<bool> HasSystem(Type type);
+    [StoreMethod(4)] ValueTask<bool> HasSystems(params Type[] types);
+    [StoreMethod(5)] ValueTask RemoveSystem(Type type);
+    [StoreMethod(6)] ValueTask RemoveSystems(params Type[] types);
+    [StoreMethod(7)] ValueTask Send<TMessage>(TMessage message) where TMessage : notnull;
+    [StoreMethod(8)] ValueTask<TResponse> Request<TRequest, TResponse>(TRequest request) where TRequest : notnull;
 }
 
 public sealed class WorldActor : ActorBase, IWorldActor {

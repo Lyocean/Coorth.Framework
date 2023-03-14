@@ -85,14 +85,41 @@ public static class LogUtil {
     #endregion
 
     #region Exception
-    
-    public static void Exception(Exception e) => Logger.Exception(LogLevel.Error, e);
 
-    public static void Exception(string name, Exception e) => Manager.Offer(name).Exception(LogLevel.Error, e);
+    public static void Exception(Exception e) {
+        if (logger != null) {
+            logger.Exception(LogLevel.Error, e);
+            return;
+        }
+        throw e;
+    }
 
-    public static void Exception<T>(T? e = null) where T : Exception => Logger.Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+    public static void Exception(string name, Exception e) {
+        if (manager != null) {
+            Manager.Offer(name).Exception(LogLevel.Error, e);
+        }
+        throw e;
+    }
 
-    public static void Exception<T>(string name, T? e = null) where T : Exception => Manager.Offer(name).Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+    public static void Exception<T>(T? e = null) where T : Exception {
+        if (logger != null) {
+            logger.Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+            return;
+        }
+        if (e != null) {
+            throw e;
+        }
+    }
+
+    public static void Exception<T>(string name, T? e = null) where T : Exception {
+        if (manager != null) {
+            manager.Offer(name).Exception(LogLevel.Error, e ?? Activator.CreateInstance<T>());
+            return;
+        }
+        if (e != null) {
+            throw e;
+        }
+    }
 
     #endregion
 

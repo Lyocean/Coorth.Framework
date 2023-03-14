@@ -326,7 +326,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         module.ClearChildren();
         modules.Remove(key);
         Domain.RemoveActor(module.Node.Ref);
-        module.Dispose();
+        // module.Dispose();
         return true;
     }
     
