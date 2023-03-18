@@ -5,13 +5,15 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
         <LangVersion>11</LangVersion>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 <!--        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>-->
 <!--        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>-->
 <!--        <ProduceReferenceAssembly>false</ProduceReferenceAssembly>-->
 <!--        <ImplicitUsings>false</ImplicitUsings>-->
+<!--        SerializeGenerator.cs(11, 14): [RS1036] 'Coorth.Analyzer.SerializeGenerator': A project containing analyzers or source generators should specify the property '<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>'-->
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0-1.final" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4-beta1.22403.2" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     </ItemGroup>
 </Project>

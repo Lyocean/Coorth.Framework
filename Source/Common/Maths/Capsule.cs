@@ -11,6 +11,7 @@ public partial record struct Capsule(Vector3 Center, float Height, float Radius)
     public Vector3 Center = Center;
     
     public float Radius = Radius;
-        
+
     public float Height = Height;
+    
 }

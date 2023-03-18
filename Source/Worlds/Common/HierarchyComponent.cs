@@ -7,7 +7,7 @@ namespace Coorth.Framework;
 
 [Serializable, StoreContract]
 [Component(IsPinned = true), Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
-public struct HierarchyComponent : IComponent {
+public partial struct HierarchyComponent : IComponent {
 
     public Entity Entity { get; private set; }
 

@@ -33,8 +33,8 @@ public readonly partial record struct ActorId(Guid Id) {
 }
 #else
 
-[Serializable, StoreContract]
-public readonly record struct ActorId(long Id) {
+[Serializable]
+public readonly partial record struct ActorId(long Id) {
     
     [DataMember(Order = 1)]
     public readonly long Id = Id;

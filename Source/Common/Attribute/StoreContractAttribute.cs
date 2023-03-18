@@ -13,8 +13,7 @@ public class StoreContractAttribute : Attribute {
 
 [Flags]
 public enum StoreFlags {
-    DeclareOnly  = 1 << 1,
-    PublicField = 1 << 2,
-    PublicProperty = 1 << 3,
-    
+    DeclareOnly  = 1,
+    PublicField = 1 << 1,
+    PublicProperty = 1 << 2,
 }

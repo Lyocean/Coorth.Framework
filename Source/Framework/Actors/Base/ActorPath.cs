@@ -4,7 +4,7 @@ using Coorth.Serialize;
 namespace Coorth.Framework; 
 
 [Serializable, StoreContract]
-public readonly record struct ActorPath {
+public readonly partial record struct ActorPath {
     
     public readonly string FullPath;
     
