@@ -68,7 +68,20 @@ public static class AnalyzerUtil {
     }
 
     public static string GetFullName(ITypeSymbol type) {
-        return type.ContainingNamespace == null ? type.Name : GetFullName(type.ContainingNamespace) + "." + type.Name;
+        var name = type.ContainingNamespace == null ? type.Name : GetFullName(type.ContainingNamespace) + "." + type.Name;
+        if(type is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType && namedTypeSymbol.TypeArguments.Length > 0) {
+            name += "<";
+            for (var i = 0; i < namedTypeSymbol.TypeArguments.Length; i++) {
+                var typeArgument = namedTypeSymbol.TypeArguments[i];
+                if(i < namedTypeSymbol.TypeArguments.Length - 1) {
+                    name += GetFullName(typeArgument) + ", ";
+                } else {
+                    name += GetFullName(typeArgument);
+                }
+            }
+            name += ">";
+        }
+        return name;
     }
     
     private static string GetFullName(INamespaceSymbol ns) {

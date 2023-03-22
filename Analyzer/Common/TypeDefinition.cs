@@ -16,28 +16,29 @@ public class TypeDefinition {
 }
 
 public class FieldDefinition {
-    public string Name;
-    public string Type;
+    public string Name = string.Empty;
+    public string Type = string.Empty;
     public int Index;
-    public string Comment;
+    public string Comment = string.Empty;
 
     public bool IsCollection;
     public CollectionType CollectionType;
-    public GenericDefinition[] Children;
+    public GenericDefinition[] Children = Array.Empty<GenericDefinition>();
 }
 
 public class MethodDefinition {
-    public string Name;
-    public List<ParamDefinition> Params = new();
+    public string Name = string.Empty;
+    public string Return = string.Empty;
+    public readonly List<ParameterDefinition> Params = new();
 }
 
-public class ParamDefinition {
-    public string Name;
-    public string Type;
+public class ParameterDefinition {
+    public string Name = string.Empty;
+    public string Type = string.Empty;
 }
 
 public class GenericDefinition {
-    public string Type;
+    public string Type = "";
 }
 
 public enum CollectionType {

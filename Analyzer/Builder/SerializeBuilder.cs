@@ -18,11 +18,9 @@ public class SerializeBuilder {
 
         if (type.IsRecord && !type.IsClass) {
             builder.BeginScope($"partial record struct {type.TypeName}");
-        }
-        else if (type.IsRecord) {
+        } else if (type.IsRecord) {
             builder.BeginScope($"partial record {type.TypeName}");
-        }
-        else if (type.IsClass) {
+        } else if (type.IsClass) {
             builder.BeginScope($"partial class {type.TypeName}");
         }
         else {
@@ -65,7 +63,7 @@ public class SerializeBuilder {
                                 WriteField("__item__", field.Children[0].Type, builder);
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("writer.EndList();");
                             break;
                         }
                         case CollectionType.List: {
@@ -75,7 +73,7 @@ public class SerializeBuilder {
                                 WriteField("__item__", field.Children[0].Type, builder);
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("writer.EndList();");
                             break;
                         }
                         case CollectionType.Dict: {
@@ -86,7 +84,7 @@ public class SerializeBuilder {
                                 builder.AddLine($"writer.WriteValue<{field.Children[1].Type}>(__value__);");
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("writer.EndDict();");
                             break;
                         }
                         default:
@@ -109,9 +107,14 @@ public class SerializeBuilder {
     }
 
     private void GenerateReading(TypeDefinition type, CodeBuilder builder) {
+        var typeName = type.IsClass ? type.TypeName + "?" : type.TypeName;
         builder.BeginScope(
-            $"public override void SerializeReading(in Coorth.Serialize.SerializeReader reader, scoped ref {type.TypeName} value)");
+            $"public override void SerializeReading(in Coorth.Serialize.SerializeReader reader, scoped ref {typeName} value)");
         {
+            if (type.IsClass) {
+                builder.AddLine($"value ??= new {type.TypeName}();");
+            }
+            
             builder.BeginScope($"reader.BeginData<{type.TypeName}>();");
             foreach (var field in type.Fields) {
                 builder.AddLine($"//Field: {field.Name}, Comment: {field.Comment}");
@@ -127,7 +130,7 @@ public class SerializeBuilder {
                                 ReadField($"value.{field.Name}[i]", field.Children[0].Type, builder);
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("reader.EndList();");
                             break;
                         }
                         case CollectionType.List: {
@@ -138,7 +141,7 @@ public class SerializeBuilder {
                                 ReadField($"value.{field.Name}[i]", field.Children[0].Type, builder);
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("reader.EndList();");
                             break;
                         }
                         case CollectionType.Dict: {
@@ -151,7 +154,7 @@ public class SerializeBuilder {
                                 builder.AddLine($"value.{field.Name}.Add(__key__, __value__);");
                             }
                             builder.EndScope();
-                            builder.EndScope();
+                            builder.EndScope("reader.EndDict();");
                             break;
                         }
                         default:

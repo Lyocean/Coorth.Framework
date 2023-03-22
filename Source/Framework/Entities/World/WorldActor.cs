@@ -5,7 +5,7 @@ using Coorth.Serialize;
 
 namespace Coorth.Framework;
 
-public interface IWorldActor {
+public interface IWorldActor : IActor {
     [StoreMethod(1)] ValueTask AddSystem(Type type);
     [StoreMethod(2)] ValueTask AddSystems(params Type[] types);
     [StoreMethod(3)] ValueTask<bool> HasSystem(Type type);

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Coorth.Analyzer;
 
 [Generator(LanguageNames.CSharp)]
-public class SerializeGenerator2 : IIncrementalGenerator {
+public class SerializeGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
         var types = context.SyntaxProvider.ForAttributeWithMetadataName(AnalyzerUtil.StoreContractAttribute,
             predicate: static (node, _) => node is ClassDeclarationSyntax 
@@ -40,8 +40,13 @@ public class SerializeGenerator2 : IIncrementalGenerator {
             TypeName = symbol.Name
         };
         definition.IsRecord = symbol.IsRecord;
-        definition.IsClass = type is ClassDeclarationSyntax;
-        
+        if (type is RecordDeclarationSyntax record) {
+            definition.IsClass = record.ClassOrStructKeyword.IsKind(SyntaxKind.ClassDeclaration);
+        } else {
+            definition.IsClass = type is ClassDeclarationSyntax;
+        }
+
+
         var storeContractSymbol = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreContractAttribute);
         var storeMemberSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreMemberAttribute);
         var storeIgnoreSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreIgnoreAttribute);

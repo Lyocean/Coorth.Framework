@@ -19,7 +19,7 @@ public class ActorGenerator : IIncrementalGenerator {
 
     private static void Generate(TypeDeclarationSyntax type, Compilation compilation, SourceProductionContext context) {
         var model = compilation.GetSemanticModel(type.SyntaxTree);
-        var symbol = model.GetDeclaredSymbol(type, context.CancellationToken);
+        var symbol = model.GetDeclaredSymbol(type, context.CancellationToken) as INamedTypeSymbol;
         if (symbol == null) {
             return;
         }
@@ -27,13 +27,33 @@ public class ActorGenerator : IIncrementalGenerator {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedTypeNotSupport, type.Identifier.GetLocation(), symbol.Name));
             return;
         }
+        
+        
+        var typeDefinition = new TypeDefinition();
+        typeDefinition.Namespace = symbol.ContainingNamespace.IsGlobalNamespace ? "" : symbol.ContainingNamespace.ToString();
+        typeDefinition.TypeName = symbol.Name;
 
-        var definition = new TypeDefinition();
-        definition.Namespace = symbol.ContainingNamespace.IsGlobalNamespace ? "" : symbol.ContainingNamespace.ToString();
-        definition.TypeName = symbol.Name;
+        foreach (var member in AnalyzerUtil.GetMembers(symbol)) {
+            if (!(member is IMethodSymbol methodSymbol)) {
+                continue;
+            }
+            var methodDefinition = new MethodDefinition();
+            methodDefinition.Name = methodSymbol.Name;
+            methodDefinition.Return = AnalyzerUtil.GetFullName(methodSymbol.ReturnType);
+
+            foreach (var parameterSymbol in methodSymbol.Parameters) {
+                var parameterDefinition = new ParameterDefinition();
+                parameterDefinition.Name = parameterSymbol.Name;
+                parameterDefinition.Type = AnalyzerUtil.GetFullName(parameterSymbol.Type);
+                
+                methodDefinition.Params.Add(parameterDefinition);
+            }
+            
+            typeDefinition.Methods.Add(methodDefinition);
+        }
         
         var builder = new ActorBuilder();
-        var source = builder.Generate(definition);
+        var source = builder.Generate(typeDefinition);
         context.AddSource($"{symbol.Name}.ActorProxy.cs", source);
     }
 }

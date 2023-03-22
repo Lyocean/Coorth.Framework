@@ -32,7 +32,7 @@ public readonly partial record struct ActorPath {
         }
     }
     
-    public static explicit operator ActorPath(string fullPath) => new(fullPath);
+    //public static explicit operator ActorPath(string fullPath) => new(fullPath);
 
-    public static explicit operator string(ActorPath path) => path.FullPath;
+    //public static explicit operator string(ActorPath path) => path.FullPath;
 }

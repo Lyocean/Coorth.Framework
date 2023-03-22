@@ -99,7 +99,7 @@ public abstract class ActorNode : Disposable {
         var response = await completion.Task;
         return response;
     }
-
+    
     public ValueTask<IResponse> Request(IRequest message, ActorRef sender) {
         return Request(message, sender, CancellationToken.None);
     }
@@ -118,6 +118,12 @@ public abstract class ActorNode : Disposable {
     }
     
     protected abstract ValueTask Receive(in MessageContext context, in IMessage message);
+
+    // public ValueTask<TResponse> Request<TRequest, TResponse>(in TRequest request) {
+    //     
+    // }
     
+    // protected abstract ValueTask Receive<TMessage>(in MessageContext context, in TMessage message);
+
     #endregion
 }

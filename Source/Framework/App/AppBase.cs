@@ -344,7 +344,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
 public static class Applications {
 
-    private static Dictionary<AppKey, AppBase> apps = new();
+    private static readonly Dictionary<AppKey, AppBase> apps = new();
     public static IReadOnlyDictionary<AppKey, AppBase> Apps => apps;
 
     internal static void Add(AppBase app) {

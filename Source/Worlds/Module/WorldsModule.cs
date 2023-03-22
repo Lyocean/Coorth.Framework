@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Coorth.Logs;
 
+
 namespace Coorth.Framework;
 
+[Actor, Guid("302BBA6E-7F06-44C7-B9A6-16C0B943B273")]
 public interface IWorldsModule : IModule {
     ValueTask<IWorldActor> GetActive();
     ValueTask<IWorldActor> CreateWorld(string name);

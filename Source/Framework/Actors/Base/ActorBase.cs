@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 namespace Coorth.Framework;
 
 public interface IActor {
+    
 }
 
 public interface IActorLifetime {
@@ -16,6 +17,7 @@ public interface IActorProcessor {
 }
 
 public abstract class ActorBase : IActor, IActorLifetime, IActorProcessor {
+    
     private ActorLocalNode? node;
     protected ActorLocalNode Node => node ?? throw new NullReferenceException();
 
