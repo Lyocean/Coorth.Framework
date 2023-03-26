@@ -190,6 +190,13 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         }
     }
 
+    public void RunInThread() {
+        new Thread(Run).Start();
+        while (!IsRunning) {
+            Thread.Sleep(0);
+        }
+    }
+
     public void Execute<T>(in T e) where T: notnull {
         if (IsDisposed || !isSetup) {
             return;

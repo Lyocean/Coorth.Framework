@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[StoreContract(StoreFlags.PublicField), Guid("1FFE09DA-3C3D-4D67-A3FB-E3DA6EA413E5")]
+[DataDefine(StoreFlags.PublicField), Guid("1FFE09DA-3C3D-4D67-A3FB-E3DA6EA413E5")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct TransformTRS {
 

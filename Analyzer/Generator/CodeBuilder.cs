@@ -30,6 +30,7 @@ public class CodeBuilder {
         return this;
     }
     
+    
     public override string ToString() {
         return builder.ToString();
     }

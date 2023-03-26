@@ -3,11 +3,11 @@ using Coorth.Collections;
 
 namespace Coorth.Framework; 
 
-[Serializable, StoreContract]
+[Serializable, DataDefine]
 [Component, Guid("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
 public partial struct ActivationComponent : IComponent {
                           
-    [StoreMember(1)]
+    [DataMember(1)]
     private BitMask64 mask;
     public BitMask64 Mask => mask;
 

@@ -7,7 +7,7 @@ using Coorth.Maths;
 
 namespace Coorth.Framework; 
 
-[Serializable, StoreContract]
+[Serializable, DataDefine]
 [Component, Guid("482164B6-9432-4AB8-B217-A843BEB96CB8")]
 public sealed partial class TransformComponent : IComponent, IHierarchyNode {
 
@@ -213,13 +213,13 @@ public sealed partial class TransformComponent : IComponent, IHierarchyNode {
         
     private TransformFlags flags;
 
-    [StoreMember(1)]
+    [DataMember(1)]
     private Vector3 localPosition;
         
-    [StoreMember(2)]
+    [DataMember(2)]
     private Quaternion localRotation;
         
-    [StoreMember(3)]
+    [DataMember(3)]
     private Vector3 localScaling;
         
     public Vector3 LocalPosition { get => GetLocalPosition(); set => SetLocalPosition(value); }

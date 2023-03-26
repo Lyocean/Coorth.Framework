@@ -362,12 +362,13 @@ public partial class World {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void _ClearComponents(ref EntityContext context, in Entity entity) {
         var id = entity.Id;
-        foreach (var type in context.Archetype.Types) {
+        var types = context.Archetype.Types;
+        foreach (var type in types) {
             var group = GetComponentGroup(type);
             var index = context.Get(type);
             group.OnRemove(id, index);
         }
-        foreach (var type in context.Archetype.Types) {
+        foreach (var type in types) {
             var group = GetComponentGroup(type);
             var index = context.Get(type);
             group.Remove(in entity, index);

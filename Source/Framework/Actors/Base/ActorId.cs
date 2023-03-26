@@ -36,7 +36,7 @@ public readonly partial record struct ActorId(Guid Id) {
 [Serializable]
 public readonly partial record struct ActorId(long Id) {
     
-    [DataMember(Order = 1)]
+    [System.Runtime.Serialization.DataMember(Order = 1)]
     public readonly long Id = Id;
     
     public bool IsNull => Id == 0;

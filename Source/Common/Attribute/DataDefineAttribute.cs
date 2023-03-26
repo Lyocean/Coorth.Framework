@@ -3,10 +3,10 @@
 namespace Coorth; 
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum, Inherited = false)]
-public class StoreContractAttribute : Attribute {
+public class DataDefineAttribute : Attribute {
     public readonly StoreFlags Flags;
 
-    public StoreContractAttribute(StoreFlags flags = StoreFlags.DeclareOnly) {
+    public DataDefineAttribute(StoreFlags flags = StoreFlags.DeclareOnly) {
         Flags = flags;
     }
 }

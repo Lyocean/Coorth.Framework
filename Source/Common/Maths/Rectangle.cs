@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[StoreContract(StoreFlags.PublicField), Guid("62442A87-EBF5-44D7-89EF-A7BE8C4E4095")]
+[DataDefine(StoreFlags.PublicField), Guid("62442A87-EBF5-44D7-89EF-A7BE8C4E4095")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Rectangle(float X, float Y, float W, float H) {
         

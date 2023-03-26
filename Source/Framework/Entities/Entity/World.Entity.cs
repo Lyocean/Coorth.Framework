@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using Coorth.Collections;
 
 namespace Coorth.Framework; 
@@ -14,7 +13,7 @@ public partial class World {
 
     private int reusingIndex = -1;
 
-    private int reusingCount;
+    // private int reusingCount;
 
     private int entityCount;
 
@@ -49,6 +48,7 @@ public partial class World {
             ref var context = ref contexts.Ref(reusingIndex);
             (reusingIndex, context.Index) = (context.Index, reusingIndex);
             entityCount++;
+            context.Version = -context.Version;
             return ref context;
         }
         else {
@@ -166,13 +166,18 @@ public partial class World {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void _DestroyEntity(ref EntityContext context) {
+        // context.Index
+        if (context.Version < 0) {
+            return;
+        }
+        
         var entity = context.GetEntity(this);
         Dispatch(new EntityRemoveEvent(entity));
         
         _ClearComponents(ref context, in entity);
         context.Archetype.EntityRemove(ref context, emptyArchetype);
         
-        context.Version++;
+        context.Version = -(context.Version + 1);
         context.Index = reusingIndex;
         reusingIndex = context.Index;
         entityCount--;

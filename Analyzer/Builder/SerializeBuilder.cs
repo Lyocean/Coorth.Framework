@@ -7,7 +7,9 @@ public class SerializeBuilder {
     public string Build(TypeDefinition type) {
         var builder = new CodeBuilder();
         builder.AddLine("//Generated code.");
-        // builder.AddLine("#if SOURCE_GENERATOR");
+        if (!string.IsNullOrEmpty(type.Comment)) {
+            builder.AddLine($"/* {type.Comment} */");
+        }
         foreach (var use in type.Using) {
             builder.AddLine(use);
         }
@@ -47,8 +49,7 @@ public class SerializeBuilder {
     }
 
     private void GenerateWriting(TypeDefinition type, CodeBuilder builder) {
-        builder.BeginScope(
-            $"public override void SerializeWriting(in Coorth.Serialize.SerializeWriter writer, scoped in {type.TypeName} value)");
+        builder.BeginScope($"public override void SerializeWriting(in Coorth.Serialize.SerializeWriter writer, scoped in {type.TypeName} value)");
         {
             builder.BeginScope($"writer.BeginData<{type.TypeName}>({type.Fields.Count});");
             foreach (var field in type.Fields) {

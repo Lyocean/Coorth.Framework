@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 
-
 namespace Coorth.Framework;
 
 internal record struct EntityContext {
@@ -9,16 +8,19 @@ internal record struct EntityContext {
 
     public int Version;
 
-    public ArchetypeDefinition Archetype;
-    
     public int LocalIndex;
+
+    // public int SpaceIndex;
+    // public int SceneIndex;
+    
+    public ArchetypeDefinition Archetype;
+
+    public IndexDict<int> Components;
 
     public EntityId Id { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => new(Index, Version); }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Entity GetEntity(World world) => new(world, new EntityId(Index, Version));
-    
-    public IndexDict<int> Components;
     
     public int Count => Archetype.ComponentCount;
 

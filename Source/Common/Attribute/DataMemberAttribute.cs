@@ -3,7 +3,7 @@
 namespace Coorth; 
 
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-public class StoreMemberAttribute : Attribute {
+public class DataMemberAttribute : Attribute {
     
     public string? Name { get; }
 
@@ -11,14 +11,15 @@ public class StoreMemberAttribute : Attribute {
 
     public bool IsRequired { get; set; }
     
-    public StoreMemberAttribute() { }
+    public DataMemberAttribute() { }
     
-    public StoreMemberAttribute(int order) {
+    public DataMemberAttribute(int order) {
         Order = order;
     }
     
-    public StoreMemberAttribute(int order, string name) {
+    public DataMemberAttribute(int order, string name) {
         Name = name;
         Order = order;
     }
 }
+

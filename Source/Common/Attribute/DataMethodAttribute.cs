@@ -3,11 +3,11 @@
 namespace Coorth;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class StoreMethodAttribute : Attribute {
+public class DataMethodAttribute : Attribute {
 
     public int Order { get; }
     
-    public StoreMethodAttribute(int order) {
+    public DataMethodAttribute(int order) {
         Order = order;
     }
 }

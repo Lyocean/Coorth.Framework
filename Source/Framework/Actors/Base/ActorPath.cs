@@ -3,7 +3,7 @@ using Coorth.Serialize;
 
 namespace Coorth.Framework; 
 
-[Serializable, StoreContract]
+[Serializable, DataDefine]
 public readonly partial record struct ActorPath {
     
     public readonly string FullPath;

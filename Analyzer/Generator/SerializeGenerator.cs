@@ -9,7 +9,7 @@ namespace Coorth.Analyzer;
 [Generator(LanguageNames.CSharp)]
 public class SerializeGenerator : IIncrementalGenerator {
     public void Initialize(IncrementalGeneratorInitializationContext context) {
-        var types = context.SyntaxProvider.ForAttributeWithMetadataName(AnalyzerUtil.StoreContractAttribute,
+        var types = context.SyntaxProvider.ForAttributeWithMetadataName(AnalyzerUtil.DataDefineAttribute,
             predicate: static (node, _) => node is ClassDeclarationSyntax 
                                                 or StructDeclarationSyntax
                                                 or RecordDeclarationSyntax
@@ -41,16 +41,17 @@ public class SerializeGenerator : IIncrementalGenerator {
         };
         definition.IsRecord = symbol.IsRecord;
         if (type is RecordDeclarationSyntax record) {
-            definition.IsClass = record.ClassOrStructKeyword.IsKind(SyntaxKind.ClassDeclaration);
+            definition.IsClass = !record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword);
+            // definition.Comment = record.ClassOrStructKeyword.IsKeyword() + " | " + record.Kind() + " | " + record.ClassOrStructKeyword.Kind() + " | " + record.ClassOrStructKeyword.IsKind(SyntaxKind.StructKeyword) + " || ";
         } else {
             definition.IsClass = type is ClassDeclarationSyntax;
         }
 
 
-        var storeContractSymbol = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreContractAttribute);
-        var storeMemberSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreMemberAttribute);
-        var storeIgnoreSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.StoreIgnoreAttribute);
-        var attributeData = symbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, storeContractSymbol));
+        var dataDefineSymbol = compilation.GetTypeByMetadataName(AnalyzerUtil.DataDefineAttribute);
+        var dataMemberSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.DataMemberAttribute);
+        var dataIgnoreSymbol   = compilation.GetTypeByMetadataName(AnalyzerUtil.DataIgnoreAttribute);
+        var attributeData = symbol.GetAttributes().FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, dataDefineSymbol));
 
         var publicField = false;
         var publicProperty = false;
@@ -61,19 +62,19 @@ public class SerializeGenerator : IIncrementalGenerator {
                 publicField = (i & (1 << 1)) != 0;
                 publicProperty = (i & (1 << 2)) != 0;
             }
-            definition.Using = new[] {$"//{argument} publicField:{publicField} publicProperty:{publicProperty}"};
+            definition.Comment += $"{argument} PublicField:{publicField} PublicProperty:{publicProperty}";
         }
-        // storeContractSymbol.Constructors.First().Parameters.First().
+        // dataDefineSymbol.Constructors.First().Parameters.First().
         var index = 1;
         var memberSymbols = AnalyzerUtil.GetMembers(symbol);
         foreach (var memberSymbol in memberSymbols) {
             if(memberSymbol.IsStatic || memberSymbol.IsImplicitlyDeclared || !memberSymbol.CanBeReferencedByName) {
                 continue;
             }
-            if (storeIgnoreSymbol != null && AnalyzerUtil.HasAttribute(memberSymbol, storeIgnoreSymbol)) {
+            if (dataIgnoreSymbol != null && AnalyzerUtil.HasAttribute(memberSymbol, dataIgnoreSymbol)) {
                 continue;
             }
-            var export = (storeMemberSymbol != null && AnalyzerUtil.HasAttribute(memberSymbol, storeMemberSymbol));
+            var export = (dataMemberSymbol != null && AnalyzerUtil.HasAttribute(memberSymbol, dataMemberSymbol));
        
             if (memberSymbol is IFieldSymbol fieldSymbol && (export || publicField)) {
                 if (!export && !publicField) {

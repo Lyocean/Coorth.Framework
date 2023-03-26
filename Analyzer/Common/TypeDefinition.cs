@@ -6,6 +6,7 @@ namespace Coorth.Analyzer;
 public class TypeDefinition {
     public bool IsClass;
     public bool IsRecord;
+    public string Comment = string.Empty;
     public string[] Using = Array.Empty<string>();
     public string Namespace = string.Empty;
     public string TypeName = string.Empty;

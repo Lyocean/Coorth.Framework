@@ -11,11 +11,11 @@ public static class AnalyzerUtil {
 
     public static string ActorAttribute => "Coorth.Framework.ActorAttribute";
 
-    public static string StoreContractAttribute => "Coorth.StoreContractAttribute";
+    public static string DataDefineAttribute => "Coorth.DataDefineAttribute";
     
-    public static string StoreMemberAttribute => "Coorth.StoreMemberAttribute";
+    public static string DataMemberAttribute => "Coorth.DataMemberAttribute";
 
-    public static string StoreIgnoreAttribute => "Coorth.StoreIgnoreAttribute";
+    public static string DataIgnoreAttribute => "Coorth.DataIgnoreAttribute";
 
     public static bool IsPartial(TypeDeclarationSyntax type) {
         return type.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword));

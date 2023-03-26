@@ -24,7 +24,7 @@ public class SerializeAnalyzer : DiagnosticAnalyzer {
         if (symbol == null) {
             return;
         }
-        var storeContractSymbol = context.Compilation.GetTypeByMetadataName(AnalyzerUtil.StoreContractAttribute);
+        var storeContractSymbol = context.Compilation.GetTypeByMetadataName(AnalyzerUtil.DataDefineAttribute);
         if(storeContractSymbol != null && !AnalyzerUtil.HasAttribute(symbol, storeContractSymbol)) {
             return;
         }

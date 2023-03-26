@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Coorth.Framework; 
 
-[Serializable, StoreContract]
+[Serializable, DataDefine]
 [Component(IsPinned = true), Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
 public partial struct HierarchyComponent : IComponent {
 
