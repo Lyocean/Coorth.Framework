@@ -51,7 +51,7 @@ public partial class World : IDisposable {
         Actor = new WorldActor(this);
 
         InitArchetypes(out emptyArchetype);
-
+        InitSpace(out defaultSpace);
         InitEntities(Options.EntityCapacity.Index, Options.EntityCapacity.Chunk);
         InitComponents(Options);
 

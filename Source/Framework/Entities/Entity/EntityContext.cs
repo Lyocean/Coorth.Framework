@@ -10,8 +10,7 @@ internal record struct EntityContext {
 
     public int LocalIndex;
 
-    // public int SpaceIndex;
-    // public int SceneIndex;
+    public int SpaceIndex;
     
     public ArchetypeDefinition Archetype;
 

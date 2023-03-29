@@ -248,9 +248,9 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
 
     public ComponentPack Pack(Entity entity, int index) {
         ref var component = ref components[index];
-        var asset = new ComponentPack<T>();
-        asset.Pack(World, entity, ref component);
-        return asset;
+        var pack = new ComponentPack<T>();
+        pack.Pack(World, entity, ref component);
+        return pack;
     }
 
     #endregion

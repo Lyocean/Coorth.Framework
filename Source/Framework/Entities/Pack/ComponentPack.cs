@@ -14,9 +14,9 @@ public class ComponentPack<T> : ComponentPack where T : IComponent {
     public T? Component;
 
     public override void UnPack(World world, Entity entity) {
-        var componentGroup = world.GetComponentGroup<T>();
+        var group = world.GetComponentGroup<T>();
         if (Component != null) {
-            componentGroup._Clone(entity, ref Component, out var newComponent);
+            group._Clone(entity, ref Component, out var newComponent);
             entity.Add(newComponent);
         }
         else {
@@ -25,7 +25,7 @@ public class ComponentPack<T> : ComponentPack where T : IComponent {
     }
 
     public void Pack(World world, Entity entity, ref T component) {
-        var componentGroup = world.GetComponentGroup<T>();
-        componentGroup._Clone(entity, ref component, out Component);
+        var group = world.GetComponentGroup<T>();
+        group._Clone(entity, ref component, out Component);
     }
 }

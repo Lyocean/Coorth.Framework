@@ -21,6 +21,10 @@ public interface IAttachable<T> {
     void OnDetach();
 }
 
+public interface IChunkComponent<T> : IComponent where T: unmanaged, IChunkComponent<T>  {
+    
+}
+
 public abstract class Component : IComponent, IAttachable<Entity> {
 
     public Entity Entity { get; private set; }
