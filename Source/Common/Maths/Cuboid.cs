@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[DataDefine(StoreFlags.PublicField), Guid("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
+[DataDefine(DataFlags.PublicField), Guid("C22D1436-F4A0-4D64-BEC1-899551022A2C")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Cuboid {
         

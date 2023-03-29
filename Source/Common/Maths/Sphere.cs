@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths;
 
-[DataDefine(StoreFlags.PublicField), Guid("82EF8D53-2DE2-401E-A910-DAC37A03A46F")]
+[DataDefine(DataFlags.PublicField), Guid("82EF8D53-2DE2-401E-A910-DAC37A03A46F")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Sphere(Vector3 Center, float Radius) {
 

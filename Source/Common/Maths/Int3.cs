@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[DataDefine(StoreFlags.PublicField), Guid("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
+[DataDefine(DataFlags.PublicField), Guid("D1519E05-A09A-485A-8EEB-49C2C668ACF3")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Int3(int X, int Y, int Z) {
         

@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[DataDefine(StoreFlags.PublicField), Guid("2B22E356-FF59-422D-8177-5E4841405314")]
+[DataDefine(DataFlags.PublicField), Guid("2B22E356-FF59-422D-8177-5E4841405314")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Capsule(Vector3 Center, float Height, float Radius) {
     

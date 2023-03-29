@@ -4,15 +4,15 @@ namespace Coorth;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum, Inherited = false)]
 public class DataDefineAttribute : Attribute {
-    public readonly StoreFlags Flags;
+    public readonly DataFlags Flags;
 
-    public DataDefineAttribute(StoreFlags flags = StoreFlags.DeclareOnly) {
+    public DataDefineAttribute(DataFlags flags = DataFlags.DeclareOnly) {
         Flags = flags;
     }
 }
 
 [Flags]
-public enum StoreFlags {
+public enum DataFlags {
     DeclareOnly  = 1,
     PublicField = 1 << 1,
     PublicProperty = 1 << 2,

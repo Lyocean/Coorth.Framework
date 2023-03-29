@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths;
 
-[DataDefine(StoreFlags.PublicField), Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
+[DataDefine(DataFlags.PublicField), Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
 [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
 public partial struct Color : IEquatable<Color> {
     
