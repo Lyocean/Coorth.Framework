@@ -19,8 +19,10 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
 
     public Archetype Archetype => World.GetArchetype(Id);
 
-    EntityContext Context => World.GetContext(Id.Index);
+    internal ref EntityContext Context => ref World.GetContext(Id.Index);
 
+    public Space Space => World.GetSpace(Id);
+    
     public IEnumerable<Type> ComponentTypes() => World.ComponentTypes(Id);
 
     public bool IsNull => Id.IsNull || World == null || !World.HasEntity(Id);

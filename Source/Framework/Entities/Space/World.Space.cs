@@ -1,20 +1,9 @@
 ﻿using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using Coorth.Collections;
 
 namespace Coorth.Framework;
-
-public readonly record struct Space(World World, int Id, int Version) {
-    public readonly World World = World;
-    public readonly int Id = Id;
-    public readonly int Version = Version;
-
-    public void Destroy() {
-        World.DestroySpace(this);
-    }
-}
 
 public struct SpaceContext {
     public int Id;
@@ -35,7 +24,7 @@ public partial class World {
     }
 
     private ref SpaceContext _CreateSpace() {
-        if (spaces.Count > 0) {
+        if (spaceIds.Count > 0) {
             var index = spaceIds.Pop();
             ref var context = ref spaces[index];
             context.Version = -context.Version;
@@ -68,6 +57,17 @@ public partial class World {
         return ref context;
     }
 
+    public Space GetSpace(EntityId id) {
+        if (id.Index >= contexts.Count) {
+            throw new ArgumentException("EntityId is invalid.");
+        }
+        ref var context = ref contexts.Ref(id.Index);
+        if (context.Index != id.Index || context.Version != id.Version) {
+            throw new ArgumentException("EntityId is invalid.");
+        }
+        return GetSpace(context.SpaceIndex);
+    }
+    
     private Space GetSpace(int id) {
         if (id > spaces.Count) {
             throw new ArgumentException();
@@ -84,6 +84,14 @@ public partial class World {
     private void RemoveEntityFromSpace(int spaceId, in EntityId entityId) {
         ref var context = ref spaces[spaceId];
         context.Entities.Remove(entityId);
+    }
+
+    public bool HasSpace(in Space space) {
+        if(spaces.Count <= space.Id) {
+            return false;
+        }
+        ref var context = ref spaces[space.Id];
+        return context.Id == space.Id && context.Version == space.Version;
     }
     
     public bool DestroySpace(in Space space) {

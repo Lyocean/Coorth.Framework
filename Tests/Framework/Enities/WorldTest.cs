@@ -5,7 +5,7 @@ namespace Coorth.Framework;
 
 public class WorldTest {
 
-    private static World NewWorld() {
+    public static World NewWorld() {
         var world = new World(new WorldOptions() {
             Name = "World",
             Services = new ServiceLocator(),

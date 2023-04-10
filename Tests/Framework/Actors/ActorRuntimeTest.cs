@@ -6,27 +6,27 @@ namespace Coorth.Framework;
 public class ActorRuntimeTest {
         
     [Test]
-    public void CreateContainer() {
-        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
-        Assert.NotNull(container);
+    public void CreateRuntime() {
+        var runtime = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
+        Assert.NotNull(runtime);
     }
         
     [Test]
     public void CreateDomain() {
-        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
-        var domain = container.CreateDomain("test");
+        var runtime = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
+        var domain = runtime.CreateDomain("test");
         Assert.NotNull(domain);
     }
         
     [Test]
     public void GetDomain() {
-        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
-        var domain10 = container.CreateDomain("111");
-        var domain20 = container.CreateDomain("222");
+        var runtime = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
+        var domain10 = runtime.CreateDomain("111");
+        var domain20 = runtime.CreateDomain("222");
 
-        var domain11 = container.FindDomain("111");
-        var domain21 = container.FindDomain("222");
-        var domain31 = container.FindDomain("333");
+        var domain11 = runtime.FindDomain("111");
+        var domain21 = runtime.FindDomain("222");
+        var domain31 = runtime.FindDomain("333");
 
         Assert.NotNull(domain10);
         Assert.NotNull(domain20);
@@ -41,13 +41,13 @@ public class ActorRuntimeTest {
         
     [Test]
     public void DisposeDomain() {
-        var container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
-        var domain10 = container.CreateDomain("111");
-        var _ = container.CreateDomain("222");
+        var runtime = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
+        var domain10 = runtime.CreateDomain("111");
+        var _ = runtime.CreateDomain("222");
 
         domain10.Dispose();
             
-        Assert.IsNull(container.FindDomain("111"));
-        Assert.NotNull(container.FindDomain("222"));
+        Assert.IsNull(runtime.FindDomain("111"));
+        Assert.NotNull(runtime.FindDomain("222"));
     }
 }

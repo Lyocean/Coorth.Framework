@@ -11,6 +11,8 @@ public partial struct HierarchyComponent : IComponent {
 
     public Entity Entity { get; private set; }
 
+    public EntityId EntityId => Entity.Id;
+    
     public World World => Entity.World;
 
     public IHierarchyNode? Node { get; set; }

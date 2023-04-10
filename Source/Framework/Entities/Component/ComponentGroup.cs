@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Coorth.Collections;
 using Coorth.Serialize;
@@ -51,16 +50,12 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
 
     public int Count { get; private set; }
 
-    // public int Capacity { get; private set; }
-
     public Type Type => ComponentType<T>.Type;
 
     public int TypeId => ComponentType<T>.TypeId;
 
-    // public bool IsPinned => ComponentType<T>.IsPinned;
-
-    // public bool IsValueType => ComponentType<T>.IsValueType;
-
+    private bool IsPinned => ComponentType<T>.IsPinned;
+    
     private ValueList<IComponentGroup> dependency = new(1);
 
     public ComponentGroup(World world) {
@@ -199,16 +194,23 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
             component = default!;
         }
 
-        var tailIndex = components.Count - 1;
-        if (index != tailIndex) {
-            component = components[tailIndex];
-            mapping[index] = mapping[tailIndex];
-            ref var tailContext = ref World.GetContext(mapping[index]);
-            tailContext[TypeId] = index;
+        if (IsPinned) {
+            mapping[index] = reusing;
+            reusing = index;
+            
         }
+        else {
+            var tailIndex = components.Count - 1;
+            if (index != tailIndex) {
+                component = components[tailIndex];
+                mapping[index] = mapping[tailIndex];
+                ref var tailContext = ref World.GetContext(mapping[index]);
+                tailContext[TypeId] = index;
+            }
 
-        components.RemoveLast();
-        mapping.RemoveLast();
+            components.RemoveLast();
+            mapping.RemoveLast();
+        }
     }
 
     public void OnRemove(in EntityId id, int index) {
@@ -275,31 +277,29 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     }
 
     public void SetEnable(EntityId id, int index, bool enable) {
-        if (enable && index < separate) {
-            SwapComponent(separate, index);
-            separate--;
-            OnComponentEnable(id, separate + 1, true);
+        if (IsPinned) {
+            var value = ((1u << 31) & mapping[index]) == 0;
+            if(!value && enable) {
+                mapping[index] = (int)(((1u << 31) - 1) & mapping[index]);
+                OnComponentEnable(id, index, true);
+            } else if (value && !enable) {
+                mapping[index] = (int)((1u << 31) | mapping[index]);
+                OnComponentEnable(id, index, false);
+            }
         }
-        else if (!enable && (index >= separate)) {
-            SwapComponent(separate, index);
-            separate++;
-            OnComponentEnable(id, separate - 1, false);
+        else {
+            if (enable && index < separate) {
+                SwapComponent(separate, index);
+                separate--;
+                OnComponentEnable(id, separate + 1, true);
+            }
+            else if (!enable && (index >= separate)) {
+                SwapComponent(separate, index);
+                separate++;
+                OnComponentEnable(id, separate - 1, false);
+            }
+
         }
-
-
-        // if (IsPinned) {
-        //     var value = ((1u << 31) & mapping[index]) == 0;
-        //     if(!value && enable) {
-        //         mapping[index] = (int)(((1u << 31) - 1) & mapping[index]);
-        //         OnComponentEnable(id, index, true);
-        //     } else if (value && !enable) {
-        //         mapping[index] = (int)((1u << 31) | mapping[index]);
-        //         OnComponentEnable(id, index, false);
-        //     }
-        // }
-        // else {
-        //
-        // }
     }
 
     private void OnComponentEnable(EntityId id, int index, bool enable) {

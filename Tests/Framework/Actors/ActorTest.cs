@@ -7,25 +7,25 @@ namespace Coorth.Framework;
 
 public class ActorTest {
 
-    private ActorsRuntime container;
+    private ActorsRuntime runtime;
 
     [SetUp]
     public void Setup() {
-        container = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
+        runtime = new ActorsRuntime(Dispatcher.Root, new ServiceLocator(), new LoggerConsole());
     }
 
     [Test]
     public void CreateActor() {
-        var domain = container.CreateDomain("l");
+        var domain = runtime.CreateDomain("l");
         var actorRef = domain.CreateActor<ActorDispatchForTest>(nameof(ActorDispatchForTest));
         Assert.IsTrue(!actorRef.IsNull);
     }
         
     [Test]
     public void GetActor() {
-        var domain = container.CreateDomain("123");
+        var domain = runtime.CreateDomain("123");
         var actorRef1 = domain.CreateActor<ActorDispatchForTest>(nameof(ActorDispatchForTest));
-        var actorRef2 = container.GetRef(actorRef1.Id);
+        var actorRef2 = runtime.GetRef(actorRef1.Id);
 
         Assert.IsTrue(!actorRef2.IsNull);
         Assert.IsTrue(actorRef1 == actorRef2);
@@ -33,21 +33,21 @@ public class ActorTest {
         
     [Test]
     public void RemoveActor() {
-        var domain = container.CreateDomain("456");
+        var domain = runtime.CreateDomain("456");
         var actorRef11 = domain.CreateActor<ActorDispatchForTest>(nameof(ActorDispatchForTest));
         domain.RemoveActor(actorRef11);
-        var actorRef12 = container.GetRef(actorRef11.Id);
+        var actorRef12 = runtime.GetRef(actorRef11.Id);
         Assert.IsTrue(actorRef12.IsNull);
             
         var actorRef21 = domain.CreateActor<ActorDispatchForTest>(nameof(ActorDispatchForTest));
         domain.RemoveActor(actorRef21.Id);
-        var actorRef22 = container.GetRef(actorRef21.Id);
+        var actorRef22 = runtime.GetRef(actorRef21.Id);
         Assert.IsTrue(actorRef22.IsNull);
     }
         
     [Test]
     public void SendMessage() {
-        var domain = container.CreateDomain("789");
+        var domain = runtime.CreateDomain("789");
         var actor = new ActorDispatchForTest();
         var actorRef = domain.CreateActor<ActorDispatchForTest>(actor, nameof(ActorDispatchForTest));
         actorRef.Send(new MessageTestAdd());
@@ -56,7 +56,7 @@ public class ActorTest {
 
     [Test]
     public void RequestMessage() {
-        var domain = container.CreateDomain("1011");
+        var domain = runtime.CreateDomain("1011");
         var actor = new ActorDispatchForTest();
         var actorRef = domain.CreateActor<ActorDispatchForTest>(actor, nameof(ActorDispatchForTest));
         var task = actorRef.Request(new MessageTestRequest()).AsTask();
@@ -68,7 +68,7 @@ public class ActorTest {
         
     [Test]
     public void RequestMessage2() {
-        var domain = container.CreateDomain("asd");
+        var domain = runtime.CreateDomain("asd");
         var actor = new ActorDispatchForTest();
         var actorRef =  domain.CreateActor<ActorDispatchForTest>(actor, nameof(ActorDispatchForTest));
         var task = actorRef.Request(new MessageTestRequest()).AsTask();
