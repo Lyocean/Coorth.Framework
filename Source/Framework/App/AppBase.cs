@@ -354,15 +354,19 @@ public static class Applications {
     private static readonly Dictionary<AppKey, AppBase> apps = new();
     public static IReadOnlyDictionary<AppKey, AppBase> Apps => apps;
 
+    private static object locker = new();
+    
     internal static void Add(AppBase app) {
-        apps.Add(app.Key, app);
+        lock (locker) {
+            apps.Add(app.Key, app);
+        }
     }
 
     internal static void Remove(AppBase app) {
-        apps.Remove(app.Key);
+        lock (locker) {
+            apps.Remove(app.Key);
+        }
     }
-    
-    
 }
 
 public readonly record struct AppKey(Guid Guid) {

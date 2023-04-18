@@ -365,13 +365,15 @@ public partial class World {
         var types = context.Archetype.Types;
         foreach (var type in types) {
             var group = GetComponentGroup(type);
-            var index = context.Get(type);
-            group.OnRemove(id, index);
+            if (context.TryGet(type, out var index)) {
+                group.OnRemove(id, index);
+            }
         }
         foreach (var type in types) {
             var group = GetComponentGroup(type);
-            var index = context.Get(type);
-            group.Remove(in entity, index);
+            if (context.TryGet(type, out var index)) {
+                group.Remove(in entity, index);
+            }
         }
     }
         

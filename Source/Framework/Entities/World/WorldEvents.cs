@@ -141,7 +141,7 @@ public readonly struct ComponentEnableEvent<T> where T : IComponent {
 
     public Entity Entity => World.GetEntity(Id);
     public Type Type => group.Type;
-    public T Component => group[index];
+    public ref T Component => ref group.Get(index);
 
     public ref T Get() => ref group.Get(index);
 
