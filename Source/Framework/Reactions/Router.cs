@@ -29,7 +29,7 @@ public partial class Router<TContext> : Disposable {
         return child;
     }
 
-    protected override void OnDispose(bool disposing) {
+    protected override void OnDispose() {
         foreach (var child in children) {
             child.Dispose();
         }

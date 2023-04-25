@@ -60,6 +60,8 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     
     protected ILogger Logger { get; }
 
+    public Action? OnTicking;
+    
     #endregion
     
     #region Liftime
@@ -174,6 +176,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         var platform = Services.Get<IPlatformManager>();
         var ticking = new TickingTask(platform, setting);
         ticking.OnTicking += OnTickLoop;
+        ticking.OnTicking += OnTicking;
         
         try {
             ticking.RunLoop(SyncContext, Dispatcher);
@@ -227,7 +230,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     protected virtual void OnClose() { }
 
-    protected override void OnDispose(bool dispose) {
+    protected override void OnDispose() {
         Applications.Remove(this);
         Close();
     }

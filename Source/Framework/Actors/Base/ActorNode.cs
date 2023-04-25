@@ -61,7 +61,7 @@ public abstract class ActorNode : Disposable {
         children?.Remove(child.Id);
     }
     
-    protected override void OnDispose(bool dispose) {
+    protected override void OnDispose() {
         (Actor as IDisposable)?.Dispose();
         Parent?.RemoveChild(this);
         if (children == null) {

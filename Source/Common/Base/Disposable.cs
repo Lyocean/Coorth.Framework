@@ -1,28 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace Coorth; 
 
 public abstract class Disposable : IDisposable {
         
-    private volatile int disposed;
-    public bool IsDisposed => disposed != 0;
+    private bool disposed;
+    public bool IsDisposed => disposed;
         
     public void Dispose() {
-        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
-            GC.SuppressFinalize(this);
-            OnDispose(true);
+        if (disposed) {
+            return;
         }
+        disposed = true;
+        GC.SuppressFinalize(this);
+        OnDispose();
     }
 
     ~Disposable() {
-        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
-            OnDispose(false);
+        if (disposed) {
+            return;
         }
+        disposed = true;
+        OnDispose();
     }
         
-    protected virtual void OnDispose(bool dispose) {
+    protected virtual void OnDispose() {
     }
 }
 

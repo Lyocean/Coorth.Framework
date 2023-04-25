@@ -143,7 +143,7 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         return this;
     }
     
-    protected override void OnDispose(bool dispose) {
+    protected override void OnDispose() {
         reaction?.Dispose();
         system.RemoveReaction(this);
     }

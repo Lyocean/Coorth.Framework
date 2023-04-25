@@ -182,7 +182,7 @@ public sealed class ServiceLocator : Disposable, IServiceLocator {
         bindings.Clear();
     }
     
-    protected override void OnDispose(bool disposing) {
+    protected override void OnDispose() {
         foreach (var locator in children.ToArray()) {
             locator.Dispose();
         }
