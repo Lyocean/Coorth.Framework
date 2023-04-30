@@ -9,6 +9,12 @@ public static partial class MathUtil {
     public static Vector2 XY(this in Vector3 v) => new (v.X, v.Y);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static void SetXY(this ref Vector3 v, in Vector2 xy) {
+        v.X = xy.X;
+        v.Y = xy.Y;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector2 XZ(this in Vector3 v) => new (v.X, v.Z);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

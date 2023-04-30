@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
 using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
-public partial class World : IDisposable {
-        
+public partial class World : Disposable {
+    
+    private static int currIndex;
+    private static readonly Stack<int> resumeIndex = new();
+    private static readonly object locker = new();
+    private static World[] worlds = new World[1];
+    public static int WorldCount { get; private set; }
+    public static ReadOnlySpan<World> Worlds => worlds.AsSpan(0, WorldCount);
+
     public readonly string Name;
 
-    private static int currIndex;
     public readonly int Index;
-
-    private static readonly Dictionary<int, World> worlds = new(1);
-    public static IReadOnlyDictionary<int, World> Worlds => worlds;
-
 
     public readonly WorldOptions Options;
 
@@ -32,17 +33,20 @@ public partial class World : IDisposable {
     public readonly ILogger Logger;
 
     public readonly WorldActor Actor;
-        
-    private volatile int disposed;
-    public bool IsDisposed => disposed != 0;
     
     public World(WorldOptions options) {
         Options = options;
         Logger = Options.Logger;
         
         Name = Options.Name;
-        Index = ++currIndex;
-        worlds.Add(Index, this);
+        lock (locker) {
+            Index = resumeIndex.Count > 0 ? resumeIndex.Pop() : currIndex++;
+            if (worlds.Length <= Index) {
+                Array.Resize(ref worlds, Index * 1);
+            }
+            worlds[Index] = this;
+            WorldCount++;
+        }
         
         Services = options.Services;
         Dispatcher = options.Dispatcher;
@@ -60,31 +64,28 @@ public partial class World : IDisposable {
         singleton = CreateEntity();
     }
 
-    public void Dispose() {
-        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
-            GC.SuppressFinalize(this);
-            OnDispose();
-        }
-    }
-    
-    ~World() {
-        if (Interlocked.CompareExchange(ref disposed, 1, 0) == 0) {
-            Logger.Error("Worlds is not disposed.");
-        }
-    }
-
-
-
-    private void OnDispose() {
+    protected override void OnDispose() {
         if (!SyncContext.IsMain) {
             Logger.Error("Dispose can must be call in world main thread.");
             return;
         }
-        worlds.Remove(Index);
         ClearEntities();
         ClearComponents();
         ClearSystems();
         ClearArchetypes();
+        lock (locker) {
+            WorldCount--;
+            worlds[Index] = default!;
+            resumeIndex.Push(Index);
+        }
+    }
+    
+    public static World? FindWorld(int index) {
+        return index < worlds.Length ? worlds[index] : null;
+    }
+    
+    public static bool HasWorld(int index) {
+        return index < WorldCount;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
