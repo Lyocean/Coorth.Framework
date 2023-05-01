@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths; 
 
-[DataDefine(DataFlags.PublicField), Guid("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
+[DataDefine(DataFlags.PubField), Guid("7964BCA2-FF48-4CF3-8DB2-39EB88480A73")]
 [Serializable, StructLayout(LayoutKind.Sequential, Pack = 4)]
 public partial record struct Frustum(Plane Near, Plane Far, Plane Left, Plane Right, Plane Top, Plane Bottom) {
         

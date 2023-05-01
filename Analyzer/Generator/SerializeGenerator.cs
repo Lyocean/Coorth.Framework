@@ -8,6 +8,13 @@ namespace Coorth.Analyzer;
 
 [Generator(LanguageNames.CSharp)]
 public class SerializeGenerator : IIncrementalGenerator {
+    
+    private const int DATA_DEFINE_CUSTOM = 0;
+    private const int DATA_DEFINE_DECLARE = 1;
+    private const int DATA_DEFINE_PUB_FIELD = 1 << 1;
+    private const int DATA_DEFINE_PUB_PROP = 1 << 2;
+    
+    
     public void Initialize(IncrementalGeneratorInitializationContext context) {
         var types = context.SyntaxProvider.ForAttributeWithMetadataName(AnalyzerUtil.DataDefineAttribute,
             predicate: static (node, _) => node is ClassDeclarationSyntax 
@@ -59,8 +66,11 @@ public class SerializeGenerator : IIncrementalGenerator {
         if (attributeData != null && attributeData.ConstructorArguments.Length > 0) {
             var argument = attributeData.ConstructorArguments[0].Value;
             if(argument is int i) {
-                publicField = (i & (1 << 1)) != 0;
-                publicProperty = (i & (1 << 2)) != 0;
+                if (i == DATA_DEFINE_CUSTOM) {
+                    return;
+                }
+                publicField = (i & DATA_DEFINE_PUB_FIELD) != 0;
+                publicProperty = (i & DATA_DEFINE_PUB_PROP) != 0;
             }
             definition.Comment += $"{argument} PublicField:{publicField} PublicProperty:{publicProperty}";
         }

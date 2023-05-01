@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
-using Coorth.Framework;
 
 namespace Coorth.Framework; 
 
@@ -10,14 +8,19 @@ public class TransformSystem : SystemBase {
         Parent.OfferChild<HierarchySystem>();
 
         //SpaceComponent
-        OnComponentSetup((ref SpaceComponent _) => _.OnSetup());
-        OnComponentClear((ref SpaceComponent _) => _.OnClear());
+        OnComponentSetup(static (ref SpaceComponent _) => _.OnSetup());
+        OnComponentClear(static (ref SpaceComponent _) => _.OnClear());
             
         //TransformComponent
-        OnComponentSetup((in Entity entity, ref TransformComponent component) => component.OnSetup(in entity));
-        OnComponentClear((ref TransformComponent component) => component.OnClear());
-            
+        OnComponentSetup(static (in Entity entity, ref TransformComponent _) => _.OnSetup(in entity));
+        OnComponentClear(static (ref TransformComponent _) => _.OnClear());
+
         //WorldMatrixComponent
-        OnComponentClear((ref WorldMatrixComponent _) => _.Value = Matrix4x4.Identity);
+        BindComponent(new DefaultFactory<PositionComponent>(new PositionComponent(Vector3.Zero)));
+        BindComponent(new DefaultFactory<RotationComponent>(new RotationComponent(Quaternion.Identity)));
+        BindComponent(new DefaultFactory<ScalingComponent>(new ScalingComponent(Vector3.One)));
+        BindComponent(new DefaultFactory<LocalMatrixComponent>(new LocalMatrixComponent(Matrix4x4.Identity)));
+        BindComponent(new DefaultFactory<WorldMatrixComponent>(new WorldMatrixComponent(Matrix4x4.Identity)));
     }
+    
 }

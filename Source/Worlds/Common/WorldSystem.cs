@@ -8,8 +8,8 @@ public sealed class WorldSystem : SystemBase {
         BindComponent<WorldComponent>();
         Singleton<WorldComponent>();
         
-        BindComponent<ActivationComponent>();
-        AddChild<ActivationSystem>();
+        BindComponent<DescriptionComponent>();
+        AddChild<DescriptionSystem>();
         
         BindComponent<HierarchyComponent>();
         AddChild<HierarchySystem>();

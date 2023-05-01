@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-
+using System.Runtime.CompilerServices;
 
 namespace Coorth.Framework; 
 
@@ -9,311 +7,297 @@ namespace Coorth.Framework;
 [Component(IsPinned = true), Guid("C30A217A-4660-402A-A993-BA4820389F0B")]
 public partial struct HierarchyComponent : IComponent {
 
-    public Entity Entity { get; private set; }
-
-    public EntityId EntityId => Entity.Id;
-    
-    public World World => Entity.World;
-
-    public IHierarchyNode? Node { get; set; }
-
-    private EntityId parentId;
-    private EntityId headId, tailId;
-    private EntityId prevId, nextId;
-
+    private Entity entity;
+    [DataMember]
+    private int self;
+    [DataMember]
+    private int parent;
+    [DataMember]
+    private int head, tail;
+    [DataMember]
+    private int prev, next;
+    [DataMember]
     private int count;
-    public int Count => count + Node?.ChildCount ?? 0;
+    [DataMember]
+    private uint flags;
     
-    public Entity ParentEntity => World.GetEntity(parentId);
+    public Entity Entity => entity;
+    public World World => entity.World;
+    public int Count => count;
 
-    public ref HierarchyComponent ParentHierarchy => ref World.GetComponent<HierarchyComponent>(parentId);
+    private ComponentGroup<HierarchyComponent> Group => entity.World.GetComponentGroup<HierarchyComponent>();
 
-    public EnumerableEntities GetChildrenEntities() => new(Entity.World, headId);
+    public bool HasParent => parent != 0;
+    public ref HierarchyComponent Parent => ref World.GetComponentGroup<HierarchyComponent>().Get(parent - 1);
+    public Entity ParentEntity => parent != 0 ? Parent.Entity : Entity.Null;
+
+    public EnumerableHierarchies Children => new(World, head);
+
+    public HierarchyEnumerator GetEnumerator() => new(World, head);
     
-    public EnumerableHierarchies GetChildrenHierarchies() => new(Entity.World, headId);
+    public EnumerableEntities ChildrenEntities => new(Entity.World, head);
     
-    public void OnSetup(Entity entity) => Entity = entity;
+    public void OnSetup(Entity e) {
+        entity = e;
+        self = e.Index<HierarchyComponent>() + 1;
+    }
 
     public void OnClear() {
-        if (parentId.IsNotNull && World.HasComponent<HierarchyComponent>(parentId)) {
-            ref var hierarchy = ref World.GetComponent<HierarchyComponent>(parentId);
-            hierarchy._RemoveChild(ref this);
-            parentId = EntityId.Null;
+        var group = Group;
+        if (count > 0) {
+            var curr = head;
+            while (curr != 0) {
+                ref var curr_hierarchy = ref group.Get(curr - 1);
+                curr = curr_hierarchy.next;
+                curr_hierarchy.entity.Dispose();
+            }
         }
-        Entity = Entity.Null;
+        
+        if (parent != 0) {
+            ref var parent_hierarchy = ref group.Get(parent - 1);
+            parent_hierarchy._RemoveChild(ref this);
+            parent = 0;
+            entity = Entity.Null; 
+        }
     }
 
-    public void SetNode(IHierarchyNode node) {
-        if (Node != null) {
-            throw new InvalidOperationException();
-        }
-        Node = node;
+    public void SetFlags(ushort value) {
+        flags = value;
     }
     
-    public bool IsEnableSelf() {
-        return Entity.IsEnable<HierarchyComponent>();
-    }
-
-    public bool IsEnableInHierarchy() {
-        var entity = Entity;
-        do {
-            if (!entity.IsEnable<HierarchyComponent>()) {
-                return false;
-            }
-            ref var hierarchy = ref entity.Get<HierarchyComponent>();
-            entity = hierarchy.ParentEntity;
-        } while (!entity.IsNull);
-        return true;
-    }
-
-    private void _AddChild(ref HierarchyComponent hierarchy) {
-        count++;
-        hierarchy.parentId = this.Entity.Id;
-        if (tailId.IsNull) {
-            headId = hierarchy.Entity.Id;
-            tailId = headId;
+    public void SetFlags(int position, bool value) {
+        if (value) {
+            flags |= (1u << position);
         }
         else {
-            ref var tailHierarchy = ref World.GetComponent<HierarchyComponent>(tailId);
-            hierarchy.prevId = tailId;
-            tailHierarchy.nextId = hierarchy.Entity.Id;
-            tailId = hierarchy.Entity.Id;
+            flags &= (~(1u << position));
         }
     }
     
-    public void AddChild(in Entity child) {
-        AddChild(ref child.Offer<HierarchyComponent>());
+    public void SetParent(in Entity? value) {
+        if (value == null || value.Value == Entity.Null) {
+            if (parent == 0) {
+                return;
+            }
+            ref var old_parent = ref Group.Get(parent - 1);
+            old_parent._RemoveChild(ref this);
+        }
+        else {
+            if (parent != 0) {
+                ref var old_parent = ref Group.Get(parent - 1);
+                old_parent._RemoveChild(ref this);
+            }
+            ref var new_parent = ref value.Value.Offer<HierarchyComponent>();
+            new_parent._AddChild(ref this);
+        }
+    }
+    
+    private void _AddChild(ref HierarchyComponent child) {
+        if (child.parent == self) {
+            return;
+        }
+        if (child.parent != 0) {
+            ref var parent_hierarchy = ref Group.Get(child.parent - 1);
+            parent_hierarchy._RemoveChild(ref child);            
+        }
+        count++;
+        child.parent = self;
+        if (tail == 0) {
+            head = child.self;
+            tail = head;
+        }
+        else {
+            ref var tail_hierarchy = ref Group.Get(tail - 1);
+            child.prev = tail;
+            tail_hierarchy.next = child.self;
+            tail = child.self;
+        }
+        entity.Modify<HierarchyComponent>();
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddChild(Entity child) {
+        _AddChild(ref child.Offer<HierarchyComponent>());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void AddChild(ref HierarchyComponent child) {
-        if (child.parentId == Entity.Id) {
-            return;
-        }
-        if (child.parentId.IsNotNull) {
-            ref var hierarchy = ref World.GetComponent<HierarchyComponent>(child.parentId);
-            hierarchy._RemoveChild(ref child);
-        }
         _AddChild(ref child);
-        Entity.Modify<HierarchyComponent>();
-    }
-    
-    public void InsertChild(in Entity child, int position) {
-        InsertChild(ref child.Offer<HierarchyComponent>(), position);
     }
 
-    public void InsertChild(ref HierarchyComponent child, int position) {
-        if (position < 0 || position > count) {
-            throw new ArgumentOutOfRangeException();
-        }
-        if (child.parentId == this.Entity.Id) {
-            return;
-        }
-        if (child.parentId.IsNotNull) {
-            ref var hierarchy = ref World.GetComponent<HierarchyComponent>(child.parentId);
-            hierarchy._RemoveChild(ref child);
-        }
-        count++;
-        child.parentId = this.Entity.Id;
-        if (count == 1) {
-            headId = child.Entity.Id;
-            tailId = headId;
-        }
-        else {
-            var id = headId;
-            ref var prev = ref World.GetComponent<HierarchyComponent>(id);
-            ref var next = ref World.GetComponent<HierarchyComponent>(prev.nextId);
-            while (position > 0) {
-                id = prev.nextId;
-                prev = next;
-                next = ref World.GetComponent<HierarchyComponent>(id);
-                position--;
-            }
-            prev.nextId = child.Entity.Id;
-            child.prevId = prev.Entity.Id;
-            child.nextId = next.Entity.Id;
-            next.prevId = child.Entity.Id;
-        }
-        Entity.Modify<HierarchyComponent>();
-    }
-    
     public ref HierarchyComponent GetChild(int position) {
         if (position < 0 || position > count) {
             throw new ArgumentOutOfRangeException();
         }
-        var id = headId;
-        ref var hierarchy = ref World.GetComponent<HierarchyComponent>(id);
+        var group = Group;
+        var curr = head;
+        ref var hierarchy = ref group.Get(curr);
         for (var i = 1; i < position; i++) {
-            id = hierarchy.nextId;
-            hierarchy = ref World.GetComponent<HierarchyComponent>(id);
+            curr = hierarchy.next;
+            hierarchy = ref group.Get(curr);
         }
         return ref hierarchy;
     }
 
-    private bool _RemoveChild(ref HierarchyComponent hierarchy) {
-        var childId = hierarchy.Entity.Id;
-        hierarchy.parentId = EntityId.Null;
-        if (headId == childId) {
-            headId = hierarchy.nextId;
+    private bool _RemoveChild(ref HierarchyComponent child) {
+        if (child.parent != self) {
+            return false;
         }
-        if (tailId == childId) {
-            tailId = hierarchy.prevId;
+        child.parent = 0;
+        var group = Group;
+        if (head == child.self) {
+            head = child.next;
         }
-        if (!hierarchy.prevId.IsNull) {
-            ref var prev= ref World.GetComponent<HierarchyComponent>(hierarchy.prevId);
-            prev.nextId = hierarchy.nextId;
-            hierarchy.prevId = EntityId.Null;
+        if (tail == child.self) {
+            tail = child.prev;
         }
-        if (!hierarchy.nextId.IsNull) {
-            ref var next= ref World.GetComponent<HierarchyComponent>(hierarchy.nextId);
-            next.prevId = hierarchy.prevId;
-            hierarchy.nextId = EntityId.Null;
+        if (child.prev != 0) {
+            ref var prev_hierarchy = ref group.Get(prev);
+            prev_hierarchy.next = child.next;
+            child.prev = 0;
         }
+        if (child.next != 0) {
+            ref var next_hierarchy = ref group.Get(next);
+            next_hierarchy.prev = child.prev;
+            child.next = 0;
+        }        
         count--;
+        entity.Modify<HierarchyComponent>();
         return true;
     }
-    
+
     public bool RemoveChild(int position) {
         if (position < 0 || position > count) {
             throw new ArgumentOutOfRangeException();
         }
         ref var hierarchy = ref GetChild(position);
-        var result = _RemoveChild(ref hierarchy);
-        Entity.Modify<HierarchyComponent>();
-        return result;
+        return _RemoveChild(ref hierarchy);
     }
     
     public bool RemoveChild(ref HierarchyComponent child) {
-        if (count == 0) {
-            throw new ArgumentOutOfRangeException();
-        }
-        var childId = child.Entity.Id;
-        for (var id = headId; id != tailId; ) {
-            ref var hierarchy = ref World.GetComponent<HierarchyComponent>(id);
-            if (id != childId) {
-                id = hierarchy.nextId;
-                continue;
-            }
-            var result = _RemoveChild(ref hierarchy);
-            Entity.Modify<HierarchyComponent>();
-            return result;
-        }
-        return false;
+        return _RemoveChild(ref child);
     }
     
-    public bool RemoveChild(in Entity child) {
-        if (child.IsNull || !child.Has<HierarchyComponent>()) {
-            return false;
-        }
-        ref var hierarchy = ref child.Get<HierarchyComponent>(); 
-        return _RemoveChild(ref hierarchy);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void InsertChild(in Entity child, int position) {
+        InsertChild(ref child.Offer<HierarchyComponent>(), position);
     }
-
-    public void SetParent(in Entity parent) {
-        if (parent.Id == parentId) {
+    
+    public void InsertChild(ref HierarchyComponent child, int position) {
+        if (position < 0 || position > count) {
+            throw new ArgumentOutOfRangeException();
+        }
+        if (child.parent == self) {
             return;
         }
-        if (!parentId.IsNull) {
-            ref var oldParentHierarchy = ref World.GetComponent<HierarchyComponent>(parentId);
-            oldParentHierarchy._RemoveChild(ref this);
+        var group = Group;
+        if (child.parent == 0) {
+            ref var parent_hierarchy = ref group.Get(child.parent - 1);
+            parent_hierarchy._RemoveChild(ref child);
         }
-        ref var newParentHierarchy = ref parent.Offer<HierarchyComponent>();
-        newParentHierarchy.AddChild(ref this);
+        count++;
+        child.parent = self;
+        if (count == 1) {
+            head = child.self;
+            tail = head;
+        }
+        else {
+            var curr = head;
+            ref var prev_hierarchy = ref group.Get(curr);
+            ref var next_hierarchy = ref group.Get(curr);
+            while (position > 0) {
+                curr = prev_hierarchy.next;
+                prev_hierarchy = next_hierarchy;
+                next_hierarchy = ref group.Get(curr);
+                position--;
+            }
+            prev_hierarchy.next = child.self;
+            child.prev = prev_hierarchy.self;
+            child.next = next_hierarchy.self;
+            next_hierarchy.prev = child.self;
+        }
+        Entity.Modify<HierarchyComponent>();
     }
 
-    public struct HierarchyEnumerator : IEnumerator<ComponentPtr<HierarchyComponent>> {
+    public readonly ref struct EnumerableHierarchies  {
         private readonly World world;
-        private readonly EntityId headId;
-        private EntityId currentId;
-        private EntityId nextId;
+        private readonly int head;
 
-        public HierarchyEnumerator(World world, EntityId headId) {
+        public EnumerableHierarchies(World world, int head) {
             this.world = world;
-            this.headId = headId;
-            this.currentId = headId;
-            this.nextId = headId;
+            this.head = head;
+        }
+            
+        public HierarchyEnumerator GetEnumerator() => new(world, head);
+    }
+    
+    public ref struct HierarchyEnumerator  {
+        private readonly ComponentGroup<HierarchyComponent> group;
+        private readonly int head;
+        private int curr;
+        private int next;
+
+        public HierarchyEnumerator(World world, int head) {
+            this.group = world.GetComponentGroup<HierarchyComponent>();
+            this.head = head;
+            curr = next = head;
         }
 
         public bool MoveNext() {
-            if(currentId.IsNull) {
+            if(curr == 0) {
                 return false;
             }
-            currentId = nextId;
-            ref var hierarchy = ref world.GetComponent<HierarchyComponent>(currentId);
-            nextId = hierarchy.nextId;
+            curr = next;
+            ref var hierarchy = ref group.Get(curr - 1);
+            next = hierarchy.next;
             return true;
         }
+        
+        public ref HierarchyComponent Current => ref group.Get(curr - 1);
 
-        public void Reset() { currentId = headId; }
-
-        public ComponentPtr<HierarchyComponent> Current => world.PtrComponent<HierarchyComponent>(currentId);
-
-        object IEnumerator.Current => Current;
-
-        public void Dispose() { }
-    }
-
-    public struct EntityEnumerator : IEnumerator<Entity> {
-        private readonly World world;
-        private readonly EntityId headId;
-        private EntityId currentId;
-        private EntityId nextId;
-            
-        public EntityEnumerator(World world, EntityId headId) {
-            this.world = world;
-            this.headId = headId;
-            this.currentId = headId;
-            this.nextId = headId;
+        public void Reset() {
+            curr = next = head;
         }
+    }
+    
+    public readonly ref struct EnumerableEntities {
+        private readonly World world;
+        private readonly int head;
+
+        public EnumerableEntities(World world, int head) {
+            this.world = world;
+            this.head = head;
+        }
+
+        public EntityEnumerator GetEnumerator() => new(world, head);
+    }
+    
+    public ref struct EntityEnumerator {
+        private readonly ComponentGroup<HierarchyComponent> group;
+        private readonly int head;
+        private int curr;
+        private int next;
             
+        public EntityEnumerator(World world, int head) {
+            this.group = world.GetComponentGroup<HierarchyComponent>();
+            this.head = head;
+            curr = next = head;
+        }
+ 
         public bool MoveNext() {
-            if(nextId.IsNull) {
+            if(next == 0) {
                 return false;
             }
-            currentId = nextId;
-            ref var hierarchy = ref world.GetComponent<HierarchyComponent>(currentId);
-            nextId = hierarchy.nextId;
+            curr = next;
+            ref var hierarchy = ref group.Get(curr - 1);
+            next = hierarchy.next;
             return true;
         }
-
-        public void Reset() { currentId = headId; nextId = headId; }
-
-        public Entity Current => new(world, currentId);
-
-        object IEnumerator.Current => Current;
-
-        public void Dispose() { }
-    }
         
-    public readonly struct EnumerableEntities : IEnumerable<Entity> {
-        private readonly World world;
-        private readonly EntityId headId;
+        public Entity Current => group.Get(curr - 1).entity;
 
-        public EnumerableEntities(World world, EntityId headId) {
-            this.world = world;
-            this.headId = headId;
+        public void Reset() {
+            curr = next = head;
         }
-            
-        public EntityEnumerator GetEnumerator() => new(world, headId);
-            
-        IEnumerator<Entity> IEnumerable<Entity>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
-        
-    public readonly struct EnumerableHierarchies : IEnumerable<ComponentPtr<HierarchyComponent>> {
-        private readonly World world;
-        private readonly EntityId headId;
-
-        public EnumerableHierarchies(World world, EntityId headId) {
-            this.world = world;
-            this.headId = headId;
-        }
-            
-        public HierarchyEnumerator GetEnumerator() => new(world, headId);
-
-        IEnumerator<ComponentPtr<HierarchyComponent>> IEnumerable<ComponentPtr<HierarchyComponent>>.GetEnumerator() => GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-    }
-
 }

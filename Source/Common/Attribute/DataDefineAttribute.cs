@@ -6,14 +6,15 @@ namespace Coorth;
 public class DataDefineAttribute : Attribute {
     public readonly DataFlags Flags;
 
-    public DataDefineAttribute(DataFlags flags = DataFlags.DeclareOnly) {
+    public DataDefineAttribute(DataFlags flags = DataFlags.Declare) {
         Flags = flags;
     }
 }
 
 [Flags]
 public enum DataFlags {
-    DeclareOnly  = 1,
-    PublicField = 1 << 1,
-    PublicProperty = 1 << 2,
+    Custom   = 0,
+    Declare  = 1,
+    PubField = 1 << 1,
+    PubProp  = 1 << 2,
 }

@@ -74,7 +74,7 @@ public partial class World {
         return (ComponentGroup<T>)group;
     }
 
-    internal ComponentGroup<T> GetComponentGroup<T>() where T : IComponent {
+    public ComponentGroup<T> GetComponentGroup<T>() where T : IComponent {
         var typeId = ComponentType<T>.TypeId;
         return GetComponentGroup<T>(typeId);
     }
@@ -292,6 +292,12 @@ public partial class World {
 
     public ref T OfferComponent<T>(EntityId id, Func<Entity, T> provider) where T : IComponent => ref _OfferComponent(id, provider);
 
+    public int ComponentIndex<T>(EntityId id) where T : IComponent {
+        var typeId = ComponentType<T>.TypeId;
+        ref var context = ref GetContext(id.Index);
+        return context[typeId];
+    }
+    
     #endregion
 
     #region Modify

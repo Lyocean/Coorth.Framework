@@ -9,29 +9,29 @@ public interface IComponentFactory<T> {
     void Clone(in Entity entity, ref T source, out T target);
 }
 
-public class ComponentFactory<T> : IComponentFactory<T> {
+public sealed class ComponentFactory<T> : IComponentFactory<T> {
 
-    public virtual void Create(in Entity entity, out T component) {
+    public void Create(in Entity entity, out T component) {
         component = Activator.CreateInstance<T>();
         if (component is IAttachable<Entity> refComponent) {
             refComponent.OnAttach(in entity);
         }
     }
         
-    public virtual void Attach(in Entity entity, ref T component) {
+    public void Attach(in Entity entity, ref T component) {
         if (component is IAttachable<Entity> refComponent) {
             refComponent.OnAttach(in entity);
         }
     }
         
-    public virtual void Recycle(in Entity entity, ref T component) {
+    public void Recycle(in Entity entity, ref T component) {
         if (component is IAttachable<Entity> refComponent) {
             refComponent.OnDetach();
         }
         component = default!;
     }
 
-    public virtual void Clone(in Entity entity, ref T source, out T target) {
+    public void Clone(in Entity entity, ref T source, out T target) {
         CloneInstance(in entity, ref source, out target);
     }
         
@@ -46,5 +46,28 @@ public class ComponentFactory<T> : IComponentFactory<T> {
                 target = Activator.CreateInstance<T>();
             }
         }
+    }
+}
+
+public sealed class DefaultFactory<T> : IComponentFactory<T> where T : struct {
+    
+    private readonly T defaultValue;
+
+    public DefaultFactory(T value) {
+        defaultValue = value;
+    }
+
+    public void Create(in Entity entity, out T component) {
+        component = defaultValue;
+    }
+
+    public void Attach(in Entity entity, ref T component) { }
+
+    public void Recycle(in Entity entity, ref T component) {
+        component = defaultValue;
+    }
+
+    public void Clone(in Entity entity, ref T source, out T target) {
+        target = source;
     }
 }

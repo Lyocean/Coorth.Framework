@@ -7,7 +7,7 @@ namespace Coorth.Framework;
 public class SpaceComponent : Component {
 
     public ref HierarchyComponent Hierarchy => ref Entity.Get<HierarchyComponent>();
-        
+
     public ref TransformComponent Transform => ref Entity.Get<TransformComponent>();
 
     public void OnSetup() { }

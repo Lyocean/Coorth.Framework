@@ -71,6 +71,7 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() =>
         ref World.OfferComponent(Id, provider);
 
+    public int Index<T>() where T : IComponent, new() => World.ComponentIndex<T>(Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Modify<T>() where T : IComponent => World.ModifyComponent<T>(Id);

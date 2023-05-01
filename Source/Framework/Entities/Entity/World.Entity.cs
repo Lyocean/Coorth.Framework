@@ -27,11 +27,15 @@ public partial class World {
     }
 
     private void ClearEntities() {
+        var id = Singleton().Id;
         for (var i = 0; i < contexts.Count; i++) {
             ref var context = ref contexts.Ref(i);
+            if (context.Id == id) {
+                continue;
+            }
             _DestroyEntity(ref context);
         }
-        contexts.Clear();
+        // contexts.Clear();
     }
 
     public void Clear() {

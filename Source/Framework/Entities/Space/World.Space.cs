@@ -19,10 +19,14 @@ public partial class World {
 
     private readonly Space defaultSpace;
 
-    private void InitSpace(out Space space) {
+    private void InitSpaces(out Space space) {
         space = CreateSpace();
     }
 
+    private void ClearSpaces() {
+        spaces.Clear();
+    }
+    
     private ref SpaceContext _CreateSpace() {
         if (spaceIds.Count > 0) {
             var index = spaceIds.Pop();
@@ -77,6 +81,7 @@ public partial class World {
     }
     
     private void AddEntityToSpace(int spaceId, in EntityId entityId) {
+
         ref var context = ref spaces[spaceId];
         context.Entities.Add(entityId);
     }
@@ -104,6 +109,7 @@ public partial class World {
             var entityId = context.Entities.First();
             DestroyEntity(entityId);
         }
+        context.Entities.Clear();
         return true;
     }
 }

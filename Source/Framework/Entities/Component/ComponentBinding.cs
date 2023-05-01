@@ -20,4 +20,8 @@ public readonly struct ComponentBinding<T> where T: IComponent {
     public bool HasDependency<TComp2>() where TComp2 : IComponent {
         return group.HasDependency(typeof(TComp2));
     }
+
+    public void SetFactory(IComponentFactory<T> factory) {
+        group.Factory = factory;
+    }
 }

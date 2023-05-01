@@ -38,7 +38,7 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
     public World World { get; }
 
     public IComponentFactory<T>? Factory { get; internal set; }
-
+    
     private ChunkList<T> components;
 
     private ChunkList<int> mapping;
@@ -197,7 +197,6 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
         if (IsPinned) {
             mapping[index] = reusing;
             reusing = index;
-            
         }
         else {
             var tailIndex = components.Count - 1;
@@ -207,7 +206,6 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
                 ref var tailContext = ref World.GetContext(mapping[index]);
                 tailContext[TypeId] = index;
             }
-
             components.RemoveLast();
             mapping.RemoveLast();
         }

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Coorth.Maths;
 
-[DataDefine(DataFlags.PublicField), Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
+[DataDefine(DataFlags.PubField), Guid("DFEF084C-77FD-4EE8-9323-779C20DE7FCD")]
 [Serializable, StructLayout(LayoutKind.Sequential, Size = 4)]
 public partial struct Color : IEquatable<Color> {
     
@@ -79,18 +79,18 @@ public partial struct Color : IEquatable<Color> {
 
     public readonly float[] ToArray() => new[] {R, G, B, A};
 
-    public Color(int value) {
+    public Color(uint value) {
         R = ((value >> 24) & 255) / 255.0f;
         G = ((value >> 16) & 255) / 255.0f;
         B = ((value >> 8) & 255) / 255.0f;
         A = (value & 255) / 255.0f;
     }
 
-    public static explicit operator int(Color value) {
-        return ((byte) (value.R * 255) << 24) | ((byte) (value.G * 255) << 16) | ((byte) (value.B * 255) << 8) | (byte) (value.B * 255);
+    public static explicit operator uint(Color value) {
+        return ((uint) (value.R * 255) << 24) | ((uint) (value.G * 255) << 16) | ((uint) (value.B * 255) << 8) | (uint) (value.B * 255);
     }
 
-    public static explicit operator Color(int value) {
+    public static explicit operator Color(uint value) {
         return new Color(value);
     }
 

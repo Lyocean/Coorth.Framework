@@ -1,13 +1,17 @@
 ﻿using System;
 using Coorth.Collections;
 
+
 namespace Coorth.Framework; 
 
 [Serializable, DataDefine]
 [Component, Guid("D118FB05-0CEB-48EE-A45A-E8EFD7ABECC4")]
-public partial struct ActivationComponent : IComponent {
-                          
+public partial struct DescriptionComponent : IComponent {
+
     [DataMember(1)]
+    public string? Name { get; set; }
+
+    [DataMember(2)]
     private BitMask64 mask;
     public BitMask64 Mask => mask;
 

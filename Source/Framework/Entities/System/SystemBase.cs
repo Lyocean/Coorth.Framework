@@ -33,6 +33,12 @@ public abstract partial class SystemBase : ServiceNode<SystemBase> {
 
     protected ComponentBinding<T> BindComponent<T>() where T : IComponent => World.BindComponent<T>();
 
+    protected ComponentBinding<T> BindComponent<T>(IComponentFactory<T> factory) where T : IComponent {
+        var binding = World.BindComponent<T>();
+        binding.SetFactory(factory);
+        return binding;
+    }
+
     #endregion
 
     #region Hierarchy

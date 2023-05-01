@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
-using Coorth.Framework;
 using Coorth.Maths;
 
-namespace Coorth.Framework; 
+
+namespace Coorth.Framework;
 
 [Component]
 public struct LocalMatrixComponent : IComponent {
@@ -14,6 +14,10 @@ public struct LocalMatrixComponent : IComponent {
     public Quaternion Rotation { get => Value.GetRotation(); set => Value.SetRotation(value); }
     
     public Vector3 Scaling { get => Value.GetScale(); set => Value.SetScale(value); }
+    
+    public LocalMatrixComponent(Matrix4x4 value) {
+        Value = value;
+    }
 }
 
 [Component]
@@ -26,19 +30,35 @@ public struct WorldMatrixComponent : IComponent {
     public Quaternion Rotation { get => Value.GetRotation(); set => Value.SetRotation(value); }
     
     public Vector3 Scaling { get => Value.GetScale(); set => Value.SetScale(value); }
+    
+    public WorldMatrixComponent(Matrix4x4 value) {
+        Value = value;
+    }
 }
 
 [Component]
 public struct PositionComponent : IComponent {
     public Vector3 Value;
+    
+    public PositionComponent(Vector3 value) {
+        Value = value;
+    }
 }
 
 [Component]
 public struct RotationComponent : IComponent {
     public Quaternion Value;
+
+    public RotationComponent(Quaternion value) {
+        Value = value;
+    }
 }
 
 [Component]
 public struct ScalingComponent : IComponent {
     public Vector3 Value;
+    
+    public ScalingComponent(Vector3 value) {
+        Value = value;
+    }
 }

@@ -12,7 +12,7 @@ public partial class World : Disposable {
     private static int currIndex;
     private static readonly Stack<int> resumeIndex = new();
     private static readonly object locker = new();
-    private static World[] worlds = new World[1];
+    private static World[] worlds = new World[4];
     public static int WorldCount { get; private set; }
     public static ReadOnlySpan<World> Worlds => worlds.AsSpan(0, WorldCount);
 
@@ -42,7 +42,7 @@ public partial class World : Disposable {
         lock (locker) {
             Index = resumeIndex.Count > 0 ? resumeIndex.Pop() : currIndex++;
             if (worlds.Length <= Index) {
-                Array.Resize(ref worlds, Index * 1);
+                Array.Resize(ref worlds, worlds.Length * 2);
             }
             worlds[Index] = this;
             WorldCount++;
@@ -55,10 +55,9 @@ public partial class World : Disposable {
         Actor = new WorldActor(this);
 
         InitArchetypes(out emptyArchetype);
-        InitSpace(out defaultSpace);
+        InitSpaces(out defaultSpace);
         InitEntities(Options.EntityCapacity.Index, Options.EntityCapacity.Chunk);
         InitComponents(Options);
-
         InitSystems(out RootSystem);
             
         singleton = CreateEntity();
@@ -70,9 +69,11 @@ public partial class World : Disposable {
             return;
         }
         ClearEntities();
-        ClearComponents();
+        ClearSpaces();
         ClearSystems();
         ClearArchetypes();
+        ClearComponents();
+
         lock (locker) {
             WorldCount--;
             worlds[Index] = default!;
