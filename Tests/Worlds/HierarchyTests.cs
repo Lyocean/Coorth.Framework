@@ -11,7 +11,6 @@ public class HierarchyTests {
         
         world.BindComponent<HierarchyComponent>();
         world.AddSystem<HierarchySystem>();
-
     }
     
     [Test]
@@ -21,5 +20,14 @@ public class HierarchyTests {
         Assert.IsTrue(hierarchy.Entity == entity);
         Assert.IsTrue(hierarchy.Count == 0);
         Assert.IsTrue(hierarchy.ParentEntity == Entity.Null);
+    }
+
+    [Test]
+    public void SetParent() {
+        var entity = world.CreateEntity();
+        var parent = world.CreateEntity();
+        entity.Offer<HierarchyComponent>().SetParent(parent);
+        Assert.IsTrue(parent.Count == 1);
+        Assert.IsTrue(entity.Offer<HierarchyComponent>().ParentEntity == parent);
     }
 }

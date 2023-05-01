@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
+
 namespace Coorth.Framework; 
 
 [Serializable, DataDefine]
@@ -24,7 +25,7 @@ public partial struct HierarchyComponent : IComponent {
     public Entity Entity => entity;
     public World World => entity.World;
     public int Count => count;
-
+    
     private ComponentGroup<HierarchyComponent> Group => entity.World.GetComponentGroup<HierarchyComponent>();
 
     public bool HasParent => parent != 0;
@@ -131,10 +132,10 @@ public partial struct HierarchyComponent : IComponent {
         }
         var group = Group;
         var curr = head;
-        ref var hierarchy = ref group.Get(curr);
+        ref var hierarchy = ref group.Get(curr - 1);
         for (var i = 1; i < position; i++) {
             curr = hierarchy.next;
-            hierarchy = ref group.Get(curr);
+            hierarchy = ref group.Get(curr - 1);
         }
         return ref hierarchy;
     }
@@ -152,12 +153,12 @@ public partial struct HierarchyComponent : IComponent {
             tail = child.prev;
         }
         if (child.prev != 0) {
-            ref var prev_hierarchy = ref group.Get(prev);
+            ref var prev_hierarchy = ref group.Get(prev - 1);
             prev_hierarchy.next = child.next;
             child.prev = 0;
         }
         if (child.next != 0) {
-            ref var next_hierarchy = ref group.Get(next);
+            ref var next_hierarchy = ref group.Get(next - 1);
             next_hierarchy.prev = child.prev;
             child.next = 0;
         }        
@@ -203,12 +204,12 @@ public partial struct HierarchyComponent : IComponent {
         }
         else {
             var curr = head;
-            ref var prev_hierarchy = ref group.Get(curr);
-            ref var next_hierarchy = ref group.Get(curr);
+            ref var prev_hierarchy = ref group.Get(curr - 1);
+            ref var next_hierarchy = ref group.Get(curr - 1);
             while (position > 0) {
                 curr = prev_hierarchy.next;
                 prev_hierarchy = next_hierarchy;
-                next_hierarchy = ref group.Get(curr);
+                next_hierarchy = ref group.Get(curr - 1);
                 position--;
             }
             prev_hierarchy.next = child.self;
@@ -219,15 +220,50 @@ public partial struct HierarchyComponent : IComponent {
         Entity.Modify<HierarchyComponent>();
     }
 
+    public void SetSiblingIndex(int index) {
+        if (parent == 0 || index < 0 || index >= count) {
+            return;
+        }
+        var group = Group;
+        ref var parent_hierarchy = ref group.Get(parent - 1);
+        ref var target_hierarchy = ref parent_hierarchy.GetChild(index);
+        if (self == target_hierarchy.self) {
+            return;
+        }
+        (target_hierarchy.next, next) = (next, target_hierarchy.next);
+        (target_hierarchy.prev, prev) = (prev, target_hierarchy.prev);
+    }
+
+    public int GetSiblingIndex() {
+        if (parent == 0) {
+            return -1;
+        }
+        var group = Group;
+        ref var parent_hierarchy = ref group.Get(parent - 1);
+        var curr = parent_hierarchy.head;
+        ref var curr_hierarchy = ref group.Get(curr - 1);
+        for (var i = 0; i < parent_hierarchy.count; i++) {
+            if (curr_hierarchy.self == self) {
+                return i;
+            }
+            curr = curr_hierarchy.next;
+            if (curr == -1) {
+                return -1;
+            }
+            curr_hierarchy = ref group.Get(curr - 1);
+        }
+        return  -1;
+    }
+    
     public readonly ref struct EnumerableHierarchies  {
         private readonly World world;
         private readonly int head;
 
         public EnumerableHierarchies(World world, int head) {
-            this.world = world;
+            this.world = world; 
             this.head = head;
         }
-            
+        
         public HierarchyEnumerator GetEnumerator() => new(world, head);
     }
     
@@ -299,5 +335,52 @@ public partial struct HierarchyComponent : IComponent {
         public void Reset() {
             curr = next = head;
         }
+    }
+}
+
+public static class HierarchyExtension {
+    
+    public static void SetParent(this in Entity entity, in Entity? parent) {
+        entity.Offer<HierarchyComponent>().SetParent(parent);
+    }
+
+    public static void SetSiblingIndex(this in Entity entity, int index) {
+        entity.Offer<HierarchyComponent>().SetSiblingIndex(index);
+    }
+    
+    public static int GetSiblingIndex(this in Entity entity) {
+        return entity.Get<HierarchyComponent>().GetSiblingIndex();
+    }
+
+    public static Entity? FindChild(this in Entity entity, string path) {
+        return _FindChild(in entity, path.AsSpan());
+    }
+
+    private static Entity? _FindChild(in Entity entity, ReadOnlySpan<char> path) {
+        ref var hierarchy = ref entity.Get<HierarchyComponent>();
+        var index = path.IndexOf('/');
+        var prefix = path.Slice(0, index);
+        foreach (ref var child_hierarchy in hierarchy) {
+            var child_entity = child_hierarchy.Entity;
+            ref var child_description = ref child_entity.Get<DescriptionComponent>();
+            if (child_description.Name == null) {
+                continue;
+            }
+            var child_name = child_description.Name.AsSpan();
+            if (index < 0) {
+                if (child_name.SequenceEqual(path)) {
+                    return child_entity;
+                }
+            }
+            else {
+                if (child_name.SequenceEqual(prefix)) {
+                    return _FindChild(in entity, path.Slice(index + 1));
+                }
+                if (child_name.SequenceEqual(path)) {
+                    return child_entity;
+                }
+            }
+        }
+        return null;
     }
 }
