@@ -11,15 +11,15 @@ namespace Coorth.Framework;
 
 public sealed partial class Dispatcher : Disposable {
 
-    public static readonly Dispatcher Root = new(null!);
+    public static readonly Dispatcher Root = new(null);
 
-    private readonly Dispatcher parent;
+    private readonly Dispatcher? parent;
 
     private readonly List<Dispatcher> children = new();
 
     private readonly Dictionary<Type, ReactChannel> channels = new();
 
-    public Dispatcher(Dispatcher parent) {
+    public Dispatcher(Dispatcher? parent) {
         this.parent = parent;
     }
 
@@ -38,7 +38,7 @@ public sealed partial class Dispatcher : Disposable {
             channel.Dispose();
         }
         channels.Clear();
-        parent.children.Remove(this);
+        parent?.children.Remove(this);
     }
 
     private ReactChannel OfferChannel(Type key) {

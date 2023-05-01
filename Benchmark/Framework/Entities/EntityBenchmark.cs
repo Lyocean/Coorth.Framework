@@ -1,15 +1,20 @@
 ﻿using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
 using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
+[MemoryDiagnoser]
+[SimpleJob(RunStrategy.Monitoring, launchCount:1, warmupCount:1, iterationCount:1, invocationCount:10_000)]
 public class EntityBenchmark {
-
+    
     private World world = default!;
 
-    private int ENTITY_COUNT = 1_000_000;
+    private const int ENTITY_COUNT = 1000;
+
+    private Entity[] entities = new Entity[ENTITY_COUNT];
     
-    [GlobalSetup]
+    [IterationSetup]
     public void Setup() {
         world = new World(new WorldOptions() {
             Name = "World",
@@ -17,46 +22,21 @@ public class EntityBenchmark {
             Dispatcher = new Dispatcher(null!),
             Logger = new LoggerConsole(),
         });
-        world.BindComponent<HierarchyComponent>();
-        world.BindComponent<TransformComponent>();
-    }
-
-    [IterationSetup]
-    public void IterationSetup() {
-        
     }
 
     [IterationCleanup]
-    public void IterationClear() {
-        world.Clear();
+    public void Dispose() {
+        world.Dispose();
     }
-
+    
     [Benchmark]
     public void CreateEntity() {
-        for (var i = 0; i < ENTITY_COUNT; i++) {
-            world.CreateEntity();
-        }
+        world.CreateEntity();
     }
     
     [Benchmark]
     public void CreateEntities() {
-        world.CreateEntities(ENTITY_COUNT);
-    }
-
-    [Benchmark]
-    public void AddComponent1() {
-        for (var i = 0; i < ENTITY_COUNT; i++) {
-            var entity = world.CreateEntity();
-            entity.Add<HierarchyComponent>();
-        }
+        world.CreateEntities(entities.AsSpan());
     }
     
-    [Benchmark]
-    public void AddComponent2() {
-        for (var i = 0; i < ENTITY_COUNT; i++) {
-            var entity = world.CreateEntity();
-            entity.Add<HierarchyComponent>();
-            entity.Add<TransformComponent>();
-        }
-    }
 }

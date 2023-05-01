@@ -106,7 +106,7 @@ public partial class World {
     }
     
     public Entity CreateEntity(Space? space = null) => CreateEntity(emptyArchetype, space);
-
+    
     public Entity CloneEntity(Entity entity) => CloneEntity(entity.Id);
     
     public void CreateEntities(Span<Entity> span, Space? space = null) => CreateEntities(emptyArchetype, span, space);
