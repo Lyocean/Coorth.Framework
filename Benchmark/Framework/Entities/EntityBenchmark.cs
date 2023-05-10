@@ -1,19 +1,26 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Diagnosers;
 using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Monitoring, launchCount:1, warmupCount:1, iterationCount:1, invocationCount:10_000)]
+[HardwareCounters(HardwareCounter.CacheMisses)]
 public class EntityBenchmark {
     
     private World world = default!;
-
-    private const int ENTITY_COUNT = 1000;
-
-    private Entity[] entities = new Entity[ENTITY_COUNT];
     
+    [Params(EntityConst.COUNT)]
+    public int EntityCount { get; set; }
+    
+    private readonly Entity[] entities = new Entity[EntityConst.COUNT];
+
+    private Archetype archetype1;
+
+    private Archetype archetype2;
+    
+    private Archetype archetype3;
+
     [IterationSetup]
     public void Setup() {
         world = new World(new WorldOptions() {
@@ -22,6 +29,22 @@ public class EntityBenchmark {
             Dispatcher = new Dispatcher(null!),
             Logger = new LoggerConsole(),
         });
+        world.BindComponent<HierarchyComponent>();
+        world.BindComponent<LifetimeComponent>();
+        world.BindComponent<PositionComponent>();
+        archetype1 = world.CreateArchetype()
+            .Add<HierarchyComponent>()
+            .Compile();
+        archetype2 = world.CreateArchetype()
+            .Add<HierarchyComponent>()
+            .Add<PositionComponent>()
+            .Compile();
+        archetype3 = world.CreateArchetype()
+            .Add<HierarchyComponent>()
+            .Add<PositionComponent>()
+            .Add<LifetimeComponent>()
+            .Compile();
+
     }
 
     [IterationCleanup]
@@ -30,13 +53,32 @@ public class EntityBenchmark {
     }
     
     [Benchmark]
-    public void CreateEntity() {
-        world.CreateEntity();
+    public void CreateEntities0() {
+        for (var i = 0; i < EntityConst.COUNT; i++) {
+            world.CreateEntity();
+        }
     }
     
     [Benchmark]
-    public void CreateEntities() {
+    public void CreateEntities1() {
         world.CreateEntities(entities.AsSpan());
     }
     
+    [Benchmark]
+    public void CreateEntitiesWith1Component() {
+        archetype1.CreateEntities(entities.AsSpan());
+    }
+    
+    [Benchmark]
+    public void CreateEntitiesWith2Component() {
+        archetype2.CreateEntities(entities.AsSpan());
+    }
+    
+    [Benchmark]
+    public void CreateEntitiesWith3Component() {
+        archetype3.CreateEntities(entities.AsSpan());
+    }
+    
+    
+
 }

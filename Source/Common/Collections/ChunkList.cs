@@ -106,7 +106,10 @@ public struct ChunkList<T> {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void RemoveLast() {
-        ref var chunk = ref chunks.Ref(chunks.Count - 1);
+        var index = Count - 1;
+        int chunkIndex = index / chunkCapacity;
+        // int itemIndex = index % chunkCapacity;
+        ref var chunk = ref chunks.Ref(chunkIndex);
         chunk.RemoveLast();
         Count--;
     }

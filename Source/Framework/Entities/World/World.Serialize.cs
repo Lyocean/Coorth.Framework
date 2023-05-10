@@ -46,19 +46,24 @@ public partial class World {
     }
 
     public void WriteEntity(ISerializeWriter writer, in EntityId entityId) {
-        writer.BeginData<Entity>(2);
-        ref var context = ref GetContext(entityId.Index);
-        writer.WriteField(nameof(Entity.Count), 1, context.Count);
-        writer.WriteTag(nameof(ArchetypeDefinition.Components), 2);
-        writer.BeginDict(typeof(Type), typeof(IComponent), context.Count);
-        foreach (var type in context.Archetype.Types) {
-            var group = GetComponentGroup(type);
-            var index = context.Get(type);
-            writer.WriteKey(group.Type);
-            group.Write(writer, index);
+        writer.BeginData<Entity>(3);
+        {
+            ref var context = ref GetContext(entityId.Index);
+        
+            writer.WriteField(nameof(Entity.Id), 1, entityId);
+            writer.WriteField(nameof(Entity.Count), 2, context.Count);
+        
+            writer.WriteTag(nameof(ArchetypeDefinition.Components), 3);
+            writer.BeginData<IComponent>((short)context.Archetype.Types.Length);
+            for (var i = 0; i < context.Archetype.Types.Length; i++) {
+                var typeId = context.Archetype.Types[i];
+                var group = GetComponentGroup(typeId);
+                var index = context.Get(typeId);
+                writer.WriteTag(group.Type.Name, i);
+                group.Write(writer, index);
+            }
+            writer.EndData();
         }
-
-        writer.EndDict();
         writer.EndData();
     }
 }

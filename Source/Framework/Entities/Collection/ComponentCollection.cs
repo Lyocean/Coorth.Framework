@@ -134,7 +134,7 @@ public readonly struct ComponentCollection<T1> : IEnumerable<(Entity, T1)> where
         public bool MoveNext() {
             var world = group1.World;
             while (index < group1.Count) {
-                var component1 = group1.Get(index);
+                ref var component1 = ref group1.Get(index);
                 var entityIndex = group1.GetEntityIndex(index);
                 if(entityIndex < 0){
                     continue;

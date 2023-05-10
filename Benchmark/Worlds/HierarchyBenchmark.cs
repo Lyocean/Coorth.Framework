@@ -1,17 +1,21 @@
 ﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Diagnosers;
 using Coorth.Logs;
 
 namespace Coorth.Framework; 
 
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Monitoring, launchCount:1, warmupCount:1, iterationCount:1, invocationCount:1_000)]
+// [HardwareCounters(HardwareCounter.CacheMisses)]
 public class HierarchyBenchmark : IDisposable {
     
-    private World world;
+    private World world = default!;
 
-    private Entity[] entities;
-    
+    private Entity[] entities = default!;
+
+    [Params(EntityConst.COUNT)]
+    public int EntityCount { get; set; }
+
+
     [IterationSetup]
     public void Setup() {
         world = new World(new WorldOptions() {
@@ -20,7 +24,7 @@ public class HierarchyBenchmark : IDisposable {
             Dispatcher = new Dispatcher(null!),
             Logger = new LoggerConsole(),
         });
-        entities = new Entity[1000];
+        entities = new Entity[EntityCount];
         for (var i = 0; i < entities.Length; i++) {
             entities[i] = world.CreateEntity();
             entities[i].Add<HierarchyComponent>();

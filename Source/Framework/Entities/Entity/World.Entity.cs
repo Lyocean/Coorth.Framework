@@ -35,7 +35,6 @@ public partial class World {
             }
             _DestroyEntity(ref context);
         }
-        // contexts.Clear();
     }
 
     public void Clear() {

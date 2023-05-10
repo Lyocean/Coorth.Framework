@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using BenchmarkDotNet.Attributes;
 
 namespace Coorth.Framework;
@@ -7,9 +6,9 @@ namespace Coorth.Framework;
 [MemoryDiagnoser]
 public class ServiceBenchmark {
 
-    private const int BIND_TEST_COUNT = 100_000;
+    private const int BIND_TEST_COUNT = 10_000;
     
-    private const int GET_TEST_COUNT = 100_000;
+    private const int GET_TEST_COUNT = 10_000;
     
     private readonly ServiceLocator[] locators = new ServiceLocator[BIND_TEST_COUNT];
 

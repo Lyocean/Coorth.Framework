@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
+﻿namespace Coorth.Framework; 
 
-namespace Coorth.Framework; 
-
-[Component,Guid("28917B42-D4B2-4080-9890-98193F6C897A")]
+[Component, Guid("28917B42-D4B2-4080-9890-98193F6C897A")]
 public sealed class WorldComponent : Component {
 
     public readonly WorldsModule Module;
@@ -13,5 +11,4 @@ public sealed class WorldComponent : Component {
         Module = module;
         App = app;
     }
-    
 }

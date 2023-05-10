@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,10 +25,14 @@ public class SerializeAnalyzer : DiagnosticAnalyzer {
         if (symbol == null) {
             return;
         }
-        var storeContractSymbol = context.Compilation.GetTypeByMetadataName(AnalyzerUtil.DataDefineAttribute);
-        if(storeContractSymbol != null && !AnalyzerUtil.HasAttribute(symbol, storeContractSymbol)) {
+        var defineSymbol = context.Compilation.GetTypeByMetadataName(AnalyzerUtil.DataDefineAttribute);
+        if(defineSymbol != null && !AnalyzerUtil.HasAttribute(symbol, defineSymbol)) {
             return;
         }
+        if (defineSymbol == null) {
+            return;
+        }
+ 
         if (symbol.ContainingType != null) {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.NestedTypeNotSupport, typeDeclaration.Identifier.GetLocation(), symbol.Name));
             return;

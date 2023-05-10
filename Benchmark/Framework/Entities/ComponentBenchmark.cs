@@ -5,11 +5,15 @@ using Coorth.Logs;
 namespace Coorth.Framework; 
 
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Monitoring, launchCount:1, warmupCount:1, iterationCount:1, invocationCount:100_000)]
+// [HardwareCounters(HardwareCounter.CacheMisses)]
 public class ComponentBenchmark {
-    private World world;
+    
+    private World world = default!;
 
-    private Entity[] entities;
+    private Entity[] entities = default!;
+    
+    [Params(EntityConst.COUNT)]
+    public int EntityCount { get; set; }
     
     [IterationSetup]
     public void Setup() {
@@ -19,7 +23,7 @@ public class ComponentBenchmark {
             Dispatcher = new Dispatcher(null!),
             Logger = new LoggerConsole(),
         });
-        entities = new Entity[1000];
+        entities = new Entity[EntityCount];
         for (var i = 0; i < entities.Length; i++) {
             entities[i] = world.CreateEntity();
             entities[i].Add<DescriptionComponent>();

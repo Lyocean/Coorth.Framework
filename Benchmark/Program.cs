@@ -3,9 +3,11 @@ using Coorth.Framework;
 
 Console.WriteLine("[Benchmark] Start");
 
-// BenchmarkRunner.Run<HierarchyBenchmark>();
 BenchmarkRunner.Run(new Type[] {
-    typeof(EntityBenchmark),
+    // typeof(EntityBenchmark),
+    typeof(ComponentBenchmark),
     // typeof(HierarchyBenchmark),
+    // typeof(ServiceBenchmark),
 });
+
 Console.WriteLine("[Benchmark] Finish");

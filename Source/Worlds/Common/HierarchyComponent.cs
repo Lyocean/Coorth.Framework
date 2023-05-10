@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-
 namespace Coorth.Framework; 
 
 [Serializable, DataDefine]
@@ -9,19 +8,15 @@ namespace Coorth.Framework;
 public partial struct HierarchyComponent : IComponent {
 
     private Entity entity;
-    [DataMember]
     private int self;
-    [DataMember]
     private int parent;
-    [DataMember]
     private int head, tail;
-    [DataMember]
     private int prev, next;
-    [DataMember]
     private int count;
     [DataMember]
     private uint flags;
-    
+
+    private const int MAX_CHILD_COUNT = ushort.MaxValue;
     public Entity Entity => entity;
     public World World => entity.World;
     public int Count => count;
@@ -62,16 +57,28 @@ public partial struct HierarchyComponent : IComponent {
         }
     }
 
-    public void SetFlags(ushort value) {
+    public void SetFlags(ushort value, bool recursive = false) {
         flags = value;
+        if (!recursive) {
+            return;
+        }
+        foreach (var hierarchy in Children) {
+            hierarchy.SetFlags(value, true);
+        }
     }
     
-    public void SetFlags(int position, bool value) {
+    public void SetFlags(int position, bool value, bool recursive = false) {
         if (value) {
             flags |= (1u << position);
         }
         else {
             flags &= (~(1u << position));
+        }
+        if (!recursive) {
+            return;
+        }
+        foreach (var hierarchy in Children) {
+            hierarchy.SetFlags(position, value, true);
         }
     }
     
@@ -94,6 +101,9 @@ public partial struct HierarchyComponent : IComponent {
     }
     
     private void _AddChild(ref HierarchyComponent child) {
+        if (count == MAX_CHILD_COUNT) {
+            throw new IndexOutOfRangeException();
+        }
         if (child.parent == self) {
             return;
         }
@@ -185,6 +195,9 @@ public partial struct HierarchyComponent : IComponent {
     }
     
     public void InsertChild(ref HierarchyComponent child, int position) {
+        if (count == MAX_CHILD_COUNT) {
+            throw new IndexOutOfRangeException();
+        }
         if (position < 0 || position > count) {
             throw new ArgumentOutOfRangeException();
         }
@@ -280,10 +293,10 @@ public partial struct HierarchyComponent : IComponent {
         }
 
         public bool MoveNext() {
+            curr = next;
             if(curr == 0) {
                 return false;
             }
-            curr = next;
             ref var hierarchy = ref group.Get(curr - 1);
             next = hierarchy.next;
             return true;
@@ -336,6 +349,7 @@ public partial struct HierarchyComponent : IComponent {
             curr = next = head;
         }
     }
+    
 }
 
 public static class HierarchyExtension {
@@ -383,4 +397,6 @@ public static class HierarchyExtension {
         }
         return null;
     }
+    
+
 }

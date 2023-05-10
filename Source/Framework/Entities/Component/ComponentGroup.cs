@@ -108,7 +108,7 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int GetEntityIndex(int componentIndex) {
-        return (int)(((1u << 31) - 1) & mapping[componentIndex]);
+        return (int)(((1u << 31) - 1) & (uint)mapping[componentIndex]);
     }
 
     #endregion
@@ -199,13 +199,14 @@ public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
             reusing = index;
         }
         else {
-            var tailIndex = components.Count - 1;
-            if (index != tailIndex) {
-                component = components[tailIndex];
-                mapping[index] = mapping[tailIndex];
-                ref var tailContext = ref World.GetContext(mapping[index]);
-                tailContext[TypeId] = index;
+            var tail = components.Count - 1;
+            if (index != tail) {
+                component = ref components[tail];
+                mapping[index] = mapping[tail];
+                ref var context = ref World.GetContext(mapping[index]);
+                context[TypeId] = index;
             }
+            
             components.RemoveLast();
             mapping.RemoveLast();
         }

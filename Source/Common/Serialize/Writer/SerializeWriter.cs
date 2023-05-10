@@ -9,7 +9,7 @@ public interface ISerializeWriter {
     
     #region Scope
 
-    void BeginData(Type type, short count, byte flags = SerializeConst.DATA);
+    void BeginData(Type type, short count, byte info = SerializeConst.DATA);
     void BeginData<T>(short count, byte flags = SerializeConst.DATA);
     void EndData();
 

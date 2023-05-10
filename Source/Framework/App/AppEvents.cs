@@ -7,29 +7,29 @@ namespace Coorth.Framework;
 #region App
 
 [Event]
-public record ApplicationInitBeginEvent;
+public record AppInitBeginEvent;
 
 [Event]
-public record ApplicationInitAfterEvent;
+public record AppInitAfterEvent;
 
 [Event]
-public record ApplicationLoadEvent;
+public record AppLoadEvent;
 
 [Event]
-public record ApplicationStartEvent(IApplication App) {
+public record AppStartEvent(IApplication App) {
     public readonly IApplication App = App;
 }
 
 [Event]
-public record ApplicationStatusChangeEvent(bool IsPause) {
+public record AppStatusChangeEvent(bool IsPause) {
     public readonly bool IsPause = IsPause;
 }
 
 [Event]
-public record ApplicationCloseEvent;
+public record AppCloseEvent;
 
 [Event]
-public record ApplicationQuitEvent;
+public record AppQuitEvent;
 
 
 #endregion

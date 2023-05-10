@@ -32,8 +32,8 @@ public sealed partial class TransformComponent : IComponent {
     private Vector3 localScaling;
     
     #endregion
-    
-    
+        
+
     #region Hierarchy
 
     public Entity Entity => entity;
@@ -46,7 +46,8 @@ public sealed partial class TransformComponent : IComponent {
     
     public ref HierarchyComponent Hierarchy => ref entity.Offer<HierarchyComponent>();
 
-    public SpaceComponent? Space => GetSpace();
+    private SpaceComponent? space;
+    public SpaceComponent? Space => space ??= GetSpace();
     
     public IReadOnlyList<TransformComponent> Children => children ?? (IReadOnlyList<TransformComponent>)Array.Empty<TransformComponent>();
 
@@ -105,19 +106,16 @@ public sealed partial class TransformComponent : IComponent {
     }
 
     private SpaceComponent? GetSpace() {
-        if (Entity.TryGet<SpaceComponent>(out var space)) {
-            return space;
+        if (Entity.TryGet<SpaceComponent>(out var component)) {
+            return component;
         }
-
         var transform = parent;
         while (transform != null) {
-            if (transform.entity.TryGet<SpaceComponent>(out space)) {
-                return space;
+            if (transform.entity.TryGet<SpaceComponent>(out component)) {
+                return component;
             }
-
             transform = transform.parent;
         }
-
         return null;
     }
 
@@ -128,9 +126,9 @@ public sealed partial class TransformComponent : IComponent {
         if (parent == null) {
             return;
         }
-
         parent.children ??= new List<TransformComponent>();
         parent.children.Add(this);
+        space = parent.space;
     }
 
     public void SetParent(in TransformComponent? value, TransformAttach attach = TransformAttach.WorldStay) {

@@ -6,6 +6,7 @@ namespace Coorth.Framework;
 [Flags]
 public enum LifetimeMode { Countdown = 1, DelayFrame = 2, Condition = 4 }
     
+[Component, Guid("8AF4B7B3-81DD-4A3B-817E-14867C93ECF7")]
 public struct LifetimeComponent : IComponent {
 
     public readonly LifetimeMode Mode;

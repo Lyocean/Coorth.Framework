@@ -132,9 +132,9 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     public void Init() {
         Logger.Trace(nameof(Init));
-        Dispatcher.Dispatch(new ApplicationInitBeginEvent());
+        Dispatcher.Dispatch(new AppInitBeginEvent());
         OnInit();
-        Dispatcher.Dispatch(new ApplicationInitAfterEvent());
+        Dispatcher.Dispatch(new AppInitAfterEvent());
     }
 
     protected virtual void OnInit() {
@@ -149,7 +149,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         isRunning = true;
         rootModule.SetActive(true);
         OnStartup();
-        Dispatcher.Dispatch(new ApplicationStartEvent(this));
+        Dispatcher.Dispatch(new AppStartEvent(this));
     }
 
     protected virtual void OnStartup() { }
@@ -215,7 +215,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
             return;
         }
         Logger.Trace(nameof(Close));
-        Dispatcher.Dispatch(new ApplicationCloseEvent());
+        Dispatcher.Dispatch(new AppCloseEvent());
         OnClose();
         rootModule.SetActive(false);
 
