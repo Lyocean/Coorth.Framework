@@ -14,8 +14,8 @@ public sealed class WorldSystem : SystemBase {
         BindComponent<HierarchyComponent>();
         AddChild<HierarchySystem>();
 
-        BindComponent<TransformComponent>().AddDependency<HierarchyComponent>();
-        BindComponent<SpaceComponent>().AddDependency<TransformComponent>().AddDependency<HierarchyComponent>();
+        BindComponent<TransformComponent>();
+        BindComponent<SpaceComponent>();
         AddChild<TransformSystem>();
         
         BindComponent<LifetimeComponent>();

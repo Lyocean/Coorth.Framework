@@ -13,7 +13,7 @@ public partial class World {
 
     public int SystemCount => systems.Count;
 
-    private void InitSystems(out SystemRoot root) {
+    private void SetupSystems(out SystemRoot root) {
         root = new SystemRoot();
         RootSystem.Setup(this);
         OnSystemAdd(typeof(SystemRoot), RootSystem);

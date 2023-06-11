@@ -1,0 +1,30 @@
+<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+namespace Coorth.Framework;
+
+public partial class World {
+<#
+    for (var count = 2; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+        var arguments = CreateParameters(count, i => $"ref component{i}", ", ");
+        var parameters = CreateParameters(count, i => $"in T{i} value{i}", ", ");
+#>
+    public Components<<#=templates#>> AddComponent<<#=templates#>>(scoped in EntityId id) <#=contracts#> {
+<#      for (var i = 0; i < count; i++) {   #>
+        ref var component<#=i#> = ref AddComponent<T<#=i#>>(in id);
+<#      } #>
+        return new Components<<#=templates#>>(<#=arguments#>);
+    }
+
+    public Components<<#=templates#>> AddComponent<<#=templates#>>(scoped in EntityId id, <#=parameters#>) <#=contracts#> {
+<#      for (var i = 0; i < count; i++) {   #>
+        ref var component<#=i#> = ref AddComponent<T<#=i#>>(in id, in value<#=i#>);
+<#      } #>
+        return new Components<<#=templates#>>(<#=arguments#>);
+    }
+
+<#
+    }
+#>
+}

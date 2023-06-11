@@ -1,0 +1,103 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+using System;
+using System.Runtime.CompilerServices;
+
+namespace Coorth.Framework;
+
+public partial class SystemSubscription<TEvent> {
+<#
+    for (var count = 2; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+        var arguments = CreateParameters(count, i => $"ref T{i} component{i}", ", ");
+        var arguments2 = CreateParameters(count, i => $"ref component{i}", ", ");
+
+#>
+
+    public void ForEach<<#=templates#>>(ActionI2R<#=count#><TEvent, Entity, <#=templates#>> action) <#=contracts#> {
+        var matcher = new Matcher().WithAll<<#=templates#>>();
+        _OnMatch(matcher);
+        OnEvent((in TEvent e) => {
+            var query = World.Query(matcher);
+            query.ForEach(in e, action);
+        });
+    }
+
+    public void ForEach<<#=templates#>>(ActionR<#=count#><<#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent _, in Entity _, <#=arguments#>) => action(<#=arguments2#>));        
+    }
+
+    public void ForEach<<#=templates#>>(ActionI1R<#=count#><Entity, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent _, in Entity entity, <#=arguments#>) => action(in entity, <#=arguments2#>));        
+    }
+
+    public void ForEach<<#=templates#>>(ActionI1R<#=count#><TEvent, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent e, in Entity _, <#=arguments#>) => action(in e, <#=arguments2#>));        
+    }
+
+    public void ForEach<<#=templates#>>(Action<<#=templates#>> action) <#=contracts#> {
+        ForEach((<#=arguments#>) => action(<#=CreateParameters(count, i => $"component{i}", ", ")#>));
+    }
+
+    public void ForEach<<#=templates#>>(Action<Entity, <#=templates#>> action) <#=contracts#> {
+        ForEach((in Entity entity, <#=arguments#>) => action(entity, <#=CreateParameters(count, i => $"component{i}", ", ")#>));
+    }
+
+    public void ForEach<<#=templates#>>(Action<TEvent, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent e, <#=arguments#>) => action(e, <#=CreateParameters(count, i => $"component{i}", ", ")#>));
+    }
+
+    public void ForEach<<#=templates#>>(Action<TEvent, Entity, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent e, in Entity entity, <#=arguments#>) => action(e, entity, <#=CreateParameters(count, i => $"component{i}", ", ")#>));
+    }
+
+<#
+        for (var number = 1; number < count; number++) {
+            var args_in = CreateParameters(number, i => $"in component{i}", ", ");
+            var index = number;
+            var args_ref = CreateParameters(count - number, i => $"ref component{index + i}", ", ");
+#>
+    public void ForEach<<#=templates#>>(ActionI<#=number#>R<#=count-number#><<#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent _, in Entity _, <#=arguments#>) => action(<#=args_in#>, <#=args_ref#>));
+    }
+
+    public void ForEach<<#=templates#>>(ActionI<#=number+1#>R<#=count-number#><Entity, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent _, in Entity entity, <#=arguments#>) => action(in entity, <#=args_in#>, <#=args_ref#>));
+    }
+
+    public void ForEach<<#=templates#>>(ActionI<#=number+1#>R<#=count-number#><TEvent, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent e, in Entity _, <#=arguments#>) => action(in e, <#=args_in#>, <#=args_ref#>));
+    }
+
+    public void ForEach<<#=templates#>>(ActionI<#=number+2#>R<#=count-number#><TEvent, Entity, <#=templates#>> action) <#=contracts#> {
+        ForEach((in TEvent e, in Entity entity, <#=arguments#>) => action(in e, in entity, <#=args_in#>, <#=args_ref#>));
+    }
+
+<#
+        }
+#>
+<#
+    }
+#>
+}
+
+public partial class SystemBase {
+
+    #region ForEach
+
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+#>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected void ForEach<TEvent, <#=templates#>>(ActionI1R<#=count#><TEvent, <#=templates#>> action) where TEvent : notnull <#=contracts#> {
+        Subscribe<TEvent>().ForEach(action);
+    }
+
+<#
+    }
+#>
+    #endregion
+}

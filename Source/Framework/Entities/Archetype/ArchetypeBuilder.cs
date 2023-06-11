@@ -1,71 +1,44 @@
 ﻿using System;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public class ArchetypeBuilder {
-        
-    private readonly World world;
 
-    private ArchetypeDefinition definition;
-        
-    private bool closed;
+    private readonly World world;
     
-    internal ArchetypeBuilder(World s, ArchetypeDefinition d) {
-        world = s;
-        definition = d;
+    private Archetype archetype;
+
+    private bool closed;
+
+    internal ArchetypeBuilder(Archetype archetype) {
+        world = archetype.World;
+        this.archetype = archetype;
     }
 
     private void Validate(Type type) {
         if (closed) {
-            throw new InvalidOperationException("Archetype is closed.");
+            throw new InvalidOperationException("[Entity] Archetype is closed.");
         }
         if (!typeof(IComponent).IsAssignableFrom(type)) {
             throw new ArgumentException("Type is not implement IComponent");
-        } 
-        if (!world.IsComponentBind(type)) {
-            throw new NotBindException(type);
         }
     }
 
     public ArchetypeBuilder Add(Type type) {
         Validate(type);
-        var typeId = World.ComponentTypeIds[type];
-        definition = definition.AddComponent(typeId);
+        archetype = world.NextArchetype(archetype, ComponentRegistry.Get(type));
         return this;
     }
-        
+
     public ArchetypeBuilder Add<T>() where T : IComponent {
-        world.BindComponent<T>();
         Validate(typeof(T));
-        var typeId = ComponentType<T>.TypeId;
-        var group = world.GetComponentGroup<T>();
-        // var dependencies = group.GetDependencies();
-        // if (dependencies.Count > 0) {
-        //     foreach (var dependency in dependencies) {
-        //         definition = definition.AddComponent(typeId);
-        //     }
-        // }
-        definition = definition.AddComponent(typeId);
-        return this;
-    }
-
-    public ArchetypeBuilder Remove(Type type) {
-        Validate(type);
-        var typeId = World.ComponentTypeIds[type];
-        definition = definition.RemoveComponent(typeId);
-        return this;
-    } 
-
-    public ArchetypeBuilder Remove<T>() where T : IComponent {
         world.BindComponent<T>();
-        Validate(typeof(T));
-        var typeId = ComponentType<T>.TypeId;
-        definition = definition.RemoveComponent(typeId);
+        archetype = world.NextArchetype(archetype, ComponentRegistry.Get<T>());
         return this;
     }
     
-    public Archetype Compile() {
+    public Archetype Build() {
         closed = true;
-        return new Archetype(world, definition);
+        return archetype;
     }
 }

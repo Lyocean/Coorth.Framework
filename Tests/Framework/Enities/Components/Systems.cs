@@ -21,7 +21,7 @@ public class TestForEachSystem : SystemBase {
         Subscribe<TickUpdateEvent>()
             .ForEach<TestClassComponent1, TestClassComponent2, TestClassComponent3>(Execute);
 
-        var matcher = new ArchetypeMatcher().Include<TestClassComponent1, TestClassComponent3>().Exclude<TestClassComponent2>();
+        var matcher = new Matcher().WithAll<TestClassComponent1, TestClassComponent3>().WithNot<TestClassComponent2>();
         Subscribe<TickUpdateEvent>().OnMatch(matcher, Execute);
     }
 

@@ -1,308 +1,429 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
-using Coorth.Collections;
 using Coorth.Serialize;
+
 
 namespace Coorth.Framework;
 
-public interface IComponentGroup {
-    World World { get; }
-    int Count { get; }
-    Type Type { get; }
-    int TypeId { get; }
+public struct ComponentChunk<T> {
+    
+    /// <summary>
+    /// Component values
+    /// </summary>
+    public readonly T[] Value;
+    
+    /// <summary>
+    /// Entity index
+    /// </summary>
+    public readonly int[] Index;
+    
+    /// <summary>
+    /// Component flags, 
+    /// </summary>
+    public readonly byte[] Flags;
+    
+    /// <summary>
+    /// Enable index, component index less than this value is disabled 
+    /// </summary>
+    public int Enable = 0;
 
-    int Add(in Entity entity);
-    void OnAdd(in EntityId id, int index);
+    public int Count = 0;
 
-    IComponent Get(int index);
-
-    void Remove(in Entity entity, int index);
-    void OnRemove(in EntityId id, int index);
-
-    void OnModify(in EntityId id, int index);
-
-    int Clone(in Entity entity, int index);
-
-    void Read(ISerializeReader reader, int index);
-    void Write(ISerializeWriter writer, int index);
-
-    ComponentPack Pack(Entity entity, int index);
-
-    bool IsEnable(int index);
-    void SetEnable(EntityId id, int index, bool enable);
+    public ComponentChunk(int capacity) {
+        Value = new T[capacity];
+        Index = new int[capacity];
+        Flags = new byte[capacity];
+    }
 }
 
-public sealed class ComponentGroup<T> : IComponentGroup where T : IComponent {
-    #region Fields
+public abstract class ComponentGroup {
 
-    public World World { get; }
+    public readonly World World;
 
-    public IComponentFactory<T>? Factory { get; internal set; }
+    public readonly ComponentType Type;
+
+    protected int count;
+    public int Count => count;
+
+    private readonly Dictionary<Type, ComponentGroup> edges = new();
+    public IDictionary<Type, ComponentGroup> Edges => edges;
+
+    protected ComponentGroup(World world, ComponentType type) {
+        World = world;
+        Type = type;
+    }
+
+    internal abstract int Add(int entity_index, in Entity entity);
+    internal abstract void OnAdd(in Entity entity, int component_index);
+
+    internal abstract IComponent _Get(int entity_index);
     
-    private ChunkList<T> components;
+    internal abstract void Modify(int entity_index);
+    internal abstract void OnModify(in Entity entity, int component_index);
+    
+    internal abstract void Remove(int component_index, in Entity entity);
+    internal abstract void OnRemove(in Entity entity, int component_index);
 
-    private ChunkList<int> mapping;
+    internal abstract int Clone(int entity_index, int component_index, in Entity entity);
+    internal abstract void OnClone(in Entity entity, int component_index);
+
+    internal abstract bool IsEnable(int component_index);
+    internal abstract void SetEnable(int component_index, bool enable, in Entity entity);
+    internal abstract void SetActive(int component_index, bool active, in Entity entity);
+
+    internal abstract void Read<TReader>(TReader reader, int component_index) where TReader : ISerializeReader;
+    internal abstract void Write<TWriter>(TWriter reader, int component_index) where TWriter : ISerializeWriter;
+    internal abstract ComponentPack Pack(in Entity entity, int component_index);
+    internal abstract int UnPack(in Entity entity, int entity_index, ComponentPack component_pack);
+
+    internal abstract void Clear();
+    
+    public void AddDependency(ComponentGroup group) {
+        edges.TryAdd(group.Type.Type, group);
+    }
+    
+    public void AddDependency<T>() where T : IComponent {
+        var group = World.GetComponentGroup<T>();
+        edges.TryAdd(group.Type.Type, group);
+    }
+
+    public bool HasDependency(Type type) {
+        return edges.ContainsKey(type);
+    }
+    
+    public bool HasDependency<T>() {
+        return edges.ContainsKey(typeof(T));
+    }
+
+    public IReadOnlyDictionary<Type, ComponentGroup> GetDependencies() {
+        return edges;
+    }
+}
+
+public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
+
+    #region Common
+    
+    private ComponentChunk<T>[] chunks;
 
     private int reusing = -1;
 
-    //Disable | Enable
-    internal int separate;
-
-    public int Count { get; private set; }
-
-    public Type Type => ComponentType<T>.Type;
-
-    public int TypeId => ComponentType<T>.TypeId;
-
-    private bool IsPinned => ComponentType<T>.IsPinned;
+    public readonly int ChunkSize;
     
-    private ValueList<IComponentGroup> dependency = new(1);
+    private readonly bool isPinned;
 
-    public ComponentGroup(World world) {
-        World = world;
-        var attribute = ComponentType<T>.Attribute;
-        var indexCapacity = world.Options.ComponentDataCapacity.Index;
-        var chunkCapacity = world.Options.ComponentDataCapacity.Chunk;
-        
-        if (attribute != null) {
-            indexCapacity = attribute.IndexCapacity > 0 ? attribute.IndexCapacity : indexCapacity;
-            chunkCapacity = attribute.ChunkCapacity > 0 ? attribute.ChunkCapacity : chunkCapacity;
-        }
+    private IComponentFactory<T>? factory;
 
-        components = new ChunkList<T>(indexCapacity, chunkCapacity);
-        mapping = new ChunkList<int>(indexCapacity, chunkCapacity);
-
-        if (!ComponentType<T>.IsValueType) {
-            Factory = new ComponentFactory<T>();
-        }
-    }
-
-    #endregion
-
-    #region Binding
-
-    public void AddDependency(IComponentGroup componentGroup) {
-        if (!dependency.Contains(componentGroup)) {
-            dependency.Add(componentGroup);
-        }
-    }
-
-    public bool HasDependency(Type otherType) {
-        if (dependency.IsNull) {
-            return false;
-        }
-
-        for (var i = 0; i < dependency.Count; i++) {
-            if (dependency[i].Type == otherType) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public ValueList<IComponentGroup> GetDependencies() {
-        return dependency;
-    }
+    public int ChunkCount => chunks.Length;
     
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public int GetEntityIndex(int componentIndex) {
-        return (int)(((1u << 31) - 1) & (uint)mapping[componentIndex]);
+    
+    internal ComponentGroup(World world) : base(world, ComponentType<T>.Value) {
+        ChunkSize = (1000 * 16) / (Unsafe.SizeOf<T>() + sizeof(int) + sizeof(byte));
+        chunks = Array.Empty<ComponentChunk<T>>();
+        var attribute = typeof(T).GetCustomAttribute<ComponentAttribute>();
+        isPinned = attribute != null && attribute.IsPinned;
+        if (typeof(T).IsValueType) {
+            return;
+        }
+        factory = new ComponentFactory<T>();
     }
 
+    public void SetFactory(IComponentFactory<T> value) {
+        factory = value;
+    }
+    
     #endregion
 
+    
     #region Add
 
-    public int Add(in Entity entity) {
-        Count++;
-        int index;
-        if (reusing < 0) {
-            index = components.Count;
-            ref var component = ref components.Add();
-            mapping.Add(entity.Id.Index);
-            Factory?.Create(in entity, out component);
+    private ref T _Add(int entity_index, out int component_index) {
+        count++;
+        if (reusing >= 0) {
+            component_index = reusing;
+            var chunk_index = component_index / ChunkSize;
+            var value_index = component_index % ChunkSize;
+            ref var chunk = ref chunks[chunk_index];
+
+            reusing = chunk.Index[value_index];
+            
+            chunk.Index[value_index] = entity_index;
+            chunk.Count++;
+            return ref chunk.Value[value_index];
         }
         else {
-            index = reusing;
-            reusing = mapping[reusing];
-            ref var component = ref components.Ref(index);
-            mapping.Set(index, entity.Id.Index);
-            Factory?.Create(in entity, out component);
+            component_index = count-1;
+            var chunk_index = component_index / ChunkSize;
+            var value_index = component_index % ChunkSize;
+            if (chunk_index >= chunks.Length) {
+                Array.Resize(ref chunks, chunks.Length + 1);
+                chunks[chunk_index] = new ComponentChunk<T>(ChunkSize);
+            }
+            ref var chunk = ref chunks[chunk_index];
+
+            chunk.Index[value_index] = entity_index;
+            chunk.Flags[value_index] = EntityFlags.COMPONENT_FLAG_DEFAULT;
+            chunk.Count++;
+            return ref chunk.Value[value_index];
         }
-        return index;
     }
 
-    public int Add(in Entity entity, in T value) {
-        Count++;
-        int index;
-        // ref var component = ref Unsafe.NullRef<T>();
-        if (reusing < 0) {
-            index = components.Count;
-            ref var component = ref components.Add();
-            mapping.Add(entity.Id.Index);
-            component = value;
-            Factory?.Attach(in entity, ref component);
-        }
-        else {
-            index = reusing;
-            reusing = mapping[reusing];
-            ref var component = ref components.Ref(index);
-            mapping.Set(index, entity.Id.Index);
-            component = value;
-            Factory?.Attach(in entity, ref component);
-        }
-        return index;
+    internal override int Add(int entity_index, in Entity entity) {
+        ref var component = ref _Add(entity_index, out var component_index);
+        factory?.Create(in entity, out component);
+        return component_index;
     }
 
-    public void OnAdd(in EntityId id, int index) {
-        World.Dispatch(new ComponentAddEvent(id, this, index));
-        World.Dispatch(new ComponentAddEvent<T>(id, this, index));
+    internal int Add(int entity_index, in Entity entity, in T value) {
+        ref var component = ref _Add(entity_index, out var component_index);
+        component = value;
+        factory?.Attach(in entity, ref component);
+        return component_index;
+    }
+
+    internal override void OnAdd(in Entity entity, int component_index) {
+        World.Dispatcher.Dispatch(new ComponentAddEvent(entity, this, component_index));
+        World.Dispatcher.Dispatch(new ComponentAddEvent<T>(entity, this, component_index));
     }
 
     #endregion
 
-    #region Get & Ref
-
-    IComponent IComponentGroup.Get(int index) => components[index];
+    
+    #region Get
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Get(int index) => ref components.Ref(index);
-
-    public T this[int index] {
-        get => components[index];
-        set => components[index] = value;
+    internal override IComponent _Get(int entity_index) {
+        ref T component = ref Get(entity_index);
+        return component;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal ref T Get(int component_index) {
+        var chunk_index = component_index / ChunkSize;
+        var value_index = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        return ref chunk.Value[value_index];
     }
 
-    public void OnModify(in EntityId id, int index) {
-        World.Dispatch(new ComponentModifyEvent(id, this, index));
-        World.Dispatch(new ComponentModifyEvent<T>(id, this, index));
+    public int GetEntity(int component_index) {
+        var chunk_index = component_index / ChunkSize;
+        var valueIndex = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        var value = chunk.Index[valueIndex];
+        return value;
+    }
+
+    public ref ComponentChunk<T> GetChunk(int chunk_index) {
+        return ref chunks[chunk_index];
+    }
+    
+    #endregion
+
+    
+    #region Modify
+
+    internal override void Modify(int entity_index) {
+        
+    }
+    
+    internal void Modify(int componentIndex, in T component) {
+        var chunk_index = componentIndex / ChunkSize;
+        var value_index = componentIndex % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        chunk.Value[value_index] = component;
+    }
+    
+    internal override void OnModify(in Entity entity, int component_index) {
+        World.Dispatcher.Dispatch(new ComponentModifyEvent(entity, this, component_index));
+        World.Dispatcher.Dispatch(new ComponentModifyEvent<T>(entity, this, component_index));
     }
 
     #endregion
 
+    
     #region Remove
 
-    public void Remove(in Entity entity, int index) {
-        Count--;
-        ref var component = ref components.Ref(index);
-        if (Factory != null) {
-            Factory.Recycle(in entity, ref component);
+    internal override void Remove(int component_index, in Entity entity) {
+        var chunk_index = component_index / ChunkSize;
+        var value_index = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        ref var index = ref chunk.Index[value_index];
+        ref var value = ref chunk.Value[value_index];
+        
+ 
+        if (factory != null) {
+            factory.Recycle(in entity, ref value);
+        } else {
+            value = default!;
         }
-        else {
-            component = default!;
+        
+        if (isPinned) {
+            index = reusing;
+            reusing = component_index;
         }
-
-        if (IsPinned) {
-            mapping[index] = reusing;
-            reusing = index;
-        }
-        else {
-            var tail = components.Count - 1;
-            if (index != tail) {
-                component = ref components[tail];
-                mapping[index] = mapping[tail];
-                ref var context = ref World.GetContext(mapping[index]);
-                context[TypeId] = index;
-            }
+        else if(value_index != chunk.Count - 1) {
+            ref var tail_index = ref chunk.Index[ChunkSize - 1];
+            ref var tail_value = ref chunk.Value[ChunkSize - 1];
             
-            components.RemoveLast();
-            mapping.RemoveLast();
+            (index, tail_index) = (tail_index, 0);
+            (value, tail_value) = (tail_value, value);
+
+            World.OnComponentMove(tail_index, in Type, component_index);
         }
+        
+        count--;
+        chunk.Count--;
+
     }
 
-    public void OnRemove(in EntityId id, int index) {
-        World.Dispatcher.Dispatch(new ComponentRemoveEvent(id, this, index));
-        World.Dispatcher.Dispatch(new ComponentRemoveEvent<T>(id, this, index));
+    internal override void OnRemove(in Entity entity, int component_index) {
+        World.Dispatch(new ComponentRemoveEvent(entity, this, component_index));
+        World.Dispatch(new ComponentRemoveEvent<T>(entity, this, component_index));
     }
 
     #endregion
 
+    
     #region Clone
 
-    public int Clone(in Entity entity, int index) {
-        Count = 0;
-        ref var sourceComponent = ref components.Ref(index);
-        _Clone(entity, ref sourceComponent, out T targetComponent);
-        return Add(entity, in targetComponent);
+
+    internal override int Clone(int entity_index, int component_index, in Entity entity) {
+        ref var source = ref Get(component_index);
+        ref var target = ref _Add(entity_index, out var targetIndex);
+        if (factory != null) {
+            factory.Clone(in entity, in source, out target);
+        } else {
+            ComponentFactory<T>.CloneInstance(in entity, in source, out target);
+        }
+        return targetIndex;
+    }
+    
+    internal override void OnClone(in Entity entity, int component_index) {
+        World.Dispatch(new ComponentAddEvent(entity, this, component_index));
+        World.Dispatch(new ComponentAddEvent<T>(entity, this, component_index));
     }
 
-    public void Read(ISerializeReader reader, int index) {
-        ref var component = ref components[index];
+    private void CloneComponent(in Entity entity, in T source_component, out T target_component) {
+        if (factory != null) {
+            factory.Clone(in entity, in source_component, out target_component);
+        }
+        else {
+            ComponentFactory<T>.CloneInstance(in entity, in source_component, out target_component);
+        }
+    }
+
+
+    #endregion
+
+    
+    #region Enable
+
+    internal override bool IsEnable(int component_index) {
+        var chunk_index = component_index / ChunkSize;
+        var value_index = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        return chunk.Enable <= value_index && EntityFlags.IsComponentEnable(chunk.Flags[value_index]);
+    }
+    
+    internal override void SetEnable(int component_index, bool enable, in Entity entity) {
+        var chunk_index = component_index / ChunkSize;
+        var value_index = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        ref var flags = ref chunk.Flags[value_index];
+        var prev_value = EntityFlags.IsComponentEnable(flags);
+        EntityFlags.SetComponentEnable(ref flags, enable);
+        var curr_value = EntityFlags.IsComponentEnable(flags);
+        if (prev_value == curr_value) {
+            return;
+        }
+        OnComponentEnable(in entity, component_index, curr_value);
+        if (isPinned) {
+            return;
+        }
+        var dst_comp_idx = chunk_index * ChunkSize + chunk.Enable;
+        SwapComponent(ref chunk, component_index, value_index, dst_comp_idx, chunk.Enable);
+        if (curr_value) {
+            chunk.Enable++;
+        }
+        else {
+            chunk.Enable--;
+        }
+    }
+    
+    internal override void SetActive(int component_index, bool active, in Entity entity) {
+        var chunk_index = component_index / ChunkSize;
+        var value_index = component_index % ChunkSize;
+        ref var chunk = ref chunks[chunk_index];
+        ref var flags = ref chunk.Flags[value_index];
+        var prev_value = EntityFlags.IsComponentEnable(flags);
+        EntityFlags.SetComponentActive(ref flags, active);
+        var curr_value = EntityFlags.IsComponentEnable(flags);
+        if (prev_value == curr_value) {
+            return;
+        }
+        OnComponentEnable(in entity, component_index, curr_value);
+        if (isPinned) {
+            return;
+        }
+        var dst_comp_idx = chunk_index * ChunkSize + chunk.Enable;
+        SwapComponent(ref chunk, component_index, value_index, dst_comp_idx, chunk.Enable);
+        if (curr_value) {
+            chunk.Enable++;
+        }
+        else {
+            chunk.Enable--;
+        }
+    }
+
+    private void OnComponentEnable(in Entity entity, int component_index, bool enable) {
+        World.Dispatch(new ComponentEnableEvent<T>(entity, this, component_index, enable));
+    }
+
+    private void SwapComponent(ref ComponentChunk<T> chunk, int src_comp_idx, int src_val_idx, int dst_comp_idx, int dst_val_idx) {
+        var src_entity_index = chunk.Index[src_val_idx];
+        var dst_entity_index = chunk.Index[dst_val_idx];
+
+        (chunk.Value[src_val_idx], chunk.Value[dst_val_idx]) = (chunk.Value[dst_val_idx], chunk.Value[src_val_idx]);
+        (chunk.Index[src_val_idx], chunk.Index[dst_val_idx]) = (chunk.Index[dst_val_idx], chunk.Index[src_val_idx]);
+        (chunk.Flags[src_val_idx], chunk.Flags[dst_val_idx]) = (chunk.Flags[dst_val_idx], chunk.Flags[src_val_idx]);
+
+        World.OnComponentMove(src_entity_index, in Type, src_comp_idx);
+        World.OnComponentMove(dst_entity_index, in Type, dst_comp_idx);
+    }
+    
+    #endregion
+
+    
+    #region Read Write Pack
+
+    internal override void Read<TReader>(TReader reader, int component_index) {
+        ref var component = ref Get(component_index);
         reader.ReadValue(ref component!);
     }
 
-    public void Write(ISerializeWriter writer, int index) {
-        ref var component = ref components[index];
+    internal override void Write<TWriter>(TWriter writer, int component_index) {
+        ref var component = ref Get(component_index);
         writer.WriteValue(in component);
     }
-
-    internal void _Clone(in Entity entity, ref T sourceComponent, out T targetComponent) {
-        if (Factory != null) {
-            Factory.Clone(in entity, ref sourceComponent, out targetComponent);
-        }
-        else {
-            ComponentFactory<T>.CloneInstance(in entity, ref sourceComponent, out targetComponent);
-        }
-    }
-
-    public ComponentPack Pack(Entity entity, int index) {
-        ref var component = ref components[index];
-        var pack = new ComponentPack<T>();
-        pack.Pack(World, entity, ref component);
+    
+    internal override ComponentPack Pack(in Entity entity, int component_index) {
+        ref var component = ref Get(component_index);
+        CloneComponent(in entity, in component, out var cloned_component);
+        var pack = new ComponentPack<T>(cloned_component);
         return pack;
     }
 
-    #endregion
-
-    #region Enable
-
-    private void SwapComponent(int index1, int index2) {
-        if (index1 == index2) {
-            return;
-        }
-        ref var context1 = ref World.GetContext(index1);
-        ref var context2 = ref World.GetContext(index2);
-        context1[TypeId] = mapping[index2];
-        context2[TypeId] = mapping[index1];
-
-        (components[index1], components[index2]) = (components[index2], components[index1]);
-        (mapping[index1], mapping[index2]) = (mapping[index2], mapping[index1]);
+    internal override int UnPack(in Entity entity, int entity_index, ComponentPack component_pack) {
+        var pack = (ComponentPack<T>)component_pack;
+        CloneComponent(in entity, in pack.Component, out var cloned_component);
+        return Add(entity_index, in entity, in cloned_component);
     }
 
-    public bool IsEnable(int index) {
-        return separate <= index && index < Count && ((1u << 31) & mapping[index]) == 0;
-    }
-
-    public void SetEnable(EntityId id, int index, bool enable) {
-        if (IsPinned) {
-            var value = ((1u << 31) & mapping[index]) == 0;
-            if(!value && enable) {
-                mapping[index] = (int)(((1u << 31) - 1) & mapping[index]);
-                OnComponentEnable(id, index, true);
-            } else if (value && !enable) {
-                mapping[index] = (int)((1u << 31) | mapping[index]);
-                OnComponentEnable(id, index, false);
-            }
-        }
-        else {
-            if (enable && index < separate) {
-                SwapComponent(separate, index);
-                separate--;
-                OnComponentEnable(id, separate + 1, true);
-            }
-            else if (!enable && (index >= separate)) {
-                SwapComponent(separate, index);
-                separate++;
-                OnComponentEnable(id, separate - 1, false);
-            }
-
-        }
-    }
-
-    private void OnComponentEnable(EntityId id, int index, bool enable) {
-        World.Dispatch(new ComponentEnableEvent<T>(id, this, index, enable));
+    internal override void Clear() {
+        chunks = Array.Empty<ComponentChunk<T>>();
     }
 
     #endregion

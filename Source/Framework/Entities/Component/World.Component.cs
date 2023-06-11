@@ -1,450 +1,455 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
+using System.Reflection;
+using Coorth.Serialize;
+
 
 namespace Coorth.Framework; 
 
 public partial class World {
 
-    #region Fields
+    #region Common
 
-    private IComponentGroup?[] componentGroups = Array.Empty<IComponentGroup?>();
+    private ComponentGroup?[] componentGroups = Array.Empty<ComponentGroup?>();
     
-    internal static int ComponentTypeCount;
-        
-    internal static readonly ConcurrentDictionary<Type, int> ComponentTypeIds = new();
-        
-    private void InitComponents(WorldOptions options) {
-        componentGroups = new IComponentGroup[options.ComponentGroupCapacity];
+    private void SetupComponents() {
+        componentGroups = new ComponentGroup[16];
     }
 
     private void ClearComponents() {
-        Array.Clear(componentGroups, 0, componentGroups.Length);
-    }
-        
-    #endregion
-
-    #region Component Add & Component Group
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static int GetComponentTypeId<T>() where T: IComponent => ComponentType<T>.TypeId;
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsComponentBind(Type type) {
-        if (!ComponentTypeIds.TryGetValue(type, out var typeId)) {
-            return false;
+        foreach (var component_group in componentGroups) {
+            component_group?.Clear();
         }
-        return typeId < componentGroups.Length && componentGroups[typeId] != null;
+        componentGroups = Array.Empty<ComponentGroup>();
+    }
+    
+    public T Singleton<T>() where T : IComponent {
+        return OfferComponent<T>(Singleton().Id);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal IComponentGroup GetComponentGroup(int typeId) {
-        if (typeId >= componentGroups.Length) {
-            throw new NullReferenceException();
+    internal ComponentGroup GetComponentGroup(in ComponentType type) {
+        if (type.Id >= componentGroups.Length) {
+            var size = (int)BitOpUtil.RoundUpToPowerOf2((uint)type.Id + 1);
+            Array.Resize(ref componentGroups, size);
         }
-        var group = componentGroups[typeId];
-        if (group != null) {
-            return group;
+        var component_group = componentGroups[type.Id];
+        if (component_group != null) {
+            return component_group;
         }
-        throw new NullReferenceException();
+        var group_type = typeof(ComponentGroup<>).MakeGenericType(type.Type);
+        const BindingFlags flags = BindingFlags.Instance | BindingFlags.CreateInstance | BindingFlags.NonPublic;
+        var args = new object[] { this };
+        component_group = Activator.CreateInstance(group_type, flags, null, args, null) as ComponentGroup;
+        componentGroups[type.Id] = component_group;
+        if (component_group != null) {
+            return component_group;
+        }
+        throw new InvalidOperationException($"[Entity] Create component group failed: {group_type}");
     }
-        
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private IComponentGroup GetComponentGroup(Type type) => GetComponentGroup(ComponentTypeIds[type]);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void ResizeComponentGroup(int minSize) {
-        var size = (int)BitOpUtil.RoundUpToPowerOf2((uint)minSize);
-        var array = new IComponentGroup?[size];
-        componentGroups.CopyTo(array.AsSpan(0, componentGroups.Length));
-        componentGroups = array;
+    
+    internal ComponentGroup<T> GetComponentGroup<T>(in ComponentType type) where T : IComponent {
+        if (type.Id >= componentGroups.Length) {
+            var size = (int)BitOpUtil.RoundUpToPowerOf2((uint)type.Id + 1);
+            Array.Resize(ref componentGroups, size);
+        }
+        var component_group = componentGroups[type.Id];
+        component_group ??= new ComponentGroup<T>(this);
+        componentGroups[type.Id] = component_group;
+        return (ComponentGroup<T>)component_group;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ComponentGroup<T> GetComponentGroup<T>(int typeId) where T : IComponent {
-        if (typeId >= componentGroups.Length) {
-            ResizeComponentGroup(typeId + 1);
-        }
-        ref var group = ref componentGroups[typeId];
-        group ??= new ComponentGroup<T>(this);
-        return (ComponentGroup<T>)group;
+    private ComponentGroup GetComponentGroup(Type type) {
+        return GetComponentGroup(ComponentRegistry.Get(type));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ComponentGroup<T> GetComponentGroup<T>() where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        return GetComponentGroup<T>(typeId);
+        return GetComponentGroup<T>(in ComponentType<T>.Value);
     }
-
-    public ComponentCollection<T> GetComponents<T>()  where T : IComponent {
-        return new ComponentCollection<T>(this);
-    }
-        
-    public ComponentBinding<T> BindComponent<T>() where T : IComponent {
-        var group = GetComponentGroup<T>();
-        return new ComponentBinding<T>(this, group);
-    }
-        
-    public ComponentBinding<T> BindComponent<T>(IComponentFactory<T> factory) where T : IComponent {
-        var group = GetComponentGroup<T>();
-        group.Factory = factory;
-        return new ComponentBinding<T>(this, group);
-    }
-
-    public ComponentBinding<T> GetBinding<T>() where T : IComponent {
-        var group = GetComponentGroup<T>();
-        return new ComponentBinding<T>(this, group);
-    }
-
-    #endregion
-
-    #region Count
-
-    public int ComponentCount(in EntityId id) {
-        ref var context = ref GetContext(id.Index);
-        return context.Index != id.Index ? 0 : context.Count;
+    
+    public int ComponentCount(EntityId id) {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
+            return 0;
+        }
+        return entity_context.Archetype.ComponentCount;
     }
 
     public int ComponentCount<T>() where T : IComponent {
-        var group = GetComponentGroup<T>();
-        return group.Count;
+        var component_group = GetComponentGroup<T>();
+        return component_group.Count;
     }
-
-    public IEnumerable<Type> ComponentTypes(EntityId id) {
-        var context = GetContext(id.Index);
-        foreach (var type in context.Archetype.Types) {
-            var group = GetComponentGroup(type);
-            yield return group.Type;
-        }
-    }
-
-    public int GetComponentTypeCount() => ComponentTypeCount;
-
+    
     #endregion
 
-    #region Add
+
+    #region Add Component
     
-    public ref T AddComponent<T>(EntityId id) where T : IComponent {
-        ref var context = ref GetContext(id.Index);
-        var typeId = ComponentType<T>.TypeId;
-        
-        Debug.Assert(context.Version == id.Version);
-        Debug.Assert(!context.Has(typeId), $"Component has exist: {typeof(T)}");
-      
-        var group = GetComponentGroup<T>(typeId);
-        var index = group.Add(context.GetEntity(this));
-        context.Archetype.OnAddComponent(ref context, typeId, index);
-        group.OnAdd(id, index);
-        return ref group.Get(index);
+    public ref T AddComponent<T>(scoped in EntityId id) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
+
+        Debug.Assert(!entity_context.Has(in component_type), $"[Entity] Component has exist: {typeof(T)}");
+
+        var entity = Cast(in entity_context);
+        var component_index = component_group.Add(entity_context.Index, in entity);
+        Archetype.AddComponent(ref entity_context, in component_type, component_index);
+
+        component_group.OnAdd(in entity, component_index);
+        return ref component_group.Get(component_index);
     }
     
-    public ref T AddComponent<T>(EntityId id, T component) where T : IComponent {
-        ref var context = ref GetContext(id.Index);
-        var typeId = ComponentType<T>.TypeId;
-        
-        Debug.Assert(context.Version == id.Version, "Entity version error.");
-        Debug.Assert(!context.Has(typeId), $"Component has exist: {typeof(T)}");
+    public ref T AddComponent<T>(scoped in EntityId id, scoped in T component) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
 
-        var group = GetComponentGroup<T>();
-        var index = group.Add(context.GetEntity(this), in component);
-        context.Archetype.OnAddComponent(ref context, typeId, index);
-        group.OnAdd(id, index);
-        return ref group.Get(index);
+        Debug.Assert(!entity_context.Has(in component_type), $"[Entity] Component has exist: {typeof(T)}");
+
+        var entity = Cast(in entity_context);
+        var component_index = component_group.Add(entity_context.Index, in entity, in component);
+        Archetype.AddComponent(ref entity_context, component_group.Type, component_index);
+        
+        component_group.OnAdd(in entity, component_index);
+        return ref component_group.Get(component_index);
     }
 
     public bool TryAddComponent<T>(in EntityId id) where T : IComponent {
-        ref var context = ref GetContext(id.Index);
-        var typeId = ComponentType<T>.TypeId;
-        if (context.Has(typeId)) {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
             return false;
         }
-        var componentGroup = GetComponentGroup<T>(typeId);
-        var componentIndex = componentGroup.Add(context.GetEntity(this));
-        context.Archetype.OnAddComponent(ref context, typeId, componentIndex);
-        componentGroup.OnAdd(id, componentIndex);
+        var component_type = ComponentType<T>.Value;
+        if (entity_context.Has(in component_type)) {
+            return false;
+        }
+        var component_group = GetComponentGroup<T>();
+        
+        var entity = Cast(in entity_context);
+        var component_index = component_group.Add(entity_context.Index, in entity);
+        Archetype.AddComponent(ref entity_context, component_group.Type, component_index);
+        
+        component_group.OnAdd(in entity, component_index);
         return true;
     }
     
     public void AddComponent(in EntityId id, Type type) {
-        ref var context = ref GetContext(id.Index);
-        Debug.Assert(context.Version == id.Version);
-        var componentGroup = GetComponentGroup(type);
-        var typeId = componentGroup.TypeId;
-        var componentIndex = componentGroup.Add(context.GetEntity(this));
-        context.Archetype.OnAddComponent(ref context, typeId, componentIndex);
-        componentGroup.OnAdd(id, componentIndex);
+        ref var entity_context = ref entities.Get(in id);
+        var component_group = GetComponentGroup(type);
+
+        var entity = Cast(in entity_context);
+        var component_index = component_group.Add(entity_context.Index, in entity);
+        Archetype.AddComponent(ref entity_context, component_group.Type, component_index);
+
+        component_group.OnAdd(in entity, component_index);
     }
 
     #endregion
 
-    #region Has
+    
+    #region Has Component
 
     public bool HasComponent<T>(in EntityId id) where T : IComponent {
-        ref var context = ref GetContext(id.Index);
-        return context.Has(ComponentType<T>.TypeId);
+        ref var entity_context = ref entities.Get(id.Index);
+        return entity_context.Version == id.Version && entity_context.Has(in ComponentType<T>.Value);
     }
 
     public bool HasComponent(in EntityId id, Type type) {
-        if (ComponentTypeIds.TryGetValue(type, out var typeId)) {
-            ref var context = ref GetContext(id.Index);
-            return context.Has(typeId);
+        if (!ComponentRegistry.Types.TryGetValue(type, out var component_type)) {
+            return false;
         }
-        return false;
+        ref var entity_context = ref entities.Get(id.Index);
+        return entity_context.Has(in component_type);
     }
          
     #endregion
         
-    #region Get
+    
+    #region Get Component
 
-    public ComponentPtr<T> PtrComponent<T>(in EntityId id) where T : IComponent {
-        ref var context = ref GetContext(id.Index);
-        var typeId = ComponentType<T>.TypeId;
-        var group = GetComponentGroup<T>();
-        return new ComponentPtr<T>(group, context.Get(typeId));
+    public ref T GetComponent<T>(scoped in EntityId id) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+
+        Debug.Assert(entity_context.Has(in component_type), $"[Entity] Can't find component, entity:{id}, component:{typeof(T)}");
+
+        var component_group = GetComponentGroup<T>(in component_type);
+        var component_index = entity_context.Get(in component_type);
+        return ref component_group.Get(component_index);
     }
 
-    // public ref T GetComponent2<T>(EntityId id) where T : IComponent {
-    //     ref var context = ref GetContext(id.Index);
-    //     var type = ComponentType<T>.TypeId;
-    //     Debug.Assert(context.Version == id.Version);
-    //     Debug.Assert(!context.Has(type), $"Component has exist, entity:{id}, component:{typeof(T)}");
-    //     if (RuntimeHelpers.IsReferenceOrContainsReferences<T>()) {
-    //         return ref context.Archetype.GetComponent<T>(ref context, context.Get(type));
-    //     }
-    //     var group = GetComponentGroup<T>();
-    //     return ref group.Get(context.Get(type));
-    // }
-    //
-    public ref T GetComponent<T>(EntityId id) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var group = GetComponentGroup<T>();
-#if DEBUG
-        Debug.Assert(context.Has(typeId), $"Can't find component, entity:{id}, component:{typeof(T)}");
-#endif
-        return ref group.Get(context[typeId]);
-    }
-
-    public bool TryGetComponent<T>(EntityId id, [MaybeNullWhen(false), NotNullWhen(true)]out T component) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        if (context.TryGet(typeId, out var index)) {
-            var group = GetComponentGroup<T>(typeId);
-            component = group[index];
-            return true;
+    public bool TryGetComponent<T>(scoped in EntityId id, [MaybeNullWhen(false), NotNullWhen(true)]out T component) where T : IComponent {
+        ref var entity_context = ref entities.TryGet(id, out var result);
+        if (!result) {
+            component = default;
+            return false;
         }
-        component = default;
-        return false;
+        var component_type = ComponentType<T>.Value;
+        if (!entity_context.TryGet(in component_type, out var component_index)) {
+            component = default;
+            return false;
+        }
+        var component_group = GetComponentGroup<T>(in component_type);
+        component = component_group.Get(component_index);
+        return true;
     }
 
-    public void ModifyComponent<T>(in EntityId id, T componentValue) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var group = GetComponentGroup<T>();
-        var index = context[typeId];
-            
-        group[index] = componentValue;
-            
-        group.OnModify(id, index);
+    public void ModifyComponent<T>(in EntityId id, in T component) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
+        var component_index = entity_context.Get(in component_type);
+        component_group.Modify(component_index, in component);
+        var entity = Cast(in entity_context);
+        component_group.OnModify(in entity, component_index);
     }
-        
+
     public IEnumerable<IComponent> GetAllComponents(EntityId id) {
-        var context = GetContext(id.Index);
-        foreach (var typeId in context.Archetype.Types) {
-            var group = GetComponentGroup(typeId);
-            var index = context.Get(typeId);
-            yield return group.Get(index);
+        var entity_context = entities.Get(id.Index);
+        var archetype = entity_context.Archetype;
+        foreach (var (type_id, offset) in archetype.Offset) {
+            var component_group = GetComponentGroup(type_id);
+            var entity_span = archetype.GetEntitySpan(entity_context.LocalIndex);
+            var component_index = entity_span[offset];
+            yield return component_group._Get(component_index);
         }
     }
         
     #endregion
 
-    #region Offer
-        
-    public T Singleton<T>() where T : IComponent {
-        return OfferComponent<T>(Singleton().Id);
+    
+    #region Offer Component
+    
+    private ref T _OfferComponent<T>(EntityId id, Func<Entity, T>? provider) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
+        if (entity_context.TryGet(in component_type, out var component_index)) {
+            return ref component_group.Get(component_index);
+        }
+        var entity = Cast(in entity_context);
+        if (provider == null) {
+            component_index = component_group.Add(entity_context.Index, in entity);
+        }
+        else {
+            var component_value = provider(entity);
+            component_index = component_group.Add(entity_context.Index, in entity, in component_value);
+        }
+        Archetype.AddComponent(ref entity_context, in component_type, component_index);
+
+        component_group.OnAdd(in entity, component_index);
+        return ref component_group.Get(component_index);
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private ref T _OfferComponent<T>(EntityId id, Func<Entity, T>? provider) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var componentGroup = GetComponentGroup<T>(typeId);
-        if (context.TryGet(typeId, out var index)) {
-            return ref componentGroup.Get(index);
-        }
-        if (provider == null) {
-            index = componentGroup.Add(context.GetEntity(this));
-        }
-        else {
-            var value = provider(GetEntity(id));
-            index = componentGroup.Add(context.GetEntity(this), in value);
-        }
-        context.Archetype.OnAddComponent(ref context, typeId, index);
-        componentGroup.OnAdd(id, index);
-        return ref componentGroup.Get(index);
-    }
-        
-    public ref T OfferComponent<T>(EntityId id) where T : IComponent => ref _OfferComponent<T>(id, null);
+    public ref T OfferComponent<T>(scoped in EntityId id) where T : IComponent => ref _OfferComponent<T>(id, null);
 
-    public ref T OfferComponent<T>(EntityId id, Func<Entity, T> provider) where T : IComponent => ref _OfferComponent(id, provider);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T OfferComponent<T>(scoped in EntityId id, Func<Entity, T> provider) where T : IComponent => ref _OfferComponent(id, provider);
 
-    public int ComponentIndex<T>(EntityId id) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        return context[typeId];
+    public int ComponentIndex<T>(scoped in EntityId id) where T : IComponent {
+        var component_type = ComponentType<T>.Value;
+        ref var entity_context = ref entities.Get(in id);
+        return entity_context.Get(in component_type);
     }
     
     #endregion
 
-    #region Modify
-        
+    
+    #region Modify Component
+
     public void ModifyComponent<T>(in EntityId id, Action<World, T>? action = null) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var group = GetComponentGroup<T>();
-        var index = context[typeId];
-            
-        action?.Invoke(this, group[index]);
-            
-        group.OnModify(id, index);
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
+        var component_index = entity_context.Get(in component_type);
+        ref var component = ref component_group.Get(component_index);
+        action?.Invoke(this, component);
+        var entity = Cast(in entity_context);
+        component_group.OnModify(in entity, component_index);
     }
 
     public void ModifyComponent<T>(in EntityId id, Func<World, T, T> action) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var group = GetComponentGroup<T>();
-        var index = context[typeId];
-            
-        group[index] = action.Invoke(this, group[index]);
-            
-        group.OnModify(id, index);
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var component_group = GetComponentGroup<T>(in component_type);
+        var component_index = entity_context.Get(in component_type);
+        ref var component = ref component_group.Get(component_index);
+        component = action.Invoke(this, component);
+        var entity = Cast(in entity_context);
+        component_group.OnModify(in entity, component_index);
     }
 
     #endregion
 
-    #region Remove
+    
+    #region Remove Component
 
-    public bool RemoveComponent<T>(in EntityId id) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        if (context.TryGet(typeId, out var index)) {
-            var group = GetComponentGroup<T>();
-                
-            //Remove Event
-            group.OnRemove(id, index);
-                
-            //Remove Data
-            group.Remove(context.GetEntity(this), index);
-            context.Archetype.OnRemoveComponent(ref context, typeId);
-            return true;
-        }
-        else {
+    private bool RemoveComponent(in EntityId id, ComponentGroup component_group) {
+        ref var entity_context = ref entities.Get(in id);
+        if (!entity_context.TryGet(in component_group.Type, out var component_index)) {
             return false;
         }
+        var entity = Cast(in entity_context);
+        component_group.OnRemove(in entity, component_index);
+        Archetype.RemoveComponent(ref entity_context, in component_group.Type);
+        component_group.Remove(component_index, in entity);
+        return true;
     }
     
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool RemoveComponent<T>(in EntityId id) where T : IComponent {
+        var component_group = GetComponentGroup<T>(in ComponentType<T>.Value);
+        return RemoveComponent(in id, component_group);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool RemoveComponent(in EntityId id, Type type) {
-        var group = GetComponentGroup(type);
-        var typeId = group.TypeId;
-        ref var context = ref GetContext(id.Index);
-        if (context.TryGet(typeId, out var index)) {
-            //Remove Event
-            group.OnRemove(id, index);
-                
-            //Remove Data
-            group.Remove(context.GetEntity(this), index);
-            context.Archetype.OnRemoveComponent(ref context, typeId);
-            return true;
-        }
-        else {
+        var component_group = GetComponentGroup(type);
+        return RemoveComponent(in id, component_group);
+    }
+
+    public bool TryRemoveComponent<T>(in EntityId id, out T component) where T: IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_group = GetComponentGroup<T>(in ComponentType<T>.Value);
+        if (!entity_context.TryGet(in component_group.Type, out var component_index)) {
+            component = default!;
             return false;
         }
+        component = component_group.Get(component_index);
+        var entity = Cast(in entity_context);
+        component_group.OnRemove(in entity, component_index);
+        Archetype.RemoveComponent(ref entity_context, in component_group.Type);
+        component_group.Remove(component_index, in entity);
+        return true;
     }
-
+    
+    private void ClearComponents(ref EntityContext entity_context) {
+        var archetype = entity_context.Archetype;
+        var entity = Cast(in entity_context);
+        var entity_span = entity_context.GetSpan();
+        foreach (var (type_id, offset) in archetype.Offset) {
+            var component_group = GetComponentGroup(type_id);
+            var component_index = entity_span[offset];
+            component_group.OnRemove(in entity, component_index);
+        }
+        foreach (var (type_id, offset) in archetype.Offset) {
+            var component_group = GetComponentGroup(type_id);
+            var component_index = entity_span[offset];
+            component_group.Remove(component_index, in entity);
+        }
+        Archetype.ClearComponents(ref entity_context, rootArchetype);
+    }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void _ClearComponents(ref EntityContext context, in Entity entity) {
-        var id = entity.Id;
-        var types = context.Archetype.Types;
-        foreach (var type in types) {
-            var group = GetComponentGroup(type);
-            if (context.TryGet(type, out var index)) {
-                group.OnRemove(id, index);
-            }
-        }
-        foreach (var type in types) {
-            var group = GetComponentGroup(type);
-            if (context.TryGet(type, out var index)) {
-                group.Remove(in entity, index);
-            }
-        }
-    }
-        
-    public void ClearComponent(in EntityId id) {
-        ref var context = ref GetContext(id.Index);
-        _ClearComponents(ref context, context.GetEntity(this));
-        context.Archetype.EntityRemove(ref context, emptyArchetype);
-        // context.Archetype.EntityMoveTo(ref context, emptyArchetype);
-        // context.Components.Clear();
+    public void ClearComponents(in EntityId id) {
+        ref var entity_context = ref entities.Get(id.Index);
+        ClearComponents(ref entity_context);
     }
 
     #endregion
 
-    #region Wrap
 
-    public ComponentPtr<T> GetComponentPtr<T>(EntityId id) where T : IComponent {
-        var typeId = ComponentType<T>.TypeId;
-        ref var context = ref GetContext(id.Index);
-        var group = GetComponentGroup<T>(typeId);
-        var index = context.Get(typeId);
-        return new ComponentPtr<T>(group, index);
-    }
-
-    #endregion
-
-    #region Enbale
+    #region Enbale Component
         
     public bool IsComponentEnable<T>(in EntityId id) where T: IComponent {
-        ref var context = ref contexts.Ref(id.Index);
-        if (context.Version != id.Version) {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
             return false;
         }
-        var group = GetComponentGroup<T>();
-        var index = context.Get(group.TypeId);
-        return group.IsEnable(index);
-    }
-
-    public void SetComponentEnable<T>(in EntityId id, bool enable) where T: IComponent {
-        ref var context = ref contexts.Ref(id.Index);
-        if (context.Version != id.Version) {
-            return;
-        }
-        var group = GetComponentGroup<T>();
-        var index = context.Get(group.TypeId);
-        group.SetEnable(id, index, enable);
+        var component_group = GetComponentGroup<T>();
+        var component_index = entity_context.Get(in component_group.Type);
+        return component_group.IsEnable(component_index);
     }
 
     public bool IsComponentEnable(in EntityId id, Type type) {
-        ref var context = ref contexts.Ref(id.Index);
-        if (context.Version != id.Version) {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
             return false;
         }
-        var group = GetComponentGroup(type);
-        var index = context.Get(group.TypeId);
-        return group.IsEnable(index);
+        var component_group = GetComponentGroup(type);
+        var component_index = entity_context.Get(in component_group.Type);
+        return component_group.IsEnable(component_index);
+    }
+    
+    public void SetComponentEnable<T>(in EntityId id, bool enable) where T: IComponent {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
+            return;
+        }
+        var component_group = GetComponentGroup<T>();
+        var component_index = entity_context.Get(in component_group.Type);
+        var entity = Cast(in entity_context);
+        component_group.SetEnable(component_index, enable, in entity);
     }
         
     public void SetComponentEnable(in EntityId id, Type type, bool enable) {
-        ref var context = ref contexts.Ref(id.Index);
-        if (context.Version != id.Version) {
+        ref var entity_context = ref entities.Get(id.Index);
+        if (entity_context.Version != id.Version) {
             return;
         }
-        var group = GetComponentGroup(type);
-        var index = context.Get(group.TypeId);
-        group.SetEnable(id, index, enable);
+        var component_group = GetComponentGroup(type);
+        var component_index = entity_context.Get(in component_group.Type);
+        var entity = Cast(in entity_context);
+        component_group.SetEnable(component_index, enable, in entity);
     }
+    
     #endregion
+    
+    
+    #region Component Group
+    
+    public ComponentCollection<T> GetComponents<T>()  where T : IComponent {
+        return new ComponentCollection<T>(GetComponentGroup<T>());
+    }
+        
+    public ComponentGroup<T> BindComponent<T>() where T : IComponent {
+        var component_group = GetComponentGroup<T>();
+        return component_group;
+    }
+        
+    public ComponentGroup<T> BindComponent<T>(IComponentFactory<T> factory) where T : IComponent {
+        var component_group = GetComponentGroup<T>();
+        component_group.SetFactory(factory);
+        return component_group;
+    }
+
+    public ComponentGroup<T> GetBinding<T>() where T : IComponent {
+        var component_group = GetComponentGroup<T>();
+        return component_group;
+    }
+
+    public IEnumerable<Type> ComponentTypes(EntityId id) {
+        var entity_context = entities.Get(id.Index);
+        foreach (var type in entity_context.Archetype.Types) {
+            var group = GetComponentGroup(in type);
+            yield return group.Type.Type;
+        }
+    }
+    
+    #endregion
+
+    
+    #region Serialize Component
+
+    public void ReadComponent<TReader>(TReader reader, in EntityId id, Type type) where TReader : ISerializeReader {
+        ref var entity_context = ref entities.Get(in id);
+        var component_group = GetComponentGroup(type);
+        var component_index = entity_context.Get(in component_group.Type);
+        component_group.Read(reader, component_index);
+    }
+
+    public void WriteComponent<TWriter>(TWriter writer, in EntityId id, Type type) where TWriter : ISerializeWriter {
+        ref var entity_context = ref entities.Get(in id);
+        var component_group = GetComponentGroup(type);
+        component_group.Write(writer, entity_context.Get(in component_group.Type));
+    }
+
+    #endregion
+
 }

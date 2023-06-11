@@ -13,4 +13,5 @@ public interface ILifetime {
     void OnClear();
     
     void OnRemove();
+    
 }

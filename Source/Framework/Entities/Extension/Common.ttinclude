@@ -1,0 +1,10 @@
+﻿<#+
+    const int COMPONENT_COUNT = 10;
+    static string CreateParameters(int number, Func<int, string> func, string separator) {
+        var text = "";
+        for (var i = 0; i < number; i++) {
+            text = text + func(i) + ((i < (number-1)) ? separator : "");
+        }
+        return text;
+    }
+#>

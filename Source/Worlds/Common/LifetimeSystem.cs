@@ -10,13 +10,13 @@ public class LifetimeSystem : SystemBase {
     private readonly List<Entity> entities = new();
 
     protected override void OnAdd() {
-        Subscribe<EventEndOfFrame>().OnEvent(Execute);
+        Subscribe<EndOfFrameEvent>().OnEvent(Execute);
     }
 
-    private void Execute(in EventEndOfFrame e) {
+    private void Execute(in EndOfFrameEvent e) {
         var collection = World.GetComponents<LifetimeComponent>();
-        foreach (var (entity, component) in collection) {
-            Execute(in e, in entity, component);
+        foreach (var components in collection.GetIter()) {
+            Execute(in e, in components.Entity, ref components.Value0);
         }
         foreach (var target in entities) {
             target.Dispose();
@@ -24,7 +24,7 @@ public class LifetimeSystem : SystemBase {
         entities.Clear();
     }
         
-    private void Execute(in EventEndOfFrame e, in Entity entity, LifetimeComponent lifetime) {
+    private void Execute(in EndOfFrameEvent e, in Entity entity, ref LifetimeComponent lifetime) {
         switch (lifetime.Mode) {
             case LifetimeMode.Countdown:
                 if (lifetime.Duration > e.DeltaTime) {

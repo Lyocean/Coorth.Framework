@@ -1,82 +1,121 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Coorth.Serialize;
 
-namespace Coorth.Framework; 
+
+namespace Coorth.Framework;
 
 public partial class World {
+
+    #region Archetype Common
+
+    private readonly Archetype rootArchetype;
+    public Archetype RootArchetype => rootArchetype;
+
+    private readonly Dictionary<int, Archetype> archetypes = new();
+
+    private const int ARCHETYPE_CHUNK_SIZE = 4096;
     
-    private readonly Dictionary<int, List<ArchetypeDefinition>> archetypes = new();
-
-    private readonly ArchetypeDefinition emptyArchetype;
-
-    private readonly Dictionary<int, List<ArchetypeGroup>> componentToGroups = new();
-
-    private readonly Dictionary<ArchetypeMatcher, ArchetypeGroup> matcherToGroups = new();
-
-    private void InitArchetypes(out ArchetypeDefinition empty) {
-        empty = new ArchetypeDefinition(this);
+    private void SetupArchetypes(out Archetype root) {
+        root = new Archetype(this, ArchetypeDefinition.Empty, ARCHETYPE_CHUNK_SIZE);
+        archetypes.Add(rootArchetype.Hash, rootArchetype);
     }
 
     private void ClearArchetypes() {
         archetypes.Clear();
-        componentToGroups.Clear();
-        matcherToGroups.Clear();
     }
 
-    public ArchetypeBuilder CreateArchetype() {
-        return new ArchetypeBuilder(this, emptyArchetype);
+    #endregion
+
+    
+    #region Create Archetype
+
+    private Archetype CreateArchetype(Span<ComponentType> span) {
+        var archetype = rootArchetype;
+        for (var i = 0; i < span.Length; i++) {
+            ref readonly var componentType = ref span[i];
+            archetype = archetype.NextArchetype(in componentType);
+        }
+        return archetype;
     }
+    
+    private Archetype CreateArchetype(Span<Type> span) {
+        var archetype = rootArchetype;
+        for (var i = 0; i < span.Length; i++) {
+            var type = ComponentRegistry.Get(span[i]);
+            archetype = archetype.NextArchetype(in type);
+        }
+        return archetype;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Archetype NextArchetype(Archetype archetype, in ComponentType type) {
+        return archetype.NextArchetype(in type);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Archetype CreateArchetype(ArchetypeDefinition definition) {
+        return CreateArchetype(definition.Types.AsSpan());
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Archetype CreateArchetype(params Type[] types) {
+        return CreateArchetype(types.AsSpan());
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ArchetypeBuilder BuildArchetype() {
+        var builder = new ArchetypeBuilder(rootArchetype);
+        return builder;
+    }
+
+    #endregion
+
+
+    #region Get Archetype
 
     public Archetype GetArchetype(in EntityId id) {
-        ref var context = ref GetContext(id.Index);
-        return new Archetype(this, context.Archetype);
+        ref var entity_context = ref entities.Get(in id);
+        return entity_context.Archetype;
     }
 
-    private ArchetypeGroup GetArchetypeGroup(ArchetypeMatcher matcher) {
-        if (matcherToGroups.TryGetValue(matcher, out var archetypeGroup)) {
-            return archetypeGroup;
-        }
+    #endregion
 
-        archetypeGroup = new ArchetypeGroup(this, matcher);
-        matcherToGroups[matcher] = archetypeGroup;
-        foreach (var compType in matcher.AllTypes) {
-            if (!componentToGroups.TryGetValue(compType, out var list)) {
-                list = new List<ArchetypeGroup>();
-                componentToGroups[compType] = list;
-            }
-            list.Add(archetypeGroup);
-        }
+    #region Archetype Component
 
-        foreach (var pair in archetypes) {
-            for (var i = 0; i < pair.Value.Count; i++) {
-                var archetype = pair.Value[i];
-                archetypeGroup.Match(archetype);
-            }
-        }
-
-        return archetypeGroup;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void OnComponentMove(int entity_index, in ComponentType type, int component_index) {
+        ref var entity = ref entities.Get(entity_index);
+        entity.Archetype.MoveComponent(entity.LocalIndex, in type, component_index);
     }
 
-    internal void OnAddArchetype(ArchetypeDefinition archetype) {
-        if (!archetypes.TryGetValue(archetype.Flag, out var archetypeList)) {
-            archetypeList = new List<ArchetypeDefinition> {archetype};
-            archetypes[archetype.Flag] = archetypeList;
-        }
-        else {
-            foreach (var item in archetypeList) {
-                if (item.ComponentsEquals(archetype)) {
-                    break;
-                }
-            }
-            archetypeList.Add(archetype);
-        }
+    #endregion
 
-        for (var i = 0; i < archetype.Types.Length; i++) {
-            var typeId = archetype.Types[i];
-            if (componentToGroups.TryGetValue(typeId, out var list)) {
-                foreach (var archetypeGroup in list) {
-                    archetypeGroup.Match(archetype);
-                }
-            }
+
+    #region Serialize Archetype
+
+    public void WriteArchetype<TWriter>(ref TWriter writer, in Archetype archetype) where TWriter : ISerializeWriter {
+        var component_types = archetype.Types;
+        writer.BeginList<Type>(component_types.Count);
+        foreach (var component_type in component_types) {
+            writer.WriteType(component_type.Type);
         }
+        writer.EndList();
     }
+    
+    public Archetype ReadArchetype<TReader>(ref TReader reader) where TReader : ISerializeReader {
+        var archetype = rootArchetype;
+        reader.BeginList<Type>(out var count);
+        for (var i = 0; i < count; i++) {
+            var type = reader.ReadType();
+            var component_type = ComponentRegistry.Get(type);
+            archetype = NextArchetype(archetype, in component_type);
+        }
+        reader.EndList();
+        return archetype;
+    }
+
+    #endregion
+
 }

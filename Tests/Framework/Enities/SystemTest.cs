@@ -61,7 +61,7 @@ internal class SystemTest {
     public void SystemReactionX1() {
         var system = world.AddSystem<TestForEachSystem>();
         var entity1 = world.CreateEntity().With<TestClassComponent1>();
-        world.Execute(new TickUpdateEvent());
+        world.Dispatch(new TickUpdateEvent());
 
         Assert.IsTrue(system.Entities1.Contains(entity1));
         Assert.IsTrue(entity1.Get<TestClassComponent1>().a == 1);
@@ -71,7 +71,7 @@ internal class SystemTest {
     public void SystemReactionX2() {
         var system = world.AddSystem<TestForEachSystem>();
         var entity2 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent2>();
-        world.Execute(new TickUpdateEvent());
+        world.Dispatch(new TickUpdateEvent());
 
         Assert.IsTrue(system.Entities2.Contains(entity2));
         Assert.IsTrue(entity2.Get<TestClassComponent1>().a == 2);
@@ -83,7 +83,7 @@ internal class SystemTest {
         var system = world.AddSystem<TestForEachSystem>();
         var entity3 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent2>()
             .With<TestClassComponent3>();
-        world.Execute(new TickUpdateEvent());
+        world.Dispatch(new TickUpdateEvent());
 
         Assert.IsTrue(system.Entities3.Contains(entity3));
         Assert.IsTrue(entity3.Get<TestClassComponent1>().a == 3);
@@ -93,21 +93,37 @@ internal class SystemTest {
     }
 
     [Test]
-    public void SystemReactionMatch() {
+    public void SystemReactionMatch0() {
         var system = world.AddSystem<TestForEachSystem>();
-        var entity4 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent3>();
-        world.Execute(new TickUpdateEvent());
-
+        var archetype = world.CreateArchetype<TestClassComponent1, TestClassComponent3>();
+        var entity4 = archetype.CreateEntity();
+        // var entity4 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent3>();
+        world.Dispatch(new TickUpdateEvent());
+ 
         Assert.IsTrue(system.Entities4.Contains(entity4));
         Assert.IsTrue(entity4.Get<TestClassComponent1>().a == 1);
         Assert.IsTrue(entity4.Get<TestClassComponent1>().b == 1);
     }
 
     [Test]
+    public void SystemReactionMatch1() {
+        var system = world.AddSystem<TestForEachSystem>();
+        // var archetype = world.CreateArchetype<TestClassComponent1, TestClassComponent3>();
+        // var entity4 = archetype.CreateEntity();
+        var entity4 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent3>();
+        world.Dispatch(new TickUpdateEvent());
+
+        Assert.IsTrue(system.Entities4.Contains(entity4));
+        Assert.IsTrue(entity4.Get<TestClassComponent1>().a == 1);
+        Assert.IsTrue(entity4.Get<TestClassComponent1>().b == 1);
+    }
+
+    
+    [Test]
     public void SystemReactionMatch2() {
         var system = world.AddSystem<TestForEachSystem>();
         var entity5 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent2>();
-        world.Execute(new TickUpdateEvent());
+        world.Dispatch(new TickUpdateEvent());
 
         Assert.IsFalse(system.Entities4.Contains(entity5));
         Assert.IsTrue(entity5.Get<TestClassComponent1>().a == 2);
@@ -125,7 +141,7 @@ internal class SystemTest {
         var entity4 = world.CreateEntity().With<TestClassComponent1>().With<TestClassComponent3>();
         var entity5 = world.CreateEntity().With<TestClassComponent2>().With<TestClassComponent3>();
 
-        world.Execute(new TickUpdateEvent());
+        world.Dispatch(new TickUpdateEvent());
 
         Assert.IsTrue(system.Entities1.Contains(entity1));
         Assert.IsTrue(system.Entities2.Contains(entity2));

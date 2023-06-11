@@ -32,18 +32,18 @@ public class EntityBenchmark {
         world.BindComponent<HierarchyComponent>();
         world.BindComponent<LifetimeComponent>();
         world.BindComponent<PositionComponent>();
-        archetype1 = world.CreateArchetype()
+        archetype1 = world.BuildArchetype()
             .Add<HierarchyComponent>()
-            .Compile();
-        archetype2 = world.CreateArchetype()
+            .Build();
+        archetype2 = world.BuildArchetype()
             .Add<HierarchyComponent>()
             .Add<PositionComponent>()
-            .Compile();
-        archetype3 = world.CreateArchetype()
+            .Build();
+        archetype3 = world.BuildArchetype()
             .Add<HierarchyComponent>()
             .Add<PositionComponent>()
             .Add<LifetimeComponent>()
-            .Compile();
+            .Build();
 
     }
 

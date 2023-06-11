@@ -24,7 +24,7 @@ public class SpaceTest {
     [Test]
     public void DestroySpace() {
         var space = world.CreateSpace();
-        space.Destroy();
+        space.Dispose();
     }
     
     [Test]

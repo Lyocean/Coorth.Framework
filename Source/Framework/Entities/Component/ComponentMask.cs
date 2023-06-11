@@ -1,42 +1,46 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
+
 namespace Coorth.Framework; 
 
-internal struct ComponentMask : IEquatable<ComponentMask> {
+public struct ComponentMask : IEquatable<ComponentMask> {
     
-    private uint[] array;
+    private uint[] data;
     
-    private int Capacity => array.Length * 32;
-        
+    private int Capacity => data.Length * 32;
+
+    private const int MASK = (sizeof(uint) * 8) - 1;
+    
     public ComponentMask(int length) {
         var capacity = (uint) (length - 1 + 32) >> 5;
-        array = new uint[capacity];
+        data = new uint[capacity];
     }
 
     public ComponentMask(ComponentMask other, int length) {
         var capacity = (uint) (length - 1 + 32) >> 5;
-        array = new uint[capacity];
-        var min = Math.Min(array.Length, other.array.Length);
-        Array.Copy(other.array, array, min);
+        data = new uint[capacity];
+        var min = Math.Min(data.Length, other.data.Length);
+        Array.Copy(other.data, data, min);
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Get(int index) {
-        if ((uint) index >= Capacity) {
+        var pos = index >> 5;
+        if (pos >= data.Length) {
             return false;
         }
-        return (array[index >> 5] & 1u << index) > 0U;
+        return (data[pos] & (1u << (index & MASK))) > 0U;
     }
         
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Set(int index, bool value) {
-        if (index >= Capacity) {
-            var capacity = (int) ((uint) (index + 32) >> 5);
-            Array.Resize(ref array, capacity);
+        var pos = index >> 5;
+        if (pos >= data.Length) {
+            Array.Resize(ref data, pos + 1);
         }
-        var num = 1u << index;
-        ref var local = ref array[index >> 5];
+        var num = (1u << (index & MASK));
+        ref var local = ref data[index >> 5];
         if (value) {
             local |= num;
         }
@@ -46,30 +50,30 @@ internal struct ComponentMask : IEquatable<ComponentMask> {
     }
 
     public bool Equals(ComponentMask other) {
-        if (ReferenceEquals(array, other.array)) {
+        if (ReferenceEquals(data, other.data)) {
             return true;
         }
-        var length1 = array.Length;
-        var length2 = other.array.Length;
+        var length1 = data.Length;
+        var length2 = other.data.Length;
         
         if (length1 == length2) {
-            return array.AsSpan().SequenceEqual(other.array.AsSpan());
+            return data.AsSpan().SequenceEqual(other.data.AsSpan());
         }
         if (length1 < length2) {
-            if (!array.AsSpan().SequenceEqual(other.array.AsSpan(0, length1))) {
+            if (!data.AsSpan().SequenceEqual(other.data.AsSpan(0, length1))) {
                 return false;
             }
             for (var i = length1; i < length2; i++) {
-                if (other.array[i] != 0) {
+                if (other.data[i] != 0) {
                     return false;
                 }
             }
         }
-        if (!other.array.AsSpan().SequenceEqual(array.AsSpan(0, length2))) {
+        if (!other.data.AsSpan().SequenceEqual(data.AsSpan(0, length2))) {
             return false;
         }
         for (var i = length2; i < length1; i++) {
-            if (array[i] != 0) {
+            if (data[i] != 0) {
                 return false;
             }
         }
@@ -78,7 +82,5 @@ internal struct ComponentMask : IEquatable<ComponentMask> {
 
     public override bool Equals(object? obj) => obj is ComponentMask other && Equals(other);
 
-    public override int GetHashCode() {
-        return array.GetHashCode();
-    }
+    public override int GetHashCode() => data.GetHashCode();
 }

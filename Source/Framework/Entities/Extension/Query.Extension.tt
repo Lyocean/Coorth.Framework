@@ -1,0 +1,126 @@
+<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+using System.Runtime.CompilerServices;
+using Coorth.Tasks;
+
+namespace Coorth.Framework;
+
+public partial class Query {
+
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+        var arguments = CreateParameters(count, i => $"ref component{i}", ", ");
+#>
+
+    #region Component<#=count#>
+
+    public void ForEach<TState, <#=templates#>>(in TState state, ActionI2R<#=count#><TState, Entity, <#=templates#>> action, uint filter = EntityFlags.ENTITY_ACTIVE_MASK) <#=contracts#> {
+        var world = World;
+<#      for (var i = 0; i < count; i++) {   #>
+        var group<#=i#> = World.GetComponentGroup<T<#=i#>>();
+<#      } #>
+        foreach (var archetype in archetypes) {
+<#      for (var i = 0; i < count; i++) {   #>
+            var offset<#=i#> = archetype.Offset[group<#=i#>.Type];
+<#      } #>
+            for (var i = 0; i < archetype.ChunkCount; i++) {
+                ref var chunk = ref archetype.GetChunk(i);
+                for (var j = 0; j < chunk.Count; j++) {
+                    var span = chunk.Get(j);
+                    var context = world.GetContext(span[0]);
+                    if((context.Flags & filter) != filter) {
+                        continue;    
+                    }
+                    var entity = World.Cast(in context);
+<#      for (var i = 0; i < count; i++) { #>
+                    ref var component<#=i#> = ref group<#=i#>.Get(span[offset<#=i#>]);
+<#      }  #>
+                    action(in state, entity, <#=arguments#>);
+                }
+            }
+        }
+    }
+
+    public void ForEach<TState, <#=templates#>>(in TState state, TaskExecutor executor, ActionI2R<#=count#><TState, Entity, <#=templates#>> action, uint filter = EntityFlags.ENTITY_ACTIVE_MASK) <#=contracts#> {
+<#      for (var i = 0; i < count; i++) {   #>
+        var group<#=i#> = World.GetComponentGroup<T<#=i#>>();
+<#      } #>
+        foreach (var archetype in archetypes) {
+<#      for (var i = 0; i < count; i++) {   #>
+            var offset<#=i#> = archetype.Offset[group<#=i#>.Type];
+<#      } #>
+            for (var i = 0; i < archetype.ChunkCount; i++) {
+                var job = new QueryJob<TState, <#=templates#>>() {
+                    Archetype = archetype,
+                    Index = i,
+                    Count = 1,
+                    State = state,
+                    Filter = filter,
+                    Action = action,
+                };
+<#      for (var i = 0; i < count; i++) {   #>
+                job.Group<#=i#> = group<#=i#>;
+                job.Offset<#=i#> = offset<#=i#>;
+<#      } #>
+                executor.Queue(job);
+            }
+        }
+    }
+
+    #endregion
+
+<#
+    }
+#>
+}
+
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+        var arguments = CreateParameters(count, i => $"ref component{i}", ", ");
+#>
+#if NET7_0_OR_GREATER
+[SkipLocalsInit]
+#endif
+public struct QueryJob<TState, <#=templates#>> : IQueryJob <#=contracts#> {
+    public Archetype Archetype;
+    public int Index;
+    public int Count;
+    public TState State;
+    public uint Filter;
+    public ActionI2R<#=count#><TState, Entity, <#=templates#>> Action;
+        
+<#      for (var i = 0; i < count; i++) {   #>
+    public ComponentGroup<T<#=i#>> Group<#=i#>;
+<#      } #>
+<#      for (var i = 0; i < count; i++) {   #>
+    public int Offset<#=i#>;
+<#      } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Execute() {
+        var world = Archetype.World;
+        for (var i = 0; i < Count; i++) {
+            ref var chunk = ref Archetype.GetChunk(Index + i);
+            for (var j = 0; j < chunk.Count; j++) {
+                var span = chunk.Get(j);
+                var context = world.GetContext(span[0]);
+                if((context.Flags & Filter) != Filter) {
+                    continue;    
+                }
+                var entity = world.Cast(in context);
+<#      for (var i = 0; i < count; i++) { #>
+                ref var component<#=i#> = ref Group<#=i#>.Get(span[Offset<#=i#>]);
+<#      }  #>
+                Action(in State, in entity, <#=arguments#>);
+            }
+        }
+    }
+}
+
+<#
+    }
+#>

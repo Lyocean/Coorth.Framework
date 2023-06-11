@@ -1,0 +1,30 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+namespace Coorth.Framework; 
+
+public partial class Matcher {
+  
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+#>
+    public Matcher WithAll<<#=templates#>>() <#=contracts#> {
+        allTypes = ComponentTypes<<#=templates#>>.Types;
+        return this;
+    }
+    
+    public Matcher WithNot<<#=templates#>>() <#=contracts#> {
+        notTypes = ComponentTypes<<#=templates#>>.Types;
+        return this;
+    }
+
+    public Matcher WithAny<<#=templates#>>() <#=contracts#> {
+        anyTypes = ComponentTypes<<#=templates#>>.Types;
+        return this;
+    }
+
+<#
+    }
+#>
+}

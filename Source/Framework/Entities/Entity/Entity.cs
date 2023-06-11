@@ -16,28 +16,51 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
 
     public static Entity Null => new(null!, EntityId.Null);
 
-    public int Count => World.ComponentCount(Id);
+    private ref EntityContext Context => ref World.GetContext(Id.Index);
 
-    public Archetype Archetype => World.GetArchetype(Id);
+    public Archetype Archetype => Context.Archetype;
 
-    internal ref EntityContext Context => ref World.GetContext(Id.Index);
+    public int Count => Archetype.ComponentCount;
 
-    public Space Space => World.GetSpace(Id);
+    public Space Space => Context.Space;
     
-    public IEnumerable<Type> ComponentTypes() => World.ComponentTypes(Id);
+    public IReadOnlyList<ComponentType> ComponentTypes => Archetype.Definition.Types;
 
     public bool IsNull => Id.IsNull || World == null || !World.HasEntity(Id);
 
     public bool IsNotNull => Id.IsNotNull && World != null && World.HasEntity(Id);
+        
+    public bool IsActive { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => World.IsActive(in Id); }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetActive(bool active) => World.SetActive(in Id, active);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsEnable<T>() where T : IComponent => World.IsComponentEnable<T>(in Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool IsEnable(Type type) => World.IsComponentEnable(in Id, type);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetEnable<T>(bool enable) where T : IComponent => World.SetComponentEnable<T>(in Id, enable);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetFlags(int flag, bool value) => World.SetFlags(in Id, flag, value);
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public bool GetFlags(int flag) => World.GetFlags(in Id, flag);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void SetEnable(Type type, bool enable) => World.SetComponentEnable(in Id, type, enable);
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(Type type) => World.AddComponent(Id, type);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Add<T>() where T : IComponent, new() => ref World.AddComponent<T>(Id);
+    public ref T Add<T>() where T : IComponent, new() => ref World.AddComponent<T>(in Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Add<T>(T component) where T : IComponent => ref World.AddComponent(Id, component);
+    public ref T Add<T>(in T component) where T : IComponent => ref World.AddComponent(in Id, in component);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryAdd<T>() where T : IComponent => World.TryAddComponent<T>(Id);
@@ -59,8 +82,7 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public T? Find<T>() where T : IComponent => World.TryGetComponent<T>(Id, out var component) ? component : default;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent =>
-        World.TryGetComponent(Id, out component);
+    public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent => World.TryGetComponent(Id, out component);
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public IEnumerable<IComponent> GetAll() => World.GetAllComponents(Id);
@@ -69,9 +91,9 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public ref T Offer<T>() where T : IComponent, new() => ref World.OfferComponent<T>(Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() =>
-        ref World.OfferComponent(Id, provider);
+    public ref T Offer<T>(Func<Entity, T> provider) where T : IComponent, new() => ref World.OfferComponent(Id, provider);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public int Index<T>() where T : IComponent, new() => World.ComponentIndex<T>(Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -92,51 +114,71 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Remove(Type type) => World.RemoveComponent(Id, type);
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryRemove<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent {
-        if (World.TryGetComponent(Id, out component)) {
-            World.RemoveComponent<T>(Id);
-        }
-
-        return false;
+        return World.TryRemoveComponent<T>(in Id, out component);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsEnable<T>() where T : IComponent => World.IsComponentEnable<T>(in Id);
+    public void Clear() => World.ClearComponents(in Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool IsEnable(Type type) => World.IsComponentEnable(in Id, type);
+    public void Dispose() => World.DestroyEntity(in Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetEnable<T>(bool enable) where T : IComponent => World.SetComponentEnable<T>(in Id, enable);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void SetEnable(Type type, bool enable) => World.SetComponentEnable(in Id, type, enable);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Clear() => World.ClearComponent(Id);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Dispose() => World.DestroyEntity(Id);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Write(ISerializeWriter writer) => World.WriteEntity(writer, Id);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Read(ISerializeReader reader) => World.ReadEntity(reader, Id);
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public Entity CloneEntity() => World.CloneEntity(this);
+    public Entity CloneEntity() => World.CloneEntity(in Id);
 
     public override string ToString() {
-        using var builder = new ValueStringBuilder(512);
-        builder.Append("Entity={ ");
+        var builder = new ValueStringBuilder(512);
+        builder.Append("Entity=( ");
+        Id.ToString(ref builder);
+        builder.Append(" )");
+        var result = builder.ToString();
+        builder.Dispose();
+        return result;
+    }
+}
+
+[Guid("1D1AD5B0-3ACD-4666-8276-29B105324905")]
+public readonly record struct EntityId(int Index, int Version) {
+        
+    public readonly int Index = Index;
+        
+    public readonly int Version = Version;
+
+    public static EntityId Null => new(0, 0);
+
+    private EntityId(long uid) : this((int) (uid & ~0xFFFFFFFF), (int) ((uid >> sizeof(int)) & ~0xFFFFFFFF)) { }
+
+    public bool IsNull => Index == 0 && Version == 0;
+
+    public bool IsNotNull => Index != 0 || Version != 0;
+
+    public static explicit operator long(EntityId id) => ((long) id.Version << sizeof(int)) | (uint) id.Index;
+
+    public static explicit operator EntityId(long uid) => new(uid);
+
+    public override string ToString() => $"(Index:{Index}, Version:{Version})";
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void ToString(ref ValueStringBuilder builder) {
         builder.Append("Id=(Index:");
-        builder.Append(Id.Index);
+        builder.Append(Index);
         builder.Append(", Version:");
-        builder.Append(Id.Version);
-        builder.Append("), ");
-        builder.Append(Archetype.ToString());
-        builder.Append(" }");
-        return builder.ToString();
+        builder.Append(Version);
+        builder.Append(")");
+    }
+
+    public override int GetHashCode() => Index;
+    
+    [SerializeFormatter(typeof(EntityId))]
+    public class Formatter : SerializeFormatter<EntityId> {
+        public override void SerializeWriting(in SerializeWriter writer, scoped in EntityId value) {
+            writer.WriteInt64((long)value);
+        }
+
+        public override void SerializeReading(in SerializeReader reader, scoped ref EntityId value) {
+            value = (EntityId)reader.ReadInt64();
+        }
     }
 }

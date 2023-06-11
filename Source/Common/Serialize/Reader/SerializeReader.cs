@@ -91,7 +91,7 @@ public interface ISerializeReader {
 
     Guid ReadGuid();
 
-    Type? ReadType();
+    Type ReadType();
 
     T ReadEnum<T>() where T: notnull;
 

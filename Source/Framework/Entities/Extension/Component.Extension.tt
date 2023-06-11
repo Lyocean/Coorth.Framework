@@ -1,0 +1,175 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+using System;
+using System.Runtime.CompilerServices;
+
+namespace Coorth.Framework; 
+
+#region Types
+
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var template = CreateParameters(count, i => "T" + i, ", ");
+#>
+public static class ComponentTypes<<#=template#>> {
+    public static readonly int Hash;
+    public static readonly ComponentType[] Types;
+    static ComponentTypes() {
+        Types = new [] {
+<#      for (var index = 0; index < count; index++) { #>
+            ComponentRegistry.Get<T<#=index#>>(),    
+<#      } #>
+        };
+        Array.Sort(Types, static (a, b) => a.Id.CompareTo(b.Id));
+        Hash = ComponentRegistry.ComputeHash(Types.AsSpan());
+    }
+}
+<#
+    }
+#>
+#endregion
+
+
+#region Components
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var template = CreateParameters(count, i => "T" + i, ", ");
+        var arguments = CreateParameters(count, i => $"ref T{i} v{i}", ", ");
+#>
+
+#if NET7_0_OR_GREATER
+
+[SkipLocalsInit]
+public readonly ref struct Components<<#=template#>> {
+
+<#      for (var index = 0; index < count; index++) { #>
+    public readonly ref T<#=index#> Value<#=index#>;
+<#      } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Components(<#=arguments#>) {
+<#      for (var index = 0; index < count; index++) { #>
+        Value<#=index#> = ref v<#=index#>;
+<#      } #>
+    }
+
+    public void Deconstruct(<#=CreateParameters(count, i => $"out T{i} v{i}", ", ")#>) {
+<#      for (var index = 0; index < count; index++) { #>
+        v<#=index#> = Value<#=index#>;
+<#      } #>
+    }
+}
+
+#else
+
+public ref struct Components<<#=template#>> {
+
+<#      for (var index = 0; index < count; index++) { #>
+    private readonly Ref<T<#=index#>> value<#=index#>;
+    public ref T<#=index#> Value<#=index#> => ref value<#=index#>.Value;
+<#      } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Components(<#=arguments#>) {
+<#      for (var index = 0; index < count; index++) { #>
+        value<#=index#> = new Ref<T<#=index#>>(ref v<#=index#>);
+<#      } #>
+    }
+
+    public void Deconstruct(<#=CreateParameters(count, i => $"out T{i} v{i}", ", ")#>) {
+<#      for (var index = 0; index < count; index++) { #>
+        v<#=index#> = value<#=index#>.Value;
+<#      } #>
+    }
+}
+#endif
+
+<#
+    }
+#>
+#endregion
+
+
+#region EntityComponents
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var template = CreateParameters(count, i => "T" + i, ", ");
+        var arguments = CreateParameters(count, i => $"ref T{i} v{i}", ", ");
+#>
+
+#if NET7_0_OR_GREATER
+
+[SkipLocalsInit]
+public readonly ref struct EntityComponents<<#=template#>> {
+    public readonly Entity Entity;
+<#      for (var index = 0; index < count; index++) { #>
+    public readonly ref T<#=index#> Value<#=index#>;
+<#      } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public EntityComponents(Entity entity, <#=arguments#>) {
+        Entity = entity;
+<#      for (var index = 0; index < count; index++) { #>
+        Value<#=index#> = ref v<#=index#>;
+<#      } #>
+    }
+
+    public void Deconstruct(out Entity entity, <#=CreateParameters(count, i => $"out T{i} v{i}", ", ")#>) {
+        entity = Entity;
+<#      for (var index = 0; index < count; index++) { #>
+        v<#=index#> = Value<#=index#>;
+<#      } #>
+    }
+}
+
+#else
+
+public ref struct EntityComponents<<#=template#>> {
+    public readonly Entity Entity;
+<#      for (var index = 0; index < count; index++) { #>
+    public readonly Ref<T<#=index#>> value<#=index#>;
+    public ref T<#=index#> Value<#=index#> => ref value<#=index#>.Value;
+<#      } #>
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public EntityComponents(Entity entity, <#=arguments#>) {
+        Entity = entity;
+<#      for (var index = 0; index < count; index++) { #>
+        value<#=index#> = new Ref<T<#=index#>>(ref v<#=index#>);
+<#      } #>
+    }
+
+    public void Deconstruct(out Entity entity, <#=CreateParameters(count, i => $"out T{i} v{i}", ", ")#>) {
+        entity = Entity;
+<#      for (var index = 0; index < count; index++) { #>
+        v<#=index#> = value<#=index#>.Value;
+<#      } #>
+    }
+}
+#endif
+
+<#
+    }
+#>
+#endregion
+
+
+#region Archetype
+
+public partial class World {
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var template = CreateParameters(count, i => "T" + i, ", ");
+#>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Archetype CreateArchetype<<#=template#>>() {
+        var types = ComponentTypes<<#=template#>>.Types;
+        return CreateArchetype(types.AsSpan());
+    }
+
+<#
+    }
+#>
+}
+
+#endregion

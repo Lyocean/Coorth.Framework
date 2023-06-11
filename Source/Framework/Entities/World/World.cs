@@ -1,20 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Coorth.Logs;
 using Coorth.Tasks;
 
 namespace Coorth.Framework; 
 
+public record WorldOptions {
+
+    public string Name { get; set; } = "Worlds-Default";
+
+    private IServiceLocator? services;
+    public IServiceLocator Services { get => services ??= new ServiceLocator(); set => services = value; }
+    
+    private ILogger? logger;
+    public ILogger Logger { get => logger ??= new LoggerConsole(); set => logger = value; }
+    
+    private Dispatcher? dispatcher;
+    public Dispatcher Dispatcher { get => dispatcher ??= new Dispatcher(null!); set => dispatcher = value; }
+
+    private TaskSyncContext? schedule;
+    public TaskSyncContext SyncContext { get => schedule ?? new TaskSyncContext(Thread.CurrentThread); set => schedule = value; }
+    
+}
+
 public partial class World : Disposable {
     
     private static int currIndex;
     private static readonly Stack<int> resumeIndex = new();
     private static readonly object locker = new();
-    private static World[] worlds = new World[4];
     public static int WorldCount { get; private set; }
-    public static ReadOnlySpan<World> Worlds => worlds.AsSpan(0, WorldCount);
+    private static World?[] worlds = new World?[4];
+    public static IReadOnlyList<World?> Worlds => worlds;
 
     public readonly string Name;
 
@@ -54,13 +73,12 @@ public partial class World : Disposable {
         Router = new Router<MessageContext>();
         Actor = new WorldActor(this);
 
-        InitArchetypes(out emptyArchetype);
-        InitSpaces(out defaultSpace);
-        InitEntities(Options.EntityCapacity.Index, Options.EntityCapacity.Chunk);
-        InitComponents(Options);
-        InitSystems(out RootSystem);
-            
-        singleton = CreateEntity();
+        SetupArchetypes(out rootArchetype);
+        SetupSpaces(out rootSpace, out mainSpace);
+        SetupQueries();
+        SetupEntities();
+        SetupComponents();
+        SetupSystems(out RootSystem);
     }
 
     protected override void OnDispose() {
@@ -68,54 +86,69 @@ public partial class World : Disposable {
             Logger.Error("Dispose can must be call in world main thread.");
             return;
         }
-        ClearEntities();
-        ClearSpaces();
         ClearSystems();
-        ClearArchetypes();
         ClearComponents();
+        ClearEntities();
+        ClearQueries();
+        ClearSpaces();
+        ClearArchetypes();
 
         lock (locker) {
             WorldCount--;
-            worlds[Index] = default!;
+            worlds[Index] = default;
             resumeIndex.Push(Index);
         }
     }
     
     public static World? FindWorld(int index) {
-        return index < worlds.Length ? worlds[index] : null;
+        return (0 <= index && index < worlds.Length) ? worlds[index] : null;
     }
     
     public static bool HasWorld(int index) {
-        return index < WorldCount;
+        return 0 <= index && index < worlds.Length && Worlds[index] != null;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public object GetService(Type serviceType) => Services.Get(serviceType);
+    public object GetService(Type serviceType) {
+        return Services.Get(serviceType);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public object? FindService(Type serviceType) => Services.Find(serviceType);
+    public object? FindService(Type serviceType) {
+        return Services.Find(serviceType);
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T GetService<T>() where T : class => Services.Get<T>();
+    public T GetService<T>() where T : class {
+        return Services.Get<T>();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? FindService<T>() where T : class => Services.Find<T>();
-        
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void Dispatch<T>(in T e) where T: notnull => Dispatcher.Dispatch(e);
+    public T? FindService<T>() where T : class {
+        return Services.Find<T>();
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ValueTask DispatchAsync<T>(in T e) where T: notnull => Dispatcher.DispatchAsync(e);
+    public void Dispatch<T>(in T e) where T: notnull {
+        Dispatcher.Dispatch(e);
+    }
 
-    public void Execute<T>(in T e)  where T: notnull => Dispatcher.Dispatch(e);
-    
-    public ValueTask ExecuteAsync<T>(in T e)  where T: notnull => Dispatcher.DispatchAsync(e);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask DispatchAsync<T>(in T e) where T: notnull {
+        return Dispatcher.DispatchAsync(e);
+    }
 
-    public void Receive<T>(MessageContext context, T message) where T: notnull {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Dispatch<T>(in MessageContext context, T message) where T: notnull {
         Router.Dispatch(context, message);
     }
 
-    public ValueTask ReceiveAsync<T>(MessageContext context, T message) where T: notnull {
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ValueTask DispatchAsync<T>(in MessageContext context, T message) where T: notnull {
         return Router.DispatchAsync(context, message);
     }
+    
+    
 }
+
+

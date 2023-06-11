@@ -14,89 +14,62 @@
     </ItemGroup>
     
     <ItemGroup>
-        <None Update="Core\Entities\Collection\ComponentCollection.tt">
+        <None Include="Common\Base\Functions.tt">
             <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+            <LastGenOutput>Functions.cs</LastGenOutput>
         </None>
-        <None Update="Core\Entities\Collection\EntityCollection.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>EntityCollection.cs</LastGenOutput>
+        <None Update="Common\Base\Functions.cs">
+            <AutoGen>True</AutoGen>
+            <DesignTime>True</DesignTime>
+            <DependentUpon>Functions.tt</DependentUpon>
         </None>
-        <None Update="Core\Entities\Collection\SystemSubscription.ForEachs.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        <None Include="Framework\Entities\Extension\Component.Extension.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>Component.Extension.cs</LastGenOutput>
         </None>
-        <None Update="Source\Core\Entities\Collection\ComponentCollection.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\Component.Extension.cs">
+          <AutoGen>True</AutoGen>
+          <DesignTime>True</DesignTime>
+          <DependentUpon>Component.Extension.tt</DependentUpon>
         </None>
-        <None Update="Source\Core\Entities\Collection\SystemSubscription.ForEachs.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\Matcher.Types.cs">
+          <AutoGen>True</AutoGen>
+          <DesignTime>True</DesignTime>
+          <DependentUpon>Matcher.Types.tt</DependentUpon>
         </None>
-        <None Update="Framework\Entities\Collection\ComponentCollection.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>ComponentCollection.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\Query.Extension.cs">
+          <AutoGen>True</AutoGen>
+          <DesignTime>True</DesignTime>
+          <DependentUpon>Query.ForEach.tt</DependentUpon>
         </None>
-        <None Update="Framework\Entities\Collection\EntityCollection.ForEach.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>EntityCollection.ForEach.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\World.Extension.cs">
+          <AutoGen>True</AutoGen>
+          <DesignTime>True</DesignTime>
+          <DependentUpon>World.Extension.tt</DependentUpon>
         </None>
-        <None Update="Framework\Entities\Collection\SystemSubscription.ForEachs.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>SystemSubscription.ForEachs.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\System.Extension.cs">
+          <AutoGen>True</AutoGen>
+          <DesignTime>True</DesignTime>
+          <DependentUpon>System.Extension.tt</DependentUpon>
         </None>
-        <None Update="Common\Base\EventAction.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>EventAction.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\Query.Extension.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>Query.Extension.cs</LastGenOutput>
         </None>
-        <None Update="Common\Base\Functions.Gen.tt">
-            <Generator>TextTemplatingFileGenerator</Generator>
-            <LastGenOutput>Functions.Gen.cs</LastGenOutput>
+        <None Update="Framework\Entities\Extension\System.Extension.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>System.Extension.cs</LastGenOutput>
         </None>
     </ItemGroup>
-
+    
     <ItemGroup>
-        <Compile Update="Core\Entities\Collection\ComponentCollection.cs">
-            <AutoGen>True</AutoGen>
-            <DesignTime>True</DesignTime>
-            <DependentUpon>ComponentCollection.tt</DependentUpon>
-        </Compile>
-        <Compile Update="Core\Entities\Collection\EntityCollection.cs">
-            <DependentUpon>EntityCollection.tt</DependentUpon>
-        </Compile>
-        <Compile Update="Core\Entities\Collection\SystemSubscription.ForEachs.cs">
-            <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
-        </Compile>
-        <Compile Update="Framework\Entities\Collection\ComponentCollection.cs">
-            <DependentUpon>ComponentCollection.tt</DependentUpon>
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-        </Compile>
-        <Compile Update="Framework\Entities\Collection\EntityCollection.ForEach.cs">
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-            <DependentUpon>EntityCollection.ForEach.tt</DependentUpon>
-        </Compile>
-        <Compile Update="Framework\Entities\Collection\SystemSubscription.ForEachs.cs">
-            <DependentUpon>SystemSubscription.ForEachs.tt</DependentUpon>
-            <DesignTime>True</DesignTime>
-            <AutoGen>True</AutoGen>
-        </Compile>
-        <Compile Update="Common\Base\EventAction.cs">
-            <DependentUpon>EventAction.tt</DependentUpon>
-        </Compile>
-        <Compile Update="Common\Base\Functions.Gen.cs">
-            <AutoGen>True</AutoGen>
-            <DesignTime>True</DesignTime>
-            <DependentUpon>Functions.Gen.tt</DependentUpon>
-        </Compile>
+      <Compile Update="Framework\Entities\Extension\Query.Extension.cs">
+        <DependentUpon>Query.Extension.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Framework\Entities\Extension\System.Extension.cs">
+        <DependentUpon>System.Extension.tt</DependentUpon>
+      </Compile>
     </ItemGroup>
-
-    <ItemGroup>
-        <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-    </ItemGroup>
-
-
+    
 
 </Project>

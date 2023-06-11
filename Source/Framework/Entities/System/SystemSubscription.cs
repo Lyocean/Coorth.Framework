@@ -1,27 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Coorth.Tasks;
 
-namespace Coorth.Framework; 
+namespace Coorth.Framework;
 
 public interface ISystemSubscription {
-
-    Type EventType { get; }
-        
-    IReadOnlyCollection<Type> IncludeComponents { get; }
-
-    IReadOnlyCollection<Type> ExcludeComponents { get; }
-
-}
     
-public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubscription where TEvent: notnull {
+    Type EventType { get; }
 
+    IReadOnlyCollection<Type> AllTypes { get; }
+
+    IReadOnlyCollection<Type> NotTypes { get; }
+    
+    IReadOnlyCollection<Type> AnyTypes { get; }
+}
+
+public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubscription where TEvent : notnull {
     private readonly SystemBase system;
-        
+
     private readonly Dispatcher dispatcher;
 
-    private readonly TaskExecutor executor;
+    private readonly TaskExecutor? executor;
 
     private Reaction<TEvent>? reaction;
 
@@ -29,29 +30,38 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
 
     private World World => system.World;
 
-    private ArchetypeMatcher? matcher;
-        
-    private HashSet<Type>? includes;
-        
-    private HashSet<Type>? excludes;
+    private Matcher? Matcher { get; set; }
 
-    public IReadOnlyCollection<Type> IncludeComponents => includes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
-        
-    public IReadOnlyCollection<Type> ExcludeComponents => excludes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
-        
-    public SystemSubscription(SystemBase system, Dispatcher dispatcher, TaskExecutor executor) {
+    private HashSet<Type>? allTypes;
+
+    private HashSet<Type>? notTypes;
+
+    private HashSet<Type>? anyTypes;
+
+    public IReadOnlyCollection<Type> AllTypes => allTypes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
+
+    public IReadOnlyCollection<Type> NotTypes => notTypes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
+
+    public IReadOnlyCollection<Type> AnyTypes => anyTypes ?? (IReadOnlyCollection<Type>)Array.Empty<Type>();
+
+    public SystemSubscription(SystemBase system, Dispatcher dispatcher, TaskExecutor? executor) {
         this.system = system;
         this.dispatcher = dispatcher;
         this.executor = executor;
     }
-        
+
+    protected override void OnDispose() {
+        reaction?.Dispose();
+        system.RemoveReaction(this);
+    }
+
     private void ValidateReaction() {
         if (reaction != null) {
             throw new InvalidOperationException("[SystemSubscription] Can't add action duplicate.");
         }
     }
-        
-    public void OnEvent(EventAction<TEvent> action) {
+
+    public void OnEvent(ActionI1<TEvent> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
@@ -60,114 +70,137 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
-    
+
     public void OnEvent(Func<TEvent, ValueTask> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
 
-    public void OnEvent(EventFunc<TEvent, ValueTask> action) {
+    public void OnEvent(FuncI1<TEvent, ValueTask> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
-        
+
     public void OnEvent(Func<TEvent, Task> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
 
-    public void OnEvent(EventFunc<TEvent, Task> action) {
+    public void OnEvent(FuncI1<TEvent, Task> action) {
         ValidateReaction();
         reaction = dispatcher.Subscribe(action);
     }
-        
-    private void _Include(Type type) {
-        includes ??= new HashSet<Type>();
-        includes.Add(type);
+
+    private void _OnMatch(Matcher matcher) {
+        Matcher = matcher;
+
+        allTypes = matcher.AllTypes.Select(_ => _.Type).ToHashSet();
+        notTypes = matcher.NotTypes.Select(_ => _.Type).ToHashSet();
+        anyTypes = matcher.AnyTypes.Select(_ => _.Type).ToHashSet();
     }
 
-    private void _Include<T>() where T : IComponent => _Include(typeof(T));
+    public void OnMatch(Matcher matcher, ActionI2<TEvent, Entity> action) {
+        _OnMatch(matcher);
+        if (executor == null) {
+            OnEvent((in TEvent e) => {
+                var query = World.Query(matcher);
+                query.Execute(in e, action);
+            }); 
+        }
+        else {
+            OnEvent((in TEvent e) => {
+                var query = World.Query(matcher);
+                query.Execute(in e, executor, action);
+            }); 
+        }
+    }
+    
+    public void OnMatch(Matcher matcher, Action<TEvent, Entity> action) {
+        var delegates = (ActionI2<TEvent, Entity>)((in TEvent e, in Entity entity) => action(e, entity));
+        OnMatch(matcher, delegates);
+    }
+    
+    public void ForEach<T>(ActionR1<T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach(action);
+        });
+    }
+    
+    public void ForEach<T>(ActionI1<T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((ref T component) => action(in component));
+        });
+    }
+    
+    public void ForEach<T>(Action<T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((ref T component) => action(component));
+        });
+    }
+    
+    public void ForEach<T>(ActionI1R1<Entity, T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach(action);
+        });
+    }
+    
+    public void ForEach<T>(ActionI2<Entity, T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((in Entity entity, ref T component) => action(in entity, in component));
+        });
+    }
 
-    private void _Exclude(Type type) {
-        excludes ??= new HashSet<Type>();
-        excludes.Add(type);
+    public void ForEach<T>(Action<Entity, T> action) where T : IComponent {
+        OnEvent((in TEvent _) => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((in Entity entity, ref T component) => action(entity, component));
+        });
     }
-        
-    private void _Exclude<T>() where T : IComponent => _Exclude(typeof(T));
-        
-    public SystemSubscription<TEvent> Include<T>() where T : IComponent {
-        matcher ??= new ArchetypeMatcher();
-        matcher.Include<T>();
-        _Include<T>();
-        return this;
-    }
-        
-    public SystemSubscription<TEvent> Include<T1, T2>() where T1 : IComponent where T2 : IComponent {
-        matcher ??= new ArchetypeMatcher();
-        matcher.Include<T1>().Include<T2>();
-        _Include<T1>();
-        _Include<T2>();
-        return this;
-    }
-        
-    public SystemSubscription<TEvent> Include<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
-        matcher ??= new ArchetypeMatcher();
-        matcher.Include<T1>().Include<T2>().Include<T3>();
-        _Include<T1>();
-        _Include<T2>();
-        _Include<T3>();
-        return this;
-    }
-    
-    public SystemSubscription<TEvent> Exclude<T>() where T : IComponent {
-        matcher ??= new ArchetypeMatcher();
-        matcher.Exclude<T>();
-        _Exclude<T>();
-        return this;
-    }
-        
-    public SystemSubscription<TEvent> Exclude<T1, T2>() where T1 : IComponent where T2 : IComponent {
-        matcher ??= new ArchetypeMatcher();
-        matcher.Exclude<T1>().Exclude<T2>();
-        _Exclude<T1>();
-        _Exclude<T2>();
-        return this;
-    }
-        
-    public SystemSubscription<TEvent> Exclude<T1, T2, T3>() where T1 : IComponent where T2 : IComponent where T3 : IComponent{
-        matcher ??= new ArchetypeMatcher();
-        matcher.Exclude<T1>().Exclude<T2>().Exclude<T3>();
-        _Exclude<T1>();
-        _Exclude<T2>();
-        _Exclude<T3>();
-        return this;
-    }
-    
-    protected override void OnDispose() {
-        reaction?.Dispose();
-        system.RemoveReaction(this);
-    }
-    
-    private void _Match(ArchetypeMatcher archetypeMatcher) {
-        if (matcher != null) {
-            throw new InvalidOperationException($"[SystemSubscription] Matcher has exists.");
-        }
-        matcher = archetypeMatcher;
-        foreach (var typeId in matcher.Includes) {
-            var componentGroup = World.GetComponentGroup(typeId);
-            _Include(componentGroup.Type);
-        }
-        foreach (var typeId in matcher.Excludes) { 
-            var componentGroup = World.GetComponentGroup(typeId);
-            _Exclude(componentGroup.Type);
-        }
-    }
-        
-    public void OnMatch(ArchetypeMatcher archetypeMatcher, Action<TEvent, Entity> action) {
-        _Match(archetypeMatcher);
+
+    public void ForEach<T>(ActionI2<TEvent, T> action) where T : IComponent {
         OnEvent(e => {
-            var entities = World.GetEntities(archetypeMatcher);
-            entities.Execute(e, executor, action);
+            var collection = World.GetComponents<T>();
+            collection.ForEach((ref T component) => action(in e, in component));
+        });
+    }
+    
+    public void ForEach<T>(ActionI1R1<TEvent, T> action) where T : IComponent {
+        OnEvent(e => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach(in e, action);
+        });
+    }
+    
+    public void ForEach<T>(Action<TEvent, T> action) where T : IComponent {
+        OnEvent(e => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((ref T component) => action(e, component));
+        });
+    }
+    
+    public void ForEach<T>(ActionI2R1<TEvent, Entity, T> action) where T : IComponent {
+        OnEvent(e => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach(in e, action);
+        });
+    }
+    
+    public void ForEach<T>(ActionI3<TEvent, Entity, T> action) where T : IComponent {
+        OnEvent(e => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((in Entity entity, ref T component) => action(in e, in entity, in component));
+        });
+    }
+
+    public void ForEach<T>(Action<TEvent, Entity, T> action) where T : IComponent {
+        OnEvent(e => {
+            var collection = World.GetComponents<T>();
+            collection.ForEach((in Entity entity, ref T component) => action(e, entity, component));
         });
     }
 }

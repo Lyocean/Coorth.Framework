@@ -29,7 +29,7 @@ public abstract class ModuleBase : ServiceNode<ModuleBase>, IModule, IActorLifet
         Collector.Add(reaction);
     }
     
-    protected void Subscribe<TEvent>(EventAction<TEvent> action) where TEvent : notnull {
+    protected void Subscribe<TEvent>(ActionI1<TEvent> action) where TEvent : notnull {
         var reaction = Dispatcher.Subscribe(action);
         Collector.Add(reaction);
     }

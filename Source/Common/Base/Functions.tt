@@ -1,0 +1,28 @@
+﻿<#@ template language="C#" #>
+<#@ import namespace="System.Linq" #>
+namespace Coorth;
+<#
+    for (var i = 1; i <= 12; i++) {
+#>
+#region Action<#= i #>
+<#
+        var range = Enumerable.Range(1, i).ToArray();
+        var generics = string.Join(", ", range.Select(_ => $"TP{_}"));
+        for (var j = 0; j <= i; j++) {
+            var repeats = Enumerable.Repeat(j, i).ToArray();
+            var functions = j == 0 ? $"R{i - j}" : ((i == j) ? $"I{j}" : $"I{j}R{i - j}");
+            // var functions = string.Concat(range.Zip(repeats, (a, b) => a > b ? 'R' : 'I'));
+            var parameters = string.Join(", ",
+                range.Zip(repeats, (a, b) => a > b ? $"ref TP{a} p{a}" : $"in TP{a} p{a}"));
+#>
+public delegate void Action<#= functions #><<#= generics #>>(<#= parameters #>);
+public delegate TResult Func<#= functions #><<#= generics #>, out TResult>(<#= parameters #>);
+
+<#
+        }
+#>
+#endregion
+
+<#
+    }
+#>

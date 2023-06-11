@@ -25,7 +25,7 @@ public sealed class WorldActor : ActorBase, IWorldActor {
     }
 
     public override ValueTask ReceiveAsync(MessageContext context, IMessage message) {
-        return World.ReceiveAsync(context, message);
+        return World.DispatchAsync(context, message);
     }
 
     public ValueTask AddSystem(Type type) {

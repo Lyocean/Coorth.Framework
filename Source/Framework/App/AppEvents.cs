@@ -13,7 +13,9 @@ public record AppInitBeginEvent;
 public record AppInitAfterEvent;
 
 [Event]
-public record AppLoadEvent;
+public record AppLoadEvent(IApplication App) {
+    public readonly IApplication App = App;
+}
 
 [Event]
 public record AppStartEvent(IApplication App) {
@@ -21,15 +23,21 @@ public record AppStartEvent(IApplication App) {
 }
 
 [Event]
-public record AppStatusChangeEvent(bool IsPause) {
+public record AppPauseEvent(IApplication App, bool IsPause) {
+    public readonly IApplication App = App;
     public readonly bool IsPause = IsPause;
 }
 
 [Event]
-public record AppCloseEvent;
+public record AppCloseEvent(IApplication App) {
+    public readonly IApplication App = App;
+}
 
 [Event]
-public record AppQuitEvent;
+public record AppQuitEvent(IApplication App) {
+    public readonly IApplication App = App;
+    
+}
 
 
 #endregion
@@ -108,7 +116,7 @@ public readonly record struct LateUpdateEvent(ITickingContext TickingContext, Ti
 }
 
 [Event]
-public readonly record struct EventEndOfFrame(ITickingContext TickingContext, TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) {
+public readonly record struct EndOfFrameEvent(ITickingContext TickingContext, TimeSpan TotalTime, TimeSpan DeltaTime, long FrameCount) {
     public readonly ITickingContext TickingContext = TickingContext;
     public readonly TimeSpan TotalTime = TotalTime;
     public readonly TimeSpan DeltaTime = DeltaTime;

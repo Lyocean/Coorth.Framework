@@ -215,7 +215,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
             return;
         }
         Logger.Trace(nameof(Close));
-        Dispatcher.Dispatch(new AppCloseEvent());
+        Dispatcher.Dispatch(new AppCloseEvent(this));
         OnClose();
         rootModule.SetActive(false);
 

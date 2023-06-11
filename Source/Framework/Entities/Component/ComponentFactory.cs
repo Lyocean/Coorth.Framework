@@ -6,7 +6,7 @@ public interface IComponentFactory<T> {
     void Create(in Entity entity, out T component);
     void Attach(in Entity entity, ref T component);
     void Recycle(in Entity entity, ref T component);
-    void Clone(in Entity entity, ref T source, out T target);
+    void Clone(in Entity entity, in T source, out T target);
 }
 
 public sealed class ComponentFactory<T> : IComponentFactory<T> {
@@ -31,12 +31,12 @@ public sealed class ComponentFactory<T> : IComponentFactory<T> {
         component = default!;
     }
 
-    public void Clone(in Entity entity, ref T source, out T target) {
-        CloneInstance(in entity, ref source, out target);
+    public void Clone(in Entity entity, in T source, out T target) {
+        CloneInstance(in entity, in source, out target);
     }
         
-    public static void CloneInstance(in Entity entity, ref T source, out T target) {
-        if(ComponentType<T>.IsValueType) {
+    public static void CloneInstance(in Entity entity, in T source, out T target) {
+        if(typeof(T).IsValueType) {
             target = source;
         } else {
             if (source is ICloneable cloneable) {
@@ -67,7 +67,7 @@ public sealed class DefaultFactory<T> : IComponentFactory<T> where T : struct {
         component = defaultValue;
     }
 
-    public void Clone(in Entity entity, ref T source, out T target) {
+    public void Clone(in Entity entity, in T source, out T target) {
         target = source;
     }
 }

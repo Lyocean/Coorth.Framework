@@ -25,7 +25,7 @@ public static partial class TaskUtil {
 
         public void UnsafeOnCompleted(Action continuation) {
 #if NET6_0_OR_GREATER
-            TaskThreadPool.UnsafeQueueUserWorkItem(TaskWorkItem.Create(continuation), false);
+            TaskThreadPool.UnsafeQueueUserWorkItem(TaskJob.Create(continuation), false);
 #else
             TaskThreadPool.UnsafeQueueUserWorkItem(waitCallback, continuation);
 #endif

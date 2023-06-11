@@ -55,7 +55,7 @@ public partial class Router<TContext> : Disposable {
 #else
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-    public void Dispatch<T>(TContext context, in T e) where T: notnull {
+    public void Dispatch<T>(in TContext context, in T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
             foreach (var reaction in channel.Reactions) {
                 try {
@@ -139,7 +139,7 @@ public partial class Router<TContext> : Disposable {
 
 public partial class Router<TContext> {
     
-    public Reaction<TContext, T> Subscribe<T>(EventAction<TContext, T> action) where T : notnull {
+    public Reaction<TContext, T> Subscribe<T>(ActionI2<TContext, T> action) where T : notnull {
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
@@ -149,7 +149,7 @@ public partial class Router<TContext> {
         return channel.Subscribe(action);
     }
     
-    public Reaction<TContext, T> Subscribe<T>(EventFunc<TContext, T, ValueTask> action) where T : notnull {
+    public Reaction<TContext, T> Subscribe<T>(FuncI2<TContext, T, ValueTask> action) where T : notnull {
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }
@@ -159,7 +159,7 @@ public partial class Router<TContext> {
         return channel.Subscribe(action);
     }
     
-    public Reaction<TContext, T> Subscribe<T>(EventFunc<TContext, T, Task> action) where T : notnull {
+    public Reaction<TContext, T> Subscribe<T>(FuncI2<TContext, T, Task> action) where T : notnull {
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
     }

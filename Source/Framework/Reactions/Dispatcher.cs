@@ -215,7 +215,7 @@ public sealed partial class Dispatcher {
 
 public partial class Dispatcher {
 
-    public Reaction<T> Subscribe<T>(EventAction<T> action) where T : notnull {
+    public Reaction<T> Subscribe<T>(ActionI1<T> action) where T : notnull {
         System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
@@ -227,7 +227,7 @@ public partial class Dispatcher {
         return channel.Subscribe(action);
     }
 
-    public Reaction<T> Subscribe<T>(EventFunc<T, ValueTask> action) where T : notnull {
+    public Reaction<T> Subscribe<T>(FuncI1<T, ValueTask> action) where T : notnull {
         System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
@@ -239,7 +239,7 @@ public partial class Dispatcher {
         return channel.Subscribe(action);
     }
 
-    public Reaction<T> Subscribe<T>(EventFunc<T, Task> action) where T : notnull {
+    public Reaction<T> Subscribe<T>(FuncI1<T, Task> action) where T : notnull {
         System.Diagnostics.Debug.Assert(action != null);
         var channel = OfferChannel(typeof(T));
         return channel.Subscribe(action);
