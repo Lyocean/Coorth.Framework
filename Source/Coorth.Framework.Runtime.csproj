@@ -60,6 +60,14 @@
           <Generator>TextTemplatingFileGenerator</Generator>
           <LastGenOutput>System.Extension.cs</LastGenOutput>
         </None>
+        <None Update="Framework\Entities\Extension\Matcher.Types.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>Matcher.Types.cs</LastGenOutput>
+        </None>
+        <None Update="Framework\Entities\Extension\Entity.Extension.tt">
+          <Generator>TextTemplatingFileGenerator</Generator>
+          <LastGenOutput>Entity.Extension.cs</LastGenOutput>
+        </None>
     </ItemGroup>
     
     <ItemGroup>
@@ -68,6 +76,14 @@
       </Compile>
       <Compile Update="Framework\Entities\Extension\System.Extension.cs">
         <DependentUpon>System.Extension.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Framework\Entities\Extension\Matcher.Types.cs">
+        <DependentUpon>Matcher.Types.tt</DependentUpon>
+      </Compile>
+      <Compile Update="Framework\Entities\Extension\Entity.Extension.cs">
+        <AutoGen>True</AutoGen>
+        <DesignTime>True</DesignTime>
+        <DependentUpon>Entity.Extension.tt</DependentUpon>
       </Compile>
     </ItemGroup>
     

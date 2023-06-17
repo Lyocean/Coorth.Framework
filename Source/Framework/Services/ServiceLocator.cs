@@ -7,7 +7,7 @@ namespace Coorth.Framework;
 public interface IServiceCollection : IServiceProvider {
     T GetService<T>() where T : class;
 
-    object? FindService(Type serviceType);
+    object? FindService(Type service_type);
 
     T? FindService<T>() where T : class;
 }
@@ -122,7 +122,7 @@ public sealed class ServiceLocator : Disposable, IServiceLocator {
         return parent?.GetService<T>() ?? throw new ServiceException($"Service not found: {typeof(T)}");
     }
 
-    public object? FindService(Type serviceType) => Find(serviceType);
+    public object? FindService(Type service_type) => Find(service_type);
 
     public T? FindService<T>() where T : class => Find<T>();
 

@@ -118,8 +118,6 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
 
     public int ChunkCount => chunks.Length;
     
-
-    
     internal ComponentGroup(World world) : base(world, ComponentType<T>.Value) {
         ChunkSize = (1000 * 16) / (Unsafe.SizeOf<T>() + sizeof(int) + sizeof(byte));
         chunks = Array.Empty<ComponentChunk<T>>();
@@ -134,6 +132,12 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     public void SetFactory(IComponentFactory<T> value) {
         factory = value;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void GetIndex(int index, out int chunk_index, out int value_index) {
+        chunk_index = index / ChunkSize;
+        value_index = index % ChunkSize;
+    }
     
     #endregion
 
@@ -142,33 +146,28 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
 
     private ref T _Add(int entity_index, out int component_index) {
         count++;
+        int chunk_index, value_index;
+        ref var chunk = ref Unsafe.NullRef<ComponentChunk<T>>();
         if (reusing >= 0) {
             component_index = reusing;
-            var chunk_index = component_index / ChunkSize;
-            var value_index = component_index % ChunkSize;
-            ref var chunk = ref chunks[chunk_index];
-
+            GetIndex(component_index, out chunk_index, out value_index);
+            chunk = ref chunks[chunk_index];
             reusing = chunk.Index[value_index];
-            
-            chunk.Index[value_index] = entity_index;
-            chunk.Count++;
-            return ref chunk.Value[value_index];
         }
         else {
             component_index = count-1;
-            var chunk_index = component_index / ChunkSize;
-            var value_index = component_index % ChunkSize;
+            GetIndex(component_index, out chunk_index, out value_index);
             if (chunk_index >= chunks.Length) {
                 Array.Resize(ref chunks, chunks.Length + 1);
                 chunks[chunk_index] = new ComponentChunk<T>(ChunkSize);
             }
-            ref var chunk = ref chunks[chunk_index];
-
-            chunk.Index[value_index] = entity_index;
-            chunk.Flags[value_index] = EntityFlags.COMPONENT_FLAG_DEFAULT;
-            chunk.Count++;
-            return ref chunk.Value[value_index];
+            chunk = ref chunks[chunk_index];
         }
+        chunk.Index[value_index] = entity_index;
+        chunk.Flags[value_index] = EntityFlags.COMPONENT_FLAG_DEFAULT;
+        chunk.Count++;
+        
+        return ref chunk.Value[value_index];
     }
 
     internal override int Add(int entity_index, in Entity entity) {
@@ -202,17 +201,15 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal ref T Get(int component_index) {
-        var chunk_index = component_index / ChunkSize;
-        var value_index = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         return ref chunk.Value[value_index];
     }
 
     public int GetEntity(int component_index) {
-        var chunk_index = component_index / ChunkSize;
-        var valueIndex = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
-        var value = chunk.Index[valueIndex];
+        var value = chunk.Index[value_index];
         return value;
     }
 
@@ -229,9 +226,8 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
         
     }
     
-    internal void Modify(int componentIndex, in T component) {
-        var chunk_index = componentIndex / ChunkSize;
-        var value_index = componentIndex % ChunkSize;
+    internal void Modify(int component_index, in T component) {
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         chunk.Value[value_index] = component;
     }
@@ -247,13 +243,11 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     #region Remove
 
     internal override void Remove(int component_index, in Entity entity) {
-        var chunk_index = component_index / ChunkSize;
-        var value_index = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         ref var index = ref chunk.Index[value_index];
         ref var value = ref chunk.Value[value_index];
-        
- 
+
         if (factory != null) {
             factory.Recycle(in entity, ref value);
         } else {
@@ -264,12 +258,16 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
             index = reusing;
             reusing = component_index;
         }
-        else if(value_index != chunk.Count - 1) {
-            ref var tail_index = ref chunk.Index[ChunkSize - 1];
-            ref var tail_value = ref chunk.Value[ChunkSize - 1];
+        else if(component_index != count - 1) {
+            var tail_component_index = count - 1;
+            GetIndex(tail_component_index, out var tail_chunk_index, out var tail_value_index);
+            ref var tail_chunk = ref chunks[tail_chunk_index];
             
-            (index, tail_index) = (tail_index, 0);
-            (value, tail_value) = (tail_value, value);
+            ref var tail_index = ref tail_chunk.Index[tail_value_index];
+            ref var tail_value = ref tail_chunk.Value[tail_value_index];
+
+            index = tail_index;
+            value = tail_value;
 
             World.OnComponentMove(tail_index, in Type, component_index);
         }
@@ -322,15 +320,13 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     #region Enable
 
     internal override bool IsEnable(int component_index) {
-        var chunk_index = component_index / ChunkSize;
-        var value_index = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         return chunk.Enable <= value_index && EntityFlags.IsComponentEnable(chunk.Flags[value_index]);
     }
     
     internal override void SetEnable(int component_index, bool enable, in Entity entity) {
-        var chunk_index = component_index / ChunkSize;
-        var value_index = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         ref var flags = ref chunk.Flags[value_index];
         var prev_value = EntityFlags.IsComponentEnable(flags);
@@ -354,8 +350,7 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     }
     
     internal override void SetActive(int component_index, bool active, in Entity entity) {
-        var chunk_index = component_index / ChunkSize;
-        var value_index = component_index % ChunkSize;
+        GetIndex(component_index, out var chunk_index, out var value_index);
         ref var chunk = ref chunks[chunk_index];
         ref var flags = ref chunk.Flags[value_index];
         var prev_value = EntityFlags.IsComponentEnable(flags);

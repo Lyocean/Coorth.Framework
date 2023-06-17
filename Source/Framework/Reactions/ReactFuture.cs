@@ -16,9 +16,9 @@ public class ReactFutures<T> : Reaction<T>  where T: ITickEvent {
     public ReactFutures(IReactionContainer container) : base(container) {
     }
 
-    public async ValueTask<T> Delay(TimeSpan time, int count, CancellationToken cancellationToken) {
+    public async ValueTask<T> Delay(TimeSpan time, int count, CancellationToken cancellation) {
         var future = ClassPool.Create<FutureTimePoint<T>>() ?? new FutureTimePoint<T>();
-        future.Setup(time, count, cancellationToken);
+        future.Setup(time, count, cancellation);
         timeFutures.Enqueue(future);
         var e = await future;
         future.Clear();
@@ -26,9 +26,9 @@ public class ReactFutures<T> : Reaction<T>  where T: ITickEvent {
         return e;
     }
     
-    public async ValueTask<T> Until(Func<T, bool> function, int count, CancellationToken cancellationToken) {
+    public async ValueTask<T> Until(Func<T, bool> function, int count, CancellationToken cancellation) {
         var future = ClassPool.Create<FutureCondition<T>>() ?? new FutureCondition<T>();
-        future.Setup(function, count, cancellationToken);
+        future.Setup(function, count, cancellation);
         condFutures.Enqueue(future);
         var e = await future;
         future.Clear();
@@ -38,10 +38,10 @@ public class ReactFutures<T> : Reaction<T>  where T: ITickEvent {
     
     public override void Execute(in T e) {
         var deltaTime = e.GetDeltaTime();
-        var timeArray = ArrayPool<FutureTimePoint<T>>.Shared.Rent(timeFutures.Count);
-        timeFutures.CopyTo(timeArray, 0);
+        var time_array = ArrayPool<FutureTimePoint<T>>.Shared.Rent(timeFutures.Count);
+        timeFutures.CopyTo(time_array, 0);
         timeFutures.Clear();
-        foreach (var future in timeArray) {
+        foreach (var future in time_array) {
             future.Duration -= deltaTime;
             future.Count--;
             if (future.Duration > TimeSpan.Zero || future.Count > 0) {
@@ -52,7 +52,7 @@ public class ReactFutures<T> : Reaction<T>  where T: ITickEvent {
             }
         }
         
-        ArrayPool<FutureTimePoint<T>>.Shared.Return(timeArray, true);
+        ArrayPool<FutureTimePoint<T>>.Shared.Return(time_array, true);
         
         var condArray = ArrayPool<FutureCondition<T>>.Shared.Rent(condFutures.Count);
         condFutures.CopyTo(condArray, 0);
@@ -99,11 +99,11 @@ public record FutureCondition<T> : ICriticalNotifyCompletion {
     
     public T GetResult() => value ?? throw new NullReferenceException();
     
-    public void Setup(Func<T, bool> cond, int count, CancellationToken cancellationToken) {
+    public void Setup(Func<T, bool> cond, int count, CancellationToken cancellation) {
         IsCompleted = false;
         Condition = cond;
         Count = count;
-        CancellationToken = cancellationToken;
+        CancellationToken = cancellation;
     }
     
     public void Clear() {
@@ -183,11 +183,11 @@ public record FutureTimePoint<T> : ICriticalNotifyCompletion {
     
     public bool IsCompleted { get; private set; }
     
-    public void Setup(TimeSpan duration, int count, CancellationToken cancellationToken) {
+    public void Setup(TimeSpan duration, int count, CancellationToken cancellation) {
         IsCompleted = false;
         Duration = duration;
         Count = count;
-        CancellationToken = cancellationToken;
+        CancellationToken = cancellation;
     }
     
     public void Clear() {

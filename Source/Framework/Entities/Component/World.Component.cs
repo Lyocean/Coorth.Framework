@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Reflection;
+using Coorth.Collections;
 using Coorth.Serialize;
 
 
@@ -148,7 +149,7 @@ public partial class World {
 
         component_group.OnAdd(in entity, component_index);
     }
-
+    
     #endregion
 
     
@@ -252,6 +253,22 @@ public partial class World {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public ref T OfferComponent<T>(scoped in EntityId id, Func<Entity, T> provider) where T : IComponent => ref _OfferComponent(id, provider);
 
+    public ref T SetComponent<T>(scoped in EntityId id, in T component) where T : IComponent {
+        ref var entity_context = ref entities.Get(in id);
+        var component_type = ComponentType<T>.Value;
+        var entity = Cast(in entity_context);
+        var component_group = GetComponentGroup<T>(in component_type);
+        if (entity_context.TryGet(in component_type, out var component_index)) {
+            component_group.Modify(component_index, in component);
+            component_group.OnModify(in entity, component_index);
+            return ref component_group.Get(component_index);
+        }
+        component_index = component_group.Add(entity_context.Index, in entity);
+        Archetype.AddComponent(ref entity_context, in component_type, component_index);
+        component_group.OnAdd(in entity, component_index);
+        return ref component_group.Get(component_index);
+    }
+    
     public int ComponentIndex<T>(scoped in EntityId id) where T : IComponent {
         var component_type = ComponentType<T>.Value;
         ref var entity_context = ref entities.Get(in id);
@@ -333,14 +350,24 @@ public partial class World {
         var archetype = entity_context.Archetype;
         var entity = Cast(in entity_context);
         var entity_span = entity_context.GetSpan();
-        foreach (var (type_id, offset) in archetype.Offset) {
-            var component_group = GetComponentGroup(type_id);
+        // Console.WriteLine($"-----------------: {entity_context.Index}:{entity_context.Version}");
+        // if (entity.Id.Index == 2) {
+        //     var builder = new ValueStringBuilder();
+        //     builder.Append($"local:{entity_context.LocalIndex}， Ar:{archetype}");
+        //     builder.Append("[");
+        //     foreach (var idx in entity_span) {
+        //         builder.Append($"{idx}, ");
+        //     }
+        //     builder.Append("]");
+        //     Console.WriteLine(builder.ToString());
+        // }
+        foreach (var (type, offset) in archetype.Offset) {
+            var component_group = GetComponentGroup(type);
             var component_index = entity_span[offset];
+            // if (type.Type == typeof(HierarchyComponent)) {
+                // Console.WriteLine($"\tIdx:{component_index}");
+            // }
             component_group.OnRemove(in entity, component_index);
-        }
-        foreach (var (type_id, offset) in archetype.Offset) {
-            var component_group = GetComponentGroup(type_id);
-            var component_index = entity_span[offset];
             component_group.Remove(component_index, in entity);
         }
         Archetype.ClearComponents(ref entity_context, rootArchetype);
@@ -353,7 +380,7 @@ public partial class World {
     }
 
     #endregion
-
+    
 
     #region Enbale Component
         

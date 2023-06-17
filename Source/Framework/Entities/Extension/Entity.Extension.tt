@@ -1,0 +1,56 @@
+﻿<#@ template language="C#" #>
+<#@ include file="Common.ttinclude" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+namespace Coorth.Framework; 
+
+public static class EntityExtension {
+<#
+    for (var count = 2; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => "T" + i, ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent, new()", " ");
+        var contracts2 = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+        var arguments = CreateParameters(count, i => $"in T{i} v{i}", ", ");
+
+#>
+    public static Components<<#=templates#>> Add<<#=templates#>>(this Entity entity) <#=contracts#> {
+<#      for (var index = 0; index < count; index++) { #>
+        ref var c<#=index#> = ref entity.Add<T<#=index#>>();
+<#      } #>
+        return new Components<<#=templates#>>(<#=CreateParameters(count, i => $"ref c{i}", ", ")#>);
+    }
+
+    public static Components<<#=templates#>> Add<<#=templates#>>(this Entity entity, <#=arguments#>) <#=contracts2#> {
+<#      for (var index = 0; index < count; index++) { #>
+        ref var c<#=index#> = ref entity.Add(in v<#=index#>);
+<#      } #>
+        return new Components<<#=templates#>>(<#=CreateParameters(count, i => $"ref c{i}", ", ")#>);
+    }
+
+    public static bool Has<<#=templates#>>(this Entity entity) <#=contracts#> {
+<#      for (var index = 0; index < count; index++) { #>
+        var result<#=index#> = entity.Has<T<#=index#>>();
+<#      } #>
+        return <#=CreateParameters(count, i => $"result{i}", " && ")#>;
+    }
+
+    public static Components<<#=templates#>> Get<<#=templates#>>(this Entity entity) <#=contracts#> {
+<#      for (var index = 0; index < count; index++) { #>
+        ref var c<#=index#> = ref entity.Get<T<#=index#>>();
+<#      } #>
+        return new Components<<#=templates#>>(<#=CreateParameters(count, i => $"ref c{i}", ", ")#>);
+    }
+
+    public static bool Remove<<#=templates#>>(this Entity entity) <#=contracts#> {
+<#      for (var index = 0; index < count; index++) { #>
+        var result<#=index#> = entity.Remove<T<#=index#>>();
+<#      } #>
+        return <#=CreateParameters(count, i => $"result{i}", " && ")#>;
+    }
+<#
+    }
+#>
+}
+
+

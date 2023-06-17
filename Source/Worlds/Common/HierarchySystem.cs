@@ -1,4 +1,8 @@
-﻿namespace Coorth.Framework;
+﻿using System;
+using System.Diagnostics;
+using Coorth.Logs;
+
+namespace Coorth.Framework;
 
 [System, Guid("5600578A-FE02-49E4-8ED3-2819BA1BA789")]
 public class HierarchySystem : SystemBase {

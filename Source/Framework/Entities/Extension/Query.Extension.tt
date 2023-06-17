@@ -5,6 +5,23 @@ using Coorth.Tasks;
 
 namespace Coorth.Framework;
 
+public partial class World {
+
+<#
+    for (var count = 1; count <= COMPONENT_COUNT; count++) {
+        var templates = CreateParameters(count, i => $"T{i}", ", ");
+        var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
+#>
+    public Query Query<<#=templates#>>() <#=contracts#> {
+        var matcher = Matcher.All<<#=templates#>>();
+        return Query(matcher);
+    }
+
+<#
+    }
+#>
+}
+
 public partial class Query {
 
 <#

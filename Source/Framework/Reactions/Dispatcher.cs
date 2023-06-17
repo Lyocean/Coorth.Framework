@@ -54,7 +54,7 @@ public sealed partial class Dispatcher : Disposable {
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public void Dispatch<T>(in T e) where T: notnull {
         if (channels.TryGetValue(typeof(T), out var channel)) {
-            foreach (var reaction in CollectionsMarshal.AsSpan<Reaction>(channel.Reactions)) {
+            foreach (var reaction in CollectionsMarshal.AsSpan(channel.Reactions)) {
                 try {
                     ((Reaction<T>)reaction).Execute(in e);
                 }
@@ -71,7 +71,7 @@ public sealed partial class Dispatcher : Disposable {
                 }
             }
         }
-        foreach (var child in CollectionsMarshal.AsSpan<Dispatcher>(children)) {
+        foreach (var child in CollectionsMarshal.AsSpan(children)) {
             child.Dispatch(in e);
         }
     }

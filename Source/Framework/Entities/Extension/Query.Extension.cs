@@ -4,6 +4,60 @@ using Coorth.Tasks;
 
 namespace Coorth.Framework;
 
+public partial class World {
+
+    public Query Query<T0>() where T0 : IComponent {
+        var matcher = Matcher.All<T0>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1>() where T0 : IComponent where T1 : IComponent {
+        var matcher = Matcher.All<T0, T1>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2>() where T0 : IComponent where T1 : IComponent where T2 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4, T5>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4, T5>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4, T5, T6>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent where T6 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4, T5, T6>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4, T5, T6, T7>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent where T6 : IComponent where T7 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4, T5, T6, T7>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4, T5, T6, T7, T8>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent where T6 : IComponent where T7 : IComponent where T8 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4, T5, T6, T7, T8>();
+        return Query(matcher);
+    }
+
+    public Query Query<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>() where T0 : IComponent where T1 : IComponent where T2 : IComponent where T3 : IComponent where T4 : IComponent where T5 : IComponent where T6 : IComponent where T7 : IComponent where T8 : IComponent where T9 : IComponent {
+        var matcher = Matcher.All<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>();
+        return Query(matcher);
+    }
+
+}
+
 public partial class Query {
 
 

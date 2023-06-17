@@ -38,6 +38,22 @@ public class WorldTest {
         Assert.IsNull(world.FindService(typeof(WorldTest)));
         Assert.IsNull(world.FindService<WorldTest>());
     }
+
+    [Test]
+    public void DisposeWorld() {
+        var world = NewWorld();
+
+        world.CreateEntity();
+
+        var archetype = world.CreateArchetype<TestValueComponent0, TestClassComponent1>();
+        var entity = archetype.CreateEntity();
+        archetype.CreateEntity();
+        
+        entity.DestroyDelay();
+        
+        world.Dispose();
+    }
+    
         
     public static World Create() {
         var world = NewWorld();

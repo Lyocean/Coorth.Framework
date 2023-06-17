@@ -46,14 +46,14 @@ public static class LifetimeExtension {
     }
 
     public static void DestroyDelay(this in Entity entity, TimeSpan delay) {
-        entity.Add(new LifetimeComponent(delay));
+        entity.Set(new LifetimeComponent(delay));
     }
         
     public static void DestroyDelay(this in Entity entity, int delayFrame) {
-        entity.Add(new LifetimeComponent(delayFrame));
+        entity.Set(new LifetimeComponent(delayFrame));
     }
         
     public static void DestroyDelay(this in Entity entity, Func<Entity, bool> condition) {
-        entity.Add(new LifetimeComponent(condition));
+        entity.Set(new LifetimeComponent(condition));
     }
 }

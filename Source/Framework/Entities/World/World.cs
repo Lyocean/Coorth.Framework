@@ -86,11 +86,11 @@ public partial class World : Disposable {
             Logger.Error("Dispose can must be call in world main thread.");
             return;
         }
+        ClearSpaces();
+        ClearEntities();
         ClearSystems();
         ClearComponents();
-        ClearEntities();
         ClearQueries();
-        ClearSpaces();
         ClearArchetypes();
 
         lock (locker) {

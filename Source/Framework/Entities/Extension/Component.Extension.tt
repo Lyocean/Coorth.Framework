@@ -9,9 +9,9 @@ namespace Coorth.Framework;
 
 <#
     for (var count = 1; count <= COMPONENT_COUNT; count++) {
-        var template = CreateParameters(count, i => "T" + i, ", ");
+        var templates = CreateParameters(count, i => "T" + i, ", ");
 #>
-public static class ComponentTypes<<#=template#>> {
+public static class ComponentTypes<<#=templates#>> {
     public static readonly int Hash;
     public static readonly ComponentType[] Types;
     static ComponentTypes() {
@@ -33,14 +33,14 @@ public static class ComponentTypes<<#=template#>> {
 #region Components
 <#
     for (var count = 1; count <= COMPONENT_COUNT; count++) {
-        var template = CreateParameters(count, i => "T" + i, ", ");
+        var templates = CreateParameters(count, i => "T" + i, ", ");
         var arguments = CreateParameters(count, i => $"ref T{i} v{i}", ", ");
 #>
 
 #if NET7_0_OR_GREATER
 
 [SkipLocalsInit]
-public readonly ref struct Components<<#=template#>> {
+public readonly ref struct Components<<#=templates#>> {
 
 <#      for (var index = 0; index < count; index++) { #>
     public readonly ref T<#=index#> Value<#=index#>;
@@ -62,7 +62,7 @@ public readonly ref struct Components<<#=template#>> {
 
 #else
 
-public ref struct Components<<#=template#>> {
+public ref struct Components<<#=templates#>> {
 
 <#      for (var index = 0; index < count; index++) { #>
     private readonly Ref<T<#=index#>> value<#=index#>;
@@ -93,14 +93,14 @@ public ref struct Components<<#=template#>> {
 #region EntityComponents
 <#
     for (var count = 1; count <= COMPONENT_COUNT; count++) {
-        var template = CreateParameters(count, i => "T" + i, ", ");
+        var templates = CreateParameters(count, i => "T" + i, ", ");
         var arguments = CreateParameters(count, i => $"ref T{i} v{i}", ", ");
 #>
 
 #if NET7_0_OR_GREATER
 
 [SkipLocalsInit]
-public readonly ref struct EntityComponents<<#=template#>> {
+public readonly ref struct EntityComponents<<#=templates#>> {
     public readonly Entity Entity;
 <#      for (var index = 0; index < count; index++) { #>
     public readonly ref T<#=index#> Value<#=index#>;
@@ -124,7 +124,7 @@ public readonly ref struct EntityComponents<<#=template#>> {
 
 #else
 
-public ref struct EntityComponents<<#=template#>> {
+public ref struct EntityComponents<<#=templates#>> {
     public readonly Entity Entity;
 <#      for (var index = 0; index < count; index++) { #>
     public readonly Ref<T<#=index#>> value<#=index#>;

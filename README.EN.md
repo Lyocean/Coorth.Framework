@@ -92,17 +92,17 @@ entity.Add<RotationComponent>();
 entity.Add<VelocityComponent>();
 
 //create based on prototype
-var archetype = world.CreateArchetype()
+var archetype = world.BuildArchetype()
                     .Add<PositionComponent>()
                     .Add<RotationComponent>()
                     .Add<VelocityComponent>()
-                    .Compile();
+                    .Build();
 
 var entity = archetype.CreateEntity();
 var entities = archetype.CreateEntities(10);
 
 // Destroy the entity
-Dispose()
+entity.Dispose();
 
 //Clone the entity
 var clone = entity.Clone();

@@ -31,7 +31,7 @@ public class Space : Disposable {
 
     private const int CHUNK_SIZE = 4096;
 
-    private int reusing = -1;
+    // private int reusing = -1;
     
     private int count;
     public int Count => count;
@@ -60,28 +60,31 @@ public class Space : Disposable {
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal int AddEntity(int entity_index) {
+        var space_index = count;
         count++;
-        if (reusing > 0) {
-            var space_index = reusing;
-            var chunk_index = space_index / CHUNK_SIZE;
-            var value_index = space_index % CHUNK_SIZE;
-            ref var chunk = ref chunks[chunk_index];
-            reusing = chunk.Entities[value_index];
-            chunk.Entities[value_index] = entity_index;
-            return space_index;
+
+        var chunk_index = space_index / CHUNK_SIZE;
+        var value_index = space_index % CHUNK_SIZE;
+        if (chunk_index >= chunks.Length) {
+            Array.Resize(ref chunks, chunk_index + 1);
+            chunks[chunk_index] = new SpaceChunk(CHUNK_SIZE);
         }
-        else {
-            var space_index = count;
-            var chunk_index = space_index / CHUNK_SIZE;
-            var value_index = space_index % CHUNK_SIZE;
-            if (chunk_index >= chunks.Length) {
-                Array.Resize(ref chunks, chunk_index + 1);
-                chunks[chunk_index] = new SpaceChunk(CHUNK_SIZE);
-            }
-            ref var chunk = ref chunks[chunk_index];
-            chunk.Entities[value_index] = entity_index;
-            return space_index;
-        }
+        ref var chunk = ref chunks[chunk_index];
+        chunk.Entities[value_index] = entity_index;
+        return space_index;
+        
+        // if (reusing >= 0) {
+        //     var space_index = reusing;
+        //     var chunk_index = space_index / CHUNK_SIZE;
+        //     var value_index = space_index % CHUNK_SIZE;
+        //     ref var chunk = ref chunks[chunk_index];
+        //     reusing = chunk.Entities[value_index];
+        //     chunk.Entities[value_index] = entity_index;
+        //     return space_index;
+        // }
+        // else {
+        //
+        // }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -93,13 +96,26 @@ public class Space : Disposable {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal void RemoveEntity(int index) {
-        var chunk_index = index / CHUNK_SIZE;
-        var value_index = index % CHUNK_SIZE;
+    internal void RemoveEntity(int space_index) {
+        var chunk_index = space_index / CHUNK_SIZE;
+        var value_index = space_index % CHUNK_SIZE;
         ref var chunk = ref chunks[chunk_index];
-        chunk.Entities[value_index] = reusing;
-        reusing = index;
+        chunk.Entities[value_index] = 0;
         count--;
+        if (space_index == count) {
+            return;
+        }
+        chunk.Entities[value_index] = Move(count, space_index);
+    }
+
+    private int Move(int space_index, int target_index) {
+        var chunk_index = space_index / CHUNK_SIZE;
+        var value_index = space_index % CHUNK_SIZE;
+        ref var chunk = ref chunks[chunk_index];
+        var entity_index = chunk.Entities[value_index];
+        ref var context = ref World.GetContext(entity_index);
+        context.SpaceIndex = target_index;
+        return entity_index;
     }
 
     public Entity CreateEntity() {
@@ -123,7 +139,7 @@ public class Space : Disposable {
     }
     
     public void ClearEntities() {
-        for (var index = 0; index < count; index++) {
+        for (var index = count - 1; index >= 0; index--) {
             var chunk_index = index / CHUNK_SIZE;
             var value_index = index % CHUNK_SIZE;
             ref var chunk = ref chunks[chunk_index];

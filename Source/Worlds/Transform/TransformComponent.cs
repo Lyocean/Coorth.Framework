@@ -322,8 +322,8 @@ public sealed partial class TransformComponent : IComponent {
         Entity.Modify<TransformComponent>();
     }
 
-    public TransformTRS GetTransform(TransformSpace space) {
-        return space == TransformSpace.Local ? new TransformTRS(in localMatrix) : new TransformTRS(in worldMatrix);
+    public TransformTRS GetTransform(TransformSpace ts) {
+        return ts == TransformSpace.Local ? new TransformTRS(in localMatrix) : new TransformTRS(in worldMatrix);
     }
 
     #endregion
@@ -497,8 +497,8 @@ public sealed partial class TransformComponent : IComponent {
         return (position, rotation);
     }
 
-    public void Modify(Vector3 position, TransformSpace space = TransformSpace.Local, bool silent = false) {
-        if (space == TransformSpace.World && HasParent) {
+    public void Modify(Vector3 position, TransformSpace ts = TransformSpace.Local, bool silent = false) {
+        if (ts == TransformSpace.World && HasParent) {
             LocalToWorld(ref position);
             UpdateWorldMatrix();
             Matrix4x4.Invert(worldMatrix, out var invMatrix);
@@ -510,9 +510,9 @@ public sealed partial class TransformComponent : IComponent {
         MarkFlag(TransformFlags.Position, !silent);
     }
 
-    public void Modify(Vector3 position, Quaternion rotation, TransformSpace space = TransformSpace.Local,
+    public void Modify(Vector3 position, Quaternion rotation, TransformSpace ts = TransformSpace.Local,
         bool silent = false) {
-        if (space == TransformSpace.World && HasParent) {
+        if (ts == TransformSpace.World && HasParent) {
             UpdateWorldMatrix();
             Matrix4x4.Invert(worldMatrix, out var invMatrix);
             position = Vector3.Transform(position, invMatrix);
@@ -526,8 +526,8 @@ public sealed partial class TransformComponent : IComponent {
     }
 
     public void Modify(Vector3 position, Quaternion rotation, Vector3 scaling,
-        TransformSpace space = TransformSpace.Local, bool silent = false) {
-        if (space == TransformSpace.World && HasParent) {
+        TransformSpace ts = TransformSpace.Local, bool silent = false) {
+        if (ts == TransformSpace.World && HasParent) {
             UpdateWorldMatrix();
             Matrix4x4.Invert(worldMatrix, out var invMatrix);
             position = Vector3.Transform(position, invMatrix);

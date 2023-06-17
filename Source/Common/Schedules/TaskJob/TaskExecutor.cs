@@ -28,9 +28,9 @@ public abstract class TaskExecutor {
     
     public abstract void Run<TState>(in TState v, Action<TState> action);
     
-    public abstract void For(int fromInclude, int toExclude, Action<int> action, int batchSize = 0);
+    public abstract void For(int from_include, int to_exclude, Action<int> action, int batch_size = 0);
     
-    public abstract void For<TState>(TState state, int fromInclude, int toExclude, Action<TState, int> action, int batchSize = 0);
+    public abstract void For<TState>(TState state, int from_include, int to_exclude, Action<TState, int> action, int batch_size = 0);
     
     public abstract void For<T>(ReadOnlySequence<T> sequence, Action<T> action);
 
@@ -48,28 +48,28 @@ public abstract class TaskExecutor {
             }, Box<(TState, Action<TState>)>.Create((v, action)));
         }
 
-        public override void For(int fromInclude, int toExclude, Action<int> action, int batchSize = 0) {
-            if (batchSize <= 1) {
-                System.Threading.Tasks.Parallel.For(fromInclude, toExclude, action);
+        public override void For(int from_include, int to_exclude, Action<int> action, int batch_size = 0) {
+            if (batch_size <= 1) {
+                System.Threading.Tasks.Parallel.For(from_include, to_exclude, action);
                 return;
             }
-            var totalSize = toExclude - fromInclude;
-            var batchCount = totalSize / batchSize + (totalSize % batchSize == 0 ? 0 : 1);
+            var totalSize = to_exclude - from_include;
+            var batchCount = totalSize / batch_size + (totalSize % batch_size == 0 ? 0 : 1);
             System.Threading.Tasks.Parallel.For(0, batchCount, batchIndex => {
-                for (var i = 0; i < batchSize; i++) {
-                    var index = batchIndex * batchSize + i;
+                for (var i = 0; i < batch_size; i++) {
+                    var index = batchIndex * batch_size + i;
                     action(index);
                 }
             });
         }
 
-        public override void For<TState>(TState state, int fromInclude, int toExclude, Action<TState, int> action, int batchSize = 0) {
-            batchSize = batchSize <= 1 ? 1 : batchSize;
-            var totalSize = toExclude - fromInclude;
-            var batchCount = totalSize / batchSize + (totalSize % batchSize == 0 ? 0 : 1);
+        public override void For<TState>(TState state, int from_include, int to_exclude, Action<TState, int> action, int batch_size = 0) {
+            batch_size = batch_size <= 1 ? 1 : batch_size;
+            var totalSize = to_exclude - from_include;
+            var batchCount = totalSize / batch_size + (totalSize % batch_size == 0 ? 0 : 1);
             System.Threading.Tasks.Parallel.For(0, batchCount, batchIndex => {
-                for (var i = 0; i < batchSize; i++) {
-                    var index = batchIndex * batchSize + i;
+                for (var i = 0; i < batch_size; i++) {
+                    var index = batchIndex * batch_size + i;
                     action(state, index);
                 }
             });
@@ -77,7 +77,7 @@ public abstract class TaskExecutor {
 
         public override void For<T>(ReadOnlySequence<T> sequence, Action<T> action) {
             foreach (var memory in sequence) {
-                TaskThreadPool.QueueUserWorkItem(o => {
+                ThreadPool.QueueUserWorkItem(o => {
                     using var box = (Box<(ReadOnlyMemory<T>, Action<T>)>)o!;
                     var (m, a) = box.Value;
                     foreach (var item in m.Span) {
@@ -110,15 +110,15 @@ public abstract class TaskExecutor {
         
         public override void Run<TState>(in TState v, Action<TState> action) => action(v);
 
-        public override void For(int fromInclude, int toExclude, Action<int> action, int batchSize = 0) {
-            for (var i = fromInclude; i < toExclude; i++) {
+        public override void For(int from_include, int to_exclude, Action<int> action, int batch_size = 0) {
+            for (var i = from_include; i < to_exclude; i++) {
                 action(i);
             }
         }
 
-        public override void For<TState>(TState state, int fromInclude, int toExclude, Action<TState, int> action,
-            int batchSize = 0) {
-            for (var i = fromInclude; i < toExclude; i++) {
+        public override void For<TState>(TState state, int from_include, int to_exclude, Action<TState, int> action,
+            int batch_size = 0) {
+            for (var i = from_include; i < to_exclude; i++) {
                 action(state, i);
             }
         }

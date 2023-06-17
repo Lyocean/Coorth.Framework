@@ -80,7 +80,7 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public T? Find<T>() where T : IComponent => World.TryGetComponent<T>(Id, out var component) ? component : default;
-
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryGet<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent => World.TryGetComponent(Id, out component);
     
@@ -109,6 +109,12 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public void Modify<T>(Func<World, T, T> action) where T : IComponent => World.ModifyComponent(Id, action);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Set<T>() where T : IComponent, new() => ref World.OfferComponent<T>(Id);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public ref T Set<T>(in T component) where T : IComponent => ref World.SetComponent(in Id, in component);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool Remove<T>() where T : IComponent => World.RemoveComponent<T>(Id);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -116,7 +122,19 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool TryRemove<T>([MaybeNullWhen(false), NotNullWhen(true)] out T component) where T : IComponent {
-        return World.TryRemoveComponent<T>(in Id, out component);
+        return World.TryRemoveComponent(in Id, out component);
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity With<T>()  where T: IComponent, new() {
+        Add<T>();
+        return this;
+    }
+        
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Entity With<T>(in T component) where T: IComponent {
+        Add(in component);
+        return this;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

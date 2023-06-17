@@ -60,9 +60,6 @@ public partial class World {
         }
         return query;
     }
-
-
-    
     
 
 }

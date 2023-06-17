@@ -12,7 +12,7 @@ public class ArchetypeDefinition {
 
     public readonly Dictionary<ComponentType, ArchetypeDefinition> Edges;
 
-    public readonly Dictionary<ComponentType, int> Index = new();
+    public readonly Dictionary<ComponentType, int> Offset = new();
 
     public readonly ComponentMask Mask;
 
@@ -37,7 +37,7 @@ public class ArchetypeDefinition {
         Hash = ComponentRegistry.ComputeHash(types.AsSpan());
         Size = sizeof(int) + ComponentRegistry.ComputeSize(types.AsSpan());
         for (var i = 0; i < types.Length; i++) {
-            Index.Add(types[i], i + 1);
+            Offset.Add(types[i], i + 1);
         }
         definitions.Add(Hash, this);
     }

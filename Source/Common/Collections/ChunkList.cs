@@ -123,12 +123,12 @@ public struct ChunkList<T> {
         Count = 0;
     }
 
-    public Span<T> GetChunkSpan(int chunkIndex) {
-        if (chunkIndex >= ChunkCount) {
+    public Span<T> GetChunkSpan(int chunk_index) {
+        if (chunk_index >= ChunkCount) {
             return Span<T>.Empty;
         }
 
-        ref var chunk = ref chunks[chunkIndex];
+        ref var chunk = ref chunks[chunk_index];
         return chunk.Span;
     }
 }

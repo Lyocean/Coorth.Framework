@@ -12,7 +12,7 @@ internal struct EntityContext {
     public int Index;
 
     public int Version;
-    
+
     /// <summary> Index in archetype </summary>
     public int LocalIndex;
 
@@ -200,7 +200,9 @@ public partial class World {
             if (entity_context.Version <= 0) {
                 continue;
             }
-
+            if (entity_context.Index == singleton.Id.Index && entity_context.Version == singleton.Id.Version) {
+                continue;
+            }
             DestroyEntity(ref entity_context);
         }
     }
@@ -224,10 +226,8 @@ public partial class World {
 
     public void SetFlags(in EntityId id, int flag, bool value) {
         if (flag > EntityFlags.FLAG_MAX_INDEX) {
-            throw new ArgumentOutOfRangeException(nameof(flag),
-                $"[Entity] flag can not larger than: {EntityFlags.FLAG_MAX_INDEX}");
+            throw new ArgumentOutOfRangeException(nameof(flag), $"[Entity] flag can not larger than: {EntityFlags.FLAG_MAX_INDEX}");
         }
-
         ref var entity_context = ref entities.Get(id.Index);
         if (entity_context.Version != id.Version) {
             return;
@@ -258,6 +258,13 @@ public partial class World {
             return;
         }
         Dispatch(new EntityActiveEvent(Cast(in entity_context), active));
+        var entity = Cast(in entity_context);
+        var span = entity_context.GetSpan();
+        foreach (var (type, offset) in entity_context.Archetype.Offset) {
+            var component_group = GetComponentGroup(in type);
+            var component_index = span[offset];
+            component_group.SetActive(component_index, active, in entity);
+        }
     }
 
     public void OnParentActive(in EntityId id, bool active) {
@@ -283,7 +290,7 @@ public partial class World {
         ref var entity_context = ref entities.Create();
 
         entity_context.Archetype = archetype;
-        entity_context.LocalIndex = archetype.AddEntity(entity_context.Index, out var offsets);
+        entity_context.LocalIndex = archetype.AddEntity(entity_context.Index, out var span);
 
         entity_context.Space = space;
         entity_context.SpaceIndex = space.AddEntity(entity_context.Index);
@@ -291,18 +298,17 @@ public partial class World {
         entity_context.Flags = EntityFlags.ENTITY_FLAG_DEFAULT;
 
         var entity = Cast(in entity_context);
-        foreach (var type in archetype.Types) {
+        foreach (var (type, offset) in archetype.Offset) {
             var component_group = GetComponentGroup(in type);
-            component_group.Add(entity_context.Index, in entity);
+            span[offset] = component_group.Add(entity_context.Index, in entity);
         }
 
         Dispatcher.Dispatch(new EntityCreateEvent(entity));
 
-        foreach (var (type_id, component_offset) in archetype.Offset) {
-            var component_group = GetComponentGroup(type_id);
-            component_group.OnAdd(in entity, offsets[component_offset]);
+        foreach (var (type, offset) in archetype.Offset) {
+            var component_group = GetComponentGroup(type);
+            component_group.OnAdd(in entity, span[offset]);
         }
-
         return entity;
     }
 
@@ -452,10 +458,11 @@ public partial class World {
 
         entity_context.Archetype.RemoveEntity(entity_context.LocalIndex, out _);
         entity_context.Archetype = rootArchetype;
-        entity_context.LocalIndex = -1;
 
         entity_context.Space.RemoveEntity(entity_context.SpaceIndex);
         entity_context.Space = default!;
+        
+        entity_context.LocalIndex = -1;
         entity_context.SpaceIndex = -1;
 
         entities.Remove(ref entity_context);
@@ -592,6 +599,7 @@ public partial class World {
     #region Serialize Entity
 
     public void ReadEntity<TReader>(TReader reader) where TReader : ISerializeReader {
+        var id = reader.ReadInt64();
         
     }
     

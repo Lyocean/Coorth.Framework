@@ -246,22 +246,22 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     #region Service
 
-    public object GetService(Type serviceType) {
-        if (modules.TryGetValue(serviceType, out var moduleBase)) {
-            return moduleBase;
+    public object GetService(Type service_type) {
+        if (modules.TryGetValue(service_type, out var module_base)) {
+            return module_base;
         }
-        return Services.Get(serviceType);
+        return Services.Get(service_type);
     }
 
     public T GetService<T>() where T : class {
         return (T)GetService(typeof(T));
     }
     
-    public object? FindService(Type serviceType) {
-        if (modules.TryGetValue(serviceType, out var moduleBase)) {
-            return moduleBase;
+    public object? FindService(Type service_type) {
+        if (modules.TryGetValue(service_type, out var module_base)) {
+            return module_base;
         }
-        return Services.Find(serviceType);
+        return Services.Find(service_type);
     }
     
     public T? FindService<T>() where T : class {

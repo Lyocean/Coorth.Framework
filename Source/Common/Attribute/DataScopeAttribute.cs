@@ -9,8 +9,8 @@ public sealed class DataScopeAttribute : Attribute {
 
     public bool CanFold { get; }
 
-    public DataScopeAttribute(string label, bool canFold = true) {
+    public DataScopeAttribute(string label, bool can_fold = true) {
         Label = label;
-        CanFold = canFold;
+        CanFold = can_fold;
     }
 }

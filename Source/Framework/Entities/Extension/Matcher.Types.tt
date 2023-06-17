@@ -24,6 +24,18 @@ public partial class Matcher {
         return this;
     }
 
+    private struct AllMatcher<<#=templates#>> <#=contracts#> {
+        public static readonly Matcher Instance;
+        
+        static AllMatcher() {
+            Instance = (new Matcher()).WithAll<<#=templates#>>();
+        }
+    }
+    
+    public static Matcher All<<#=templates#>>() <#=contracts#> {
+        return AllMatcher<<#=templates#>>.Instance;
+    }
+    
 <#
     }
 #>

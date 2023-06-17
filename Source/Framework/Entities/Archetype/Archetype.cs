@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Coorth.Collections;
 
 
@@ -53,7 +55,7 @@ public class Archetype {
     
     public IReadOnlyList<ComponentType> Types { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Definition.Types; }
 
-    public IReadOnlyDictionary<ComponentType, int> Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Definition.Index; }
+    public IReadOnlyDictionary<ComponentType, int> Offset { [MethodImpl(MethodImplOptions.AggressiveInlining)] get => Definition.Offset; }
 
     // private readonly List<ComponentGroup> groups = new();
     // public IReadOnlyList<ComponentGroup> Groups => groups;
@@ -143,14 +145,17 @@ public class Archetype {
         GetIndex(entityCount, out var tail_chunk_index, out var tail_value_index);
         ref var tail_chunk = ref chunks[tail_chunk_index];
         var tail_span = chunk.Values.AsSpan(tail_value_index, EntitySize);
-        tail_span.CopyTo(curr_span);
-        tail_chunk.Count--;
-        
-        var entity_index = curr_span[0];
-        entity_span = curr_span;
 
-        ref var entity_context = ref World.GetContext(entity_index);
+        var temp_span = (stackalloc int[EntitySize]);
+        curr_span.CopyTo(temp_span);
+        tail_span.CopyTo(curr_span);
+        temp_span.CopyTo(tail_span);
+        
+        tail_chunk.Count--;
+        ref var entity_context = ref World.GetContext(curr_span[0]);
         entity_context.LocalIndex = local_index;
+
+        entity_span = tail_span;
     }
 
     #endregion
@@ -177,9 +182,25 @@ public class Archetype {
         dst_span[context.Archetype.Offset[type]] = component_index;
     }
 
+    internal static void AddComponents(ref EntityContext context, in ComponentType[] types, Span<int> component_indexes) {
+        var src_archetype = context.Archetype;
+        src_archetype.RemoveEntity(context.LocalIndex, out var src_span);
+        for (var i = 0; i < types.Length; i++) {
+            context.Archetype = context.Archetype.NextArchetype(in types[i]);
+        }
+        context.LocalIndex = context.Archetype.AddEntity(src_span[0], out var dst_span);
+        foreach (var (src_type, src_offset) in src_archetype.Offset) {
+            var dst_offset = context.Archetype.Offset[src_type];
+            dst_span[dst_offset] = src_span[src_offset];
+        }
+        for (var i = 0; i < types.Length; i++) {
+            dst_span[context.Archetype.Offset[types[i]]] = component_indexes[i];
+        }
+    }
+
     public bool HasComponent<T>() {
         var type = ComponentType<T>.Value;
-        return Definition.Index.ContainsKey(type);
+        return Definition.Offset.ContainsKey(type);
     }
     
     internal static void RemoveComponent(ref EntityContext context, in ComponentType type) {
@@ -191,6 +212,22 @@ public class Archetype {
 
         foreach (var (src_type, src_offset) in src_archetype.Offset) {
             if(src_type == type) {
+                continue;
+            }
+            var dst_offset = context.Archetype.Offset[src_type];
+            dst_span[dst_offset] = src_span[src_offset];
+        }
+    }
+
+    internal static void RemoveComponents(ref EntityContext context, in ComponentType[] types) {
+        var src_archetype = context.Archetype;
+        for (var i = 0; i < types.Length; i++) {
+            context.Archetype = context.Archetype.NextArchetype(in types[i]);
+        }
+        src_archetype.RemoveEntity(context.LocalIndex, out var src_span);
+        context.LocalIndex = context.Archetype.AddEntity(src_span[0], out var dst_span);
+        foreach (var (src_type, src_offset) in src_archetype.Offset) {
+            if(types.Contains(src_type)) {
                 continue;
             }
             var dst_offset = context.Archetype.Offset[src_type];

@@ -14,7 +14,7 @@ public readonly struct ComponentCollection<T> where T: IComponent {
     public void ForEach(ActionR1<T> action) {
         for (var i = 0; i < group.ChunkCount; i++) {
             ref var chunk = ref group.GetChunk(i);
-            for (var j = chunk.Enable; j < group.ChunkSize; j++) {
+            for (var j = chunk.Enable; j < chunk.Count; j++) {
                 ref var value = ref chunk.Value[j];
                 if (!EntityFlags.IsComponentEnable(chunk.Flags[j])) {
                     continue;
@@ -27,7 +27,7 @@ public readonly struct ComponentCollection<T> where T: IComponent {
     public void ForEach(ActionI1<T> action) {
         for (var i = 0; i < group.ChunkCount; i++) {
             ref var chunk = ref group.GetChunk(i);
-            for (var j = chunk.Enable; j < group.ChunkSize; j++) {
+            for (var j = chunk.Enable; j < chunk.Count; j++) {
                 ref var value = ref chunk.Value[j];
                 if (!EntityFlags.IsComponentEnable(chunk.Flags[j])) {
                     continue;
@@ -40,7 +40,7 @@ public readonly struct ComponentCollection<T> where T: IComponent {
     public void ForEach<TState>(in TState state, ActionI1R1<TState, T> action) {
         for (var i = 0; i < group.ChunkCount; i++) {
             ref var chunk = ref group.GetChunk(i);
-            for (var j = chunk.Enable; j < group.ChunkSize; j++) {
+            for (var j = chunk.Enable; j < chunk.Count; j++) {
                 ref var value = ref chunk.Value[j];
                 if (!EntityFlags.IsComponentEnable(chunk.Flags[j])) {
                     continue;
@@ -54,7 +54,7 @@ public readonly struct ComponentCollection<T> where T: IComponent {
         var world = group.World;
         for (var i = 0; i < group.ChunkCount; i++) {
             ref var chunk = ref group.GetChunk(i);
-            for (var j = chunk.Enable; j < group.ChunkSize; j++) {
+            for (var j = chunk.Enable; j < chunk.Count; j++) {
                 ref var value = ref chunk.Value[j];
                 if (!EntityFlags.IsComponentEnable(chunk.Flags[j])) {
                     continue;
@@ -69,7 +69,7 @@ public readonly struct ComponentCollection<T> where T: IComponent {
         var world = group.World;
         for (var i = 0; i < group.ChunkCount; i++) {
             ref var chunk = ref group.GetChunk(i);
-            for (var j = chunk.Enable; j < group.ChunkSize; j++) {
+            for (var j = chunk.Enable; j < chunk.Count; j++) {
                 ref var value = ref chunk.Value[j];
                 if (!EntityFlags.IsComponentEnable(chunk.Flags[j])) {
                     continue;
