@@ -4,9 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Diagnostics;
 using System.Reflection;
-using Coorth.Collections;
 using Coorth.Serialize;
-
 
 namespace Coorth.Framework; 
 
@@ -263,7 +261,7 @@ public partial class World {
             component_group.OnModify(in entity, component_index);
             return ref component_group.Get(component_index);
         }
-        component_index = component_group.Add(entity_context.Index, in entity);
+        component_index = component_group.Add(entity_context.Index, in entity, in component);
         Archetype.AddComponent(ref entity_context, in component_type, component_index);
         component_group.OnAdd(in entity, component_index);
         return ref component_group.Get(component_index);
@@ -350,23 +348,9 @@ public partial class World {
         var archetype = entity_context.Archetype;
         var entity = Cast(in entity_context);
         var entity_span = entity_context.GetSpan();
-        // Console.WriteLine($"-----------------: {entity_context.Index}:{entity_context.Version}");
-        // if (entity.Id.Index == 2) {
-        //     var builder = new ValueStringBuilder();
-        //     builder.Append($"local:{entity_context.LocalIndex}， Ar:{archetype}");
-        //     builder.Append("[");
-        //     foreach (var idx in entity_span) {
-        //         builder.Append($"{idx}, ");
-        //     }
-        //     builder.Append("]");
-        //     Console.WriteLine(builder.ToString());
-        // }
         foreach (var (type, offset) in archetype.Offset) {
             var component_group = GetComponentGroup(type);
             var component_index = entity_span[offset];
-            // if (type.Type == typeof(HierarchyComponent)) {
-                // Console.WriteLine($"\tIdx:{component_index}");
-            // }
             component_group.OnRemove(in entity, component_index);
             component_group.Remove(component_index, in entity);
         }

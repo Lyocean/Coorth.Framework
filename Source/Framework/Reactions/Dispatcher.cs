@@ -29,15 +29,19 @@ public sealed partial class Dispatcher : Disposable {
         return child;
     }
 
-    protected override void OnDispose() {
+    private void OnRemove() {
         foreach (var child in children) {
-            child.Dispose();
+            child.OnRemove();
         }
         children.Clear();
         foreach (var (_, channel) in channels) {
-            channel.Dispose();
+            channel.OnRemove();
         }
         channels.Clear();
+    }
+    
+    protected override void OnDispose() {
+        OnRemove();
         parent?.children.Remove(this);
     }
 
@@ -175,10 +179,15 @@ public sealed class ReactChannel : IReactionContainer, IDisposable {
         Reactions.RemoveAll(_ => _.Id == id);
     }
 
-    public void Dispose() {
+    public void OnRemove() {
         foreach (var reaction in Reactions) {
-            reaction.Dispose();
+            reaction.OnRemove();
         }
+        Reactions.Clear();
+    }
+
+    public void Dispose() {
+        OnRemove();
     }
 }
 

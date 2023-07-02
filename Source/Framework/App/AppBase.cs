@@ -60,7 +60,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     
     protected ILogger Logger { get; }
 
-    public Action? OnTicking;
+    public Action<TimeSpan>? OnTicking;
     
     #endregion
     
@@ -154,7 +154,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     protected virtual void OnStartup() { }
 
-    public virtual void OnTickLoop() { }
+    public virtual void OnTickLoop(TimeSpan delta_time) { }
 
     public void Run() {
         if (IsDisposed) {
@@ -222,6 +222,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         isRunning = false;
         OnDestroy();
         foreach (var key in modules.Keys.ToArray()) {
+            Logger.Debug($"Remove module: {key}");
             RemoveModule(key);
         }
         SyncContext.Cancel();
@@ -336,7 +337,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         module.ClearChildren();
         modules.Remove(key);
         Domain.RemoveActor(module.Node.Ref);
-        // module.Dispose();
+        module.Dispose();
         return true;
     }
     

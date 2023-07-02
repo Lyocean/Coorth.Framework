@@ -46,9 +46,21 @@ public class ArchetypeDefinition {
         if (Edges.TryGetValue(type, out var definition)) {
             return definition;
         }
-        definition = new ArchetypeDefinition(ComponentRegistry.Combine(Types, type));
-        Edges[type] = definition;
-        definition.Edges[type] = this;
-        return definition;
+
+        if (Offset.ContainsKey(type)) {
+            //Edge Remove
+            definition = new ArchetypeDefinition(ComponentRegistry.Subtract(Types, type));
+            Edges[type] = definition;
+            definition.Edges[type] = this;
+            return definition;
+        }
+        else {
+            //Edge Add
+            definition = new ArchetypeDefinition(ComponentRegistry.Combine(Types, type));
+            Edges[type] = definition;
+            definition.Edges[type] = this;
+            return definition;
+        }
+        
     }
 }

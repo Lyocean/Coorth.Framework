@@ -24,7 +24,13 @@ public partial class World {
     }
 
     private void ClearSpaces() {
+        var index = 0;
+        var values = new Space[spaces.Count];
         foreach (var (_, space) in spaces) {
+            values[index] = space;
+            index++;
+        }
+        foreach (var space in values) {
             space.Dispose();
         }
         spaces.Clear();

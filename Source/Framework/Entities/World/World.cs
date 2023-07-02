@@ -82,13 +82,14 @@ public partial class World : Disposable {
     }
 
     protected override void OnDispose() {
+        // Logger.Error("World OnDispose");
         if (!SyncContext.IsMain) {
             Logger.Error("Dispose can must be call in world main thread.");
             return;
         }
+        ClearSystems();
         ClearSpaces();
         ClearEntities();
-        ClearSystems();
         ClearComponents();
         ClearQueries();
         ClearArchetypes();

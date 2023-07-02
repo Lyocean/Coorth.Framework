@@ -41,6 +41,8 @@ public abstract partial class SystemBase : ServiceNode<SystemBase> {
         return binding;
     }
 
+    protected T GetService<T>() where T : class => World.GetService<T>();
+    
     #endregion
 
     

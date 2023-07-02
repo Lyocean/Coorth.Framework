@@ -145,6 +145,9 @@ public sealed class ComponentGroup<T> : ComponentGroup where T : IComponent {
     #region Add
 
     private ref T _Add(int entity_index, out int component_index) {
+        if (this.Type.Type.Name.Contains("Draw")) {
+            Console.WriteLine("Add draw");
+        }
         count++;
         int chunk_index, value_index;
         ref var chunk = ref Unsafe.NullRef<ComponentChunk<T>>();

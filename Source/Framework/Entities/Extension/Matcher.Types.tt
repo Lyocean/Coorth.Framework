@@ -10,18 +10,15 @@ public partial class Matcher {
         var contracts = CreateParameters(count, i => $"where T{i} : IComponent", " ");
 #>
     public Matcher WithAll<<#=templates#>>() <#=contracts#> {
-        allTypes = ComponentTypes<<#=templates#>>.Types;
-        return this;
+        return WithAll(ComponentTypes<<#=templates#>>.Types);
     }
     
     public Matcher WithNot<<#=templates#>>() <#=contracts#> {
-        notTypes = ComponentTypes<<#=templates#>>.Types;
-        return this;
+        return WithNot(ComponentTypes<<#=templates#>>.Types);
     }
 
     public Matcher WithAny<<#=templates#>>() <#=contracts#> {
-        anyTypes = ComponentTypes<<#=templates#>>.Types;
-        return this;
+        return WithAny(ComponentTypes<<#=templates#>>.Types);
     }
 
     private struct AllMatcher<<#=templates#>> <#=contracts#> {

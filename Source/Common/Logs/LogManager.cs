@@ -1,6 +1,7 @@
 ﻿using Coorth.Framework;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Coorth.Logs; 
 
@@ -12,6 +13,8 @@ public interface ILogManager {
     ILogger? Find(string name);
     
     ILogger Offer(string name);
+
+    void Remove(string name);
 }
 
 [Manager]
@@ -32,7 +35,15 @@ public class LogManager : Manager, ILogManager {
         return logger;
     }
 
-    public ILogger? Find(string name) => loggers.TryGetValue(name, out var logger) ? logger : null;
+    public ILogger? Find(string name) {
+        return loggers.TryGetValue(name, out var logger) ? logger : null;
+    }
 
-    public ILogger Offer(string name) => loggers.TryGetValue(name, out var logger) ? logger : Create(name);
+    public ILogger Offer(string name) {
+        return loggers.TryGetValue(name, out var logger) ? logger : Create(name);
+    }
+
+    public void Remove(string name) {
+        loggers.Remove(name);
+    }
 }

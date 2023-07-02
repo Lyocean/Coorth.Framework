@@ -48,9 +48,16 @@ public class Space : Disposable {
     }
     
     protected override void OnDispose() {
+        var index = 0;
+        var values = new Space[children.Count];
         foreach (var (_, space) in children) {
+            values[index] = space;
+            index++;
+        }
+        foreach (var space in values) {
             space.Dispose();
         }
+        
         children.Clear();
         ClearEntities();
         Parent?.children.Remove(Id);

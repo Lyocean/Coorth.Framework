@@ -4,7 +4,6 @@ using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using Coorth.Serialize;
 
-
 namespace Coorth.Framework; 
 
 internal struct EntityContext {

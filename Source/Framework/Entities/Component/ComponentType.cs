@@ -131,7 +131,20 @@ public static class ComponentRegistry {
         return result;
     }
 
-    
+    public static ComponentType[] Subtract(ComponentType[] source, ComponentType type) {
+        var result = new ComponentType[source.Length - 1];
+        var index = 0;
+        for (var i = 0; i < source.Length; i++) {
+            if (source[i].Id == type.Id) {
+                continue;
+            }
+            result[index] = source[i];
+            index++;
+        }
+        return result;
+    }
+
+
     public static int ComputeSize(Span<ComponentType> span) {
         var size = 0;
         for (var i = 0; i < span.Length; i++) {

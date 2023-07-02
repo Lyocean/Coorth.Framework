@@ -43,7 +43,7 @@ public class TickingTask : ITickingContext {
 
     private TimeSpan startTime;
 
-    public event Action? OnTicking;
+    public event Action<TimeSpan>? OnTicking;
 
     public event Action? OnComplete;
     
@@ -94,7 +94,7 @@ public class TickingTask : ITickingContext {
         dispatcher.Dispatch(new DrawUpdateEvent(ticking_task, TickTotalTime, delta_tick_time, TotalTickFrameCount));
         dispatcher.Dispatch(new DrawFinishEvent(ticking_task, TickTotalTime, delta_tick_time, TotalTickFrameCount));
 
-        OnTicking?.Invoke();
+        OnTicking?.Invoke(delta_tick_time);
         schedule.Execute();
         
         TotalTickFrameCount++;
@@ -104,13 +104,13 @@ public class TickingTask : ITickingContext {
         return remaining_time;
     }
     
-    public void RunLoop(TaskSyncContext syncContext, Dispatcher dispatcher) {
+    public void RunLoop(TaskSyncContext sync_context, Dispatcher dispatcher) {
         startTime = GetCurrentTime();
         var last_time = startTime;
         using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));
-        var cancellation = syncContext.Cancellation;
+        var cancellation = sync_context.Cancellation;
         while (!cancellation.IsCancellationRequested) {
-            var remaining_time = TickLoop(ref last_time, syncContext, dispatcher);
+            var remaining_time = TickLoop(ref last_time, sync_context, dispatcher);
             if (remaining_time <= TimeSpan.Zero) {
                 continue;
             }

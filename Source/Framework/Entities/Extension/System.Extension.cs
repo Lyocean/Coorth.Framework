@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Runtime.CompilerServices;
+using Coorth.Logs;
 
 namespace Coorth.Framework;
 

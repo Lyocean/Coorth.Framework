@@ -16,6 +16,10 @@ public abstract class Reaction : IDisposable {
     protected Reaction(IReactionContainer container) {
         Container = container;
     }
+
+    public void OnRemove() {
+        
+    }
     
     public void Dispose() {
         Container.Remove(Id);
