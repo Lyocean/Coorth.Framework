@@ -147,13 +147,7 @@ public readonly record struct Entity(World World, EntityId Id) : IDisposable {
     public Entity CloneEntity() => World.CloneEntity(in Id);
 
     public override string ToString() {
-        var builder = new ValueStringBuilder(512);
-        builder.Append("Entity=( ");
-        Id.ToString(ref builder);
-        builder.Append(" )");
-        var result = builder.ToString();
-        builder.Dispose();
-        return result;
+        return $"[Entity]{{ Id:{Id.Index}-{Id.Version}, Count: {Count} }}";
     }
 }
 
@@ -176,15 +170,15 @@ public readonly record struct EntityId(int Index, int Version) {
 
     public static explicit operator EntityId(long uid) => new(uid);
 
-    public override string ToString() => $"(Index:{Index}, Version:{Version})";
+    public override string ToString() => $"{{Index:{Index}, Version:{Version}}})";
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ToString(ref ValueStringBuilder builder) {
-        builder.Append("Id=(Index:");
+        builder.Append("{Index:");
         builder.Append(Index);
         builder.Append(", Version:");
         builder.Append(Version);
-        builder.Append(")");
+        builder.Append("}");
     }
 
     public override int GetHashCode() => Index;

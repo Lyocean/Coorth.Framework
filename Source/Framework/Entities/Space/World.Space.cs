@@ -19,7 +19,7 @@ public partial class World {
     public Space MainSpace => mainSpace;
 
     private void SetupSpaces(out Space root, out Space main) {
-        root = CreateSpace("Space:Default");
+        root = CreateSpace("Space:Root");
         main = root;
     }
 
@@ -43,7 +43,7 @@ public partial class World {
 
     public Space CreateSpace(string? name = null) {
         var id = Guid.NewGuid();
-        name ??= $"Scene:{id.ToString()}";
+        name ??= $"Space:{id.ToString()}";
         var index = spaceIndex.TryPop(out var value) ? value : spaces.Count;
         var space = new Space(this, id, index, name);
         spaces.Add(id, space);
@@ -61,7 +61,16 @@ public partial class World {
     public bool HasSpace(Guid id) {
         return spaces.ContainsKey(id);
     }
-    
+
+    public bool HasSpace(string name) {
+        foreach (var (id, space) in spaces) {
+            if (space.Name == name) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public bool HasSpace(Space space) {
         return spaces.ContainsKey(space.Id);
     }

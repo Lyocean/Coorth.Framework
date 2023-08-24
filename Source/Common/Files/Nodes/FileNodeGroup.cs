@@ -18,7 +18,7 @@ public class FileNodeGroup : FileNode {
     private bool ResolveNode(ref string path, [NotNullWhen(true)]out FileNode? node) {
         for (var i = path.Length -1; i >= 0; i--) {
             var ch = path[i];
-            if (ch != '/') {
+            if (ch != Path.DirectorySeparatorChar && ch != Path.AltDirectorySeparatorChar) {
                 continue;
             }
             var dir = path.Substring(0, i);
@@ -26,6 +26,10 @@ public class FileNodeGroup : FileNode {
                 path = path.Substring(i);
                 return true;
             }
+        }
+        if (nodes.TryGetValue("", out var value)) {
+            node = value;
+            return true;
         }
         node = null;
         return false;

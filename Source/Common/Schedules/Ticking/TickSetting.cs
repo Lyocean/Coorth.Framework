@@ -13,7 +13,7 @@ public sealed partial class TickSetting {
     public float StepFrameRate { get; set; } = 60f;
 
     [DataMember(3)]
-    public float TickFrameRate { get; set; } = -1f;//60f;
+    public float TickFrameRate { get; set; } = 60f;
 
     [DataMember(4)]
     public float TimeScale { get; set; } = 1f;

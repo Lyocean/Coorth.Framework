@@ -442,7 +442,7 @@ public partial class World {
     }
 
     public EntityCollection GetEntities() {
-        return new EntityCollection(this, this.archetypes.Values, 0);
+        return new EntityCollection(this, archetypes, 0);
     }
 
     #endregion

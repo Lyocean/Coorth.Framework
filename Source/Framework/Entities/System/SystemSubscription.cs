@@ -130,14 +130,18 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     public void ForEach<T>(ActionI1<T> action) where T : IComponent {
         OnEvent((in TEvent _) => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((ref T component) => action(in component));
+            collection.ForEach(in action, static (in ActionI1<T> action, ref T component) => {
+                action(in component);
+            });
         });
     }
     
     public void ForEach<T>(Action<T> action) where T : IComponent {
         OnEvent((in TEvent _) => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((ref T component) => action(component));
+            collection.ForEach(in action, static (in Action<T> action, ref T component) => {
+                action(component);
+            });
         });
     }
     
@@ -151,21 +155,28 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     public void ForEach<T>(ActionI2<Entity, T> action) where T : IComponent {
         OnEvent((in TEvent _) => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((in Entity entity, ref T component) => action(in entity, in component));
+            collection.ForEach(in action, static (in ActionI2<Entity, T> action, in Entity entity, ref T component) => {
+                action(in entity, in component);
+            });
         });
     }
 
     public void ForEach<T>(Action<Entity, T> action) where T : IComponent {
         OnEvent((in TEvent _) => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((in Entity entity, ref T component) => action(entity, component));
+            collection.ForEach(in action, static (in Action<Entity, T> action, in Entity entity, ref T component) => {
+                action(entity, component);
+            });
         });
     }
 
     public void ForEach<T>(ActionI2<TEvent, T> action) where T : IComponent {
         OnEvent(e => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((ref T component) => action(in e, in component));
+            var state = (e, action);
+            collection.ForEach(in state, static (in (TEvent, ActionI2<TEvent, T>) state,ref T component) => {
+                state.Item2(in state.Item1, in component);
+            });
         });
     }
     
@@ -179,7 +190,10 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     public void ForEach<T>(Action<TEvent, T> action) where T : IComponent {
         OnEvent(e => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((ref T component) => action(e, component));
+            var state = (e, action);
+            collection.ForEach(in state, static (in (TEvent, Action<TEvent, T>) state, ref T component) => {
+                state.Item2(state.Item1, component);
+            });
         });
     }
     
@@ -193,14 +207,20 @@ public sealed partial class SystemSubscription<TEvent> : Disposable, ISystemSubs
     public void ForEach<T>(ActionI3<TEvent, Entity, T> action) where T : IComponent {
         OnEvent(e => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((in Entity entity, ref T component) => action(in e, in entity, in component));
+            var state = (e, action);
+            collection.ForEach(in state, static (in (TEvent, ActionI3<TEvent, Entity, T>) state, in Entity entity, ref T component) => {
+                state.Item2(in state.Item1, in entity, in component);
+            });
         });
     }
 
     public void ForEach<T>(Action<TEvent, Entity, T> action) where T : IComponent {
         OnEvent(e => {
             var collection = World.GetComponents<T>();
-            collection.ForEach((in Entity entity, ref T component) => action(e, entity, component));
+            var state = (e, action);
+            collection.ForEach(in state, static (in (TEvent, Action<TEvent, Entity, T>) state, in Entity entity, ref T component) => {
+                state.Item2(state.Item1, entity, component);
+            });
         });
     }
 }

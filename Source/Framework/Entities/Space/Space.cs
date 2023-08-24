@@ -5,8 +5,9 @@ using System.Runtime.CompilerServices;
 namespace Coorth.Framework;
 
 internal struct SpaceChunk {
+    
     public readonly int[] Entities;
-
+    
     public SpaceChunk(int capacity) {
         Entities = new int[capacity];
     }
@@ -31,8 +32,6 @@ public class Space : Disposable {
 
     private const int CHUNK_SIZE = 4096;
 
-    // private int reusing = -1;
-    
     private int count;
     public int Count => count;
 
@@ -79,19 +78,6 @@ public class Space : Disposable {
         ref var chunk = ref chunks[chunk_index];
         chunk.Entities[value_index] = entity_index;
         return space_index;
-        
-        // if (reusing >= 0) {
-        //     var space_index = reusing;
-        //     var chunk_index = space_index / CHUNK_SIZE;
-        //     var value_index = space_index % CHUNK_SIZE;
-        //     ref var chunk = ref chunks[chunk_index];
-        //     reusing = chunk.Entities[value_index];
-        //     chunk.Entities[value_index] = entity_index;
-        //     return space_index;
-        // }
-        // else {
-        //
-        // }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -125,6 +111,13 @@ public class Space : Disposable {
         return entity_index;
     }
 
+    public Space CreateSpace(string name) {
+        var space = World.CreateSpace(name);
+        space.Parent = this;
+        children.Add(space.Id, space);
+        return space;
+    }
+    
     public Entity CreateEntity() {
         return World.CreateEntity(World.RootArchetype, this);
     }

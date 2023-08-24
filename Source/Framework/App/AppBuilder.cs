@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Coorth.Framework;
 using Coorth.Logs;
 
-namespace Coorth.Framework;
+namespace Coorth;
 
 public class AppBuilder {
 
@@ -50,7 +51,18 @@ public class AppBuilder {
         return this;
     }
     
+    public AppBuilder WithLog(ILogger value) {
+        logger = value;
+        return this;
+    }
+    
     public AppBuilder WithLog(Func<string, ILogger> provider) {
+        LoggerProvider = provider;
+        return this;
+    }
+    
+    public AppBuilder WithLog(ILogger value, Func<string, ILogger> provider) {
+        logger = value;
         LoggerProvider = provider;
         return this;
     }

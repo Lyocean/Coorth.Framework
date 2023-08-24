@@ -32,6 +32,10 @@ public class Archetype {
 
     #region Common
 
+    private static int currentId;
+
+    public int Id { get; private set; }
+
     public readonly int ChunkCapacity;
 
     public readonly World World;
@@ -69,6 +73,7 @@ public class Archetype {
     public Archetype? Next = null;
     
     internal Archetype(World world, ArchetypeDefinition definition, int chunk_size) {
+        Id = currentId++;
         World = world;
         Definition = definition;
         EntitySize = definition.Types.Length + 1;

@@ -38,7 +38,7 @@ public partial class Query {
 <#      for (var i = 0; i < count; i++) {   #>
         var group<#=i#> = World.GetComponentGroup<T<#=i#>>();
 <#      } #>
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
 <#      for (var i = 0; i < count; i++) {   #>
             var offset<#=i#> = archetype.Offset[group<#=i#>.Type];
 <#      } #>
@@ -64,7 +64,7 @@ public partial class Query {
 <#      for (var i = 0; i < count; i++) {   #>
         var group<#=i#> = World.GetComponentGroup<T<#=i#>>();
 <#      } #>
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
 <#      for (var i = 0; i < count; i++) {   #>
             var offset<#=i#> = archetype.Offset[group<#=i#>.Type];
 <#      } #>

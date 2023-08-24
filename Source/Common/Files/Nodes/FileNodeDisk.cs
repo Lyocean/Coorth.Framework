@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Coorth.Logs;
 
 
 namespace Coorth.Files; 
 
 public class FileNodeDisk : FileNode {
-       
+        
     public string BasePath { get; private set; } = string.Empty;
 
     public FileNodeDisk() {
@@ -26,7 +25,12 @@ public class FileNodeDisk : FileNode {
         }
     }
 
-    public string ToFullPath(string path) => Path.GetFullPath(path.TrimStart('/'), BasePath);
+    public string ToFullPath(string path) {
+        if (string.IsNullOrEmpty(BasePath)) {
+            return path;
+        }
+        return Path.GetFullPath(path.TrimStart('/'), BasePath);
+    }
 
     public override bool DirectoryExists(string path) {
         path = ToFullPath(path);

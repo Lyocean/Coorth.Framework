@@ -57,6 +57,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     public bool IsRunning => isRunning && !IsDisposed;
 
     protected bool isLoaded;
+    public bool IsLoaded => isLoaded;
     
     protected ILogger Logger { get; }
 
@@ -114,7 +115,10 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     public AppBase Load() {
         isLoaded = false;
         Logger.Trace(nameof(Load));
-        OnLoad().ContinueWith(_=>isLoaded = true).Forget();
+        
+        var task1 = OnLoad();
+        var task2 = Dispatcher.DispatchAsync(new AppLoadEvent(this)).AsTask();
+        Task.WhenAll(task1, task2).ContinueWith(_=>isLoaded = true).Forget();
         while (!isLoaded) {
             Thread.Yield();
             SyncContext.Execute();
@@ -141,7 +145,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     }
 
     public void Start() {
-        if (IsRunning) {
+        if (isRunning) {
             return;
         }
         Logger.Trace(nameof(Start));
@@ -156,6 +160,13 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     public virtual void OnTickLoop(TimeSpan delta_time) { }
 
+    public void Open() {
+        Setup();
+        Load();
+        Init();
+        Start();
+    }
+    
     public void Run() {
         if (IsDisposed) {
             Logger.Error("Game has been disposed.");
@@ -163,17 +174,14 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         }
         
         try {
-            Setup();
-            Load();
-            Init();
-            Start();
+            Open();
         }
         catch (Exception e) {
             Logger.Exception(LogLevel.Debug, e);
         }
         var setting = new TickSetting();
         
-        var platform = Services.Get<IPlatformManager>();
+        var platform = Services.Find<IPlatformManager>() ?? new PlatformManager();
         var ticking = new TickingTask(platform, setting);
         ticking.OnTicking += OnTickLoop;
         ticking.OnTicking += OnTicking;
@@ -195,7 +203,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     public void RunInThread() {
         new Thread(Run).Start();
-        while (!IsRunning) {
+        while (!isRunning) {
             Thread.Sleep(0);
         }
     }
@@ -211,7 +219,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     protected virtual void OnExecute<T>(in T e) { }
 
     public void Close() {
-        if (!IsRunning) {
+        if (!isRunning) {
             return;
         }
         Logger.Trace(nameof(Close));
@@ -267,6 +275,10 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     
     public T? FindService<T>() where T : class {
         return GetService(typeof(T)) as T;
+    }
+
+    public T AddManager<T>(T manager) where T: class {
+        return Services.AddService<T>(manager);
     }
 
     #endregion
@@ -371,6 +383,12 @@ public static class Applications {
             apps.Remove(app.Key);
         }
     }
+
+    public static AppBase? Find(AppKey key) {
+        lock (locker) {
+            return apps.TryGetValue(key, out var app) ? app : null;
+        }
+    } 
 }
 
 public readonly record struct AppKey(Guid Guid) {

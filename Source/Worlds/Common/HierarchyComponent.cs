@@ -13,6 +13,7 @@ public partial struct HierarchyComponent : IComponent {
     private int head, tail;
     private int prev, next;
     private int count;
+    
     [DataMember]
     private uint flags;
 

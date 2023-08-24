@@ -7,8 +7,8 @@ namespace Coorth.Framework;
 public readonly struct ComponentCollection<T> where T: IComponent {
     private readonly ComponentGroup<T> group;
     
-    internal ComponentCollection(ComponentGroup<T> g) {
-        group = g;
+    internal ComponentCollection(World world) {
+        group = world.GetComponentGroup<T>();
     }
     
     public void ForEach(ActionR1<T> action) {

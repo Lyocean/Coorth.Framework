@@ -66,7 +66,7 @@ public partial class Query {
     public void ForEach<TState, T0>(in TState state, ActionI2R1<TState, Entity, T0> action, uint filter = EntityFlags.ENTITY_ACTIVE_MASK) where T0 : IComponent {
         var world = World;
         var group0 = World.GetComponentGroup<T0>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             for (var i = 0; i < archetype.ChunkCount; i++) {
                 ref var chunk = ref archetype.GetChunk(i);
@@ -86,7 +86,7 @@ public partial class Query {
 
     public void ForEach<TState, T0>(in TState state, TaskExecutor executor, ActionI2R1<TState, Entity, T0> action, uint filter = EntityFlags.ENTITY_ACTIVE_MASK) where T0 : IComponent {
         var group0 = World.GetComponentGroup<T0>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             for (var i = 0; i < archetype.ChunkCount; i++) {
                 var job = new QueryJob<TState, T0>() {
@@ -113,7 +113,7 @@ public partial class Query {
         var world = World;
         var group0 = World.GetComponentGroup<T0>();
         var group1 = World.GetComponentGroup<T1>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             for (var i = 0; i < archetype.ChunkCount; i++) {
@@ -136,7 +136,7 @@ public partial class Query {
     public void ForEach<TState, T0, T1>(in TState state, TaskExecutor executor, ActionI2R2<TState, Entity, T0, T1> action, uint filter = EntityFlags.ENTITY_ACTIVE_MASK) where T0 : IComponent where T1 : IComponent {
         var group0 = World.GetComponentGroup<T0>();
         var group1 = World.GetComponentGroup<T1>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             for (var i = 0; i < archetype.ChunkCount; i++) {
@@ -167,7 +167,7 @@ public partial class Query {
         var group0 = World.GetComponentGroup<T0>();
         var group1 = World.GetComponentGroup<T1>();
         var group2 = World.GetComponentGroup<T2>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -193,7 +193,7 @@ public partial class Query {
         var group0 = World.GetComponentGroup<T0>();
         var group1 = World.GetComponentGroup<T1>();
         var group2 = World.GetComponentGroup<T2>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -228,7 +228,7 @@ public partial class Query {
         var group1 = World.GetComponentGroup<T1>();
         var group2 = World.GetComponentGroup<T2>();
         var group3 = World.GetComponentGroup<T3>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -257,7 +257,7 @@ public partial class Query {
         var group1 = World.GetComponentGroup<T1>();
         var group2 = World.GetComponentGroup<T2>();
         var group3 = World.GetComponentGroup<T3>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -296,7 +296,7 @@ public partial class Query {
         var group2 = World.GetComponentGroup<T2>();
         var group3 = World.GetComponentGroup<T3>();
         var group4 = World.GetComponentGroup<T4>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -328,7 +328,7 @@ public partial class Query {
         var group2 = World.GetComponentGroup<T2>();
         var group3 = World.GetComponentGroup<T3>();
         var group4 = World.GetComponentGroup<T4>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -371,7 +371,7 @@ public partial class Query {
         var group3 = World.GetComponentGroup<T3>();
         var group4 = World.GetComponentGroup<T4>();
         var group5 = World.GetComponentGroup<T5>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -406,7 +406,7 @@ public partial class Query {
         var group3 = World.GetComponentGroup<T3>();
         var group4 = World.GetComponentGroup<T4>();
         var group5 = World.GetComponentGroup<T5>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -453,7 +453,7 @@ public partial class Query {
         var group4 = World.GetComponentGroup<T4>();
         var group5 = World.GetComponentGroup<T5>();
         var group6 = World.GetComponentGroup<T6>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -491,7 +491,7 @@ public partial class Query {
         var group4 = World.GetComponentGroup<T4>();
         var group5 = World.GetComponentGroup<T5>();
         var group6 = World.GetComponentGroup<T6>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -542,7 +542,7 @@ public partial class Query {
         var group5 = World.GetComponentGroup<T5>();
         var group6 = World.GetComponentGroup<T6>();
         var group7 = World.GetComponentGroup<T7>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -583,7 +583,7 @@ public partial class Query {
         var group5 = World.GetComponentGroup<T5>();
         var group6 = World.GetComponentGroup<T6>();
         var group7 = World.GetComponentGroup<T7>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -638,7 +638,7 @@ public partial class Query {
         var group6 = World.GetComponentGroup<T6>();
         var group7 = World.GetComponentGroup<T7>();
         var group8 = World.GetComponentGroup<T8>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -682,7 +682,7 @@ public partial class Query {
         var group6 = World.GetComponentGroup<T6>();
         var group7 = World.GetComponentGroup<T7>();
         var group8 = World.GetComponentGroup<T8>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -741,7 +741,7 @@ public partial class Query {
         var group7 = World.GetComponentGroup<T7>();
         var group8 = World.GetComponentGroup<T8>();
         var group9 = World.GetComponentGroup<T9>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];
@@ -788,7 +788,7 @@ public partial class Query {
         var group7 = World.GetComponentGroup<T7>();
         var group8 = World.GetComponentGroup<T8>();
         var group9 = World.GetComponentGroup<T9>();
-        foreach (var archetype in archetypes) {
+        foreach (var (_, archetype) in archetypes) {
             var offset0 = archetype.Offset[group0.Type];
             var offset1 = archetype.Offset[group1.Type];
             var offset2 = archetype.Offset[group2.Type];

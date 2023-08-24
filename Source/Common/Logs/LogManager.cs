@@ -7,6 +7,8 @@ namespace Coorth.Logs;
 
 [Manager]
 public interface ILogManager {
+
+    ILogManager Bind(Func<string, ILogger> func);
     
     ILogger Create(string name);
     
@@ -20,13 +22,23 @@ public interface ILogManager {
 [Manager]
 public class LogManager : Manager, ILogManager {
 
-    private readonly Func<string, ILogger> provider;
+    private Func<string, ILogger> provider;
 
     private readonly Dictionary<string, ILogger> loggers = new();
 
     public LogManager(Func<string, ILogger> func) {
         provider = func;
         LogUtil.Bind(this);
+    }
+    
+    public LogManager() {
+        provider = name => new LoggerConsole();
+        LogUtil.Bind(this);
+    }
+
+    public ILogManager Bind(Func<string, ILogger> func) {
+        provider = func;
+        return this;
     }
 
     public ILogger Create(string name) {

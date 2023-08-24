@@ -416,9 +416,9 @@ public partial class World {
     #region Component Group
     
     public ComponentCollection<T> GetComponents<T>()  where T : IComponent {
-        return new ComponentCollection<T>(GetComponentGroup<T>());
+        return new ComponentCollection<T>(this);
     }
-        
+    
     public ComponentGroup<T> BindComponent<T>() where T : IComponent {
         var component_group = GetComponentGroup<T>();
         return component_group;

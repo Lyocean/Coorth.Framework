@@ -8,8 +8,8 @@ namespace Coorth.Framework;
 public sealed partial class Query {
     public readonly World World;
     public readonly Matcher Matcher;
-    private readonly HashSet<Archetype> archetypes = new();
-    public IReadOnlyCollection<Archetype> Archetypes => archetypes;
+    private readonly Dictionary<int, Archetype> archetypes = new();
+    public IReadOnlyDictionary<int, Archetype> Archetypes => archetypes;
 
     public Query(World world, Matcher matcher) {
         World = world;
@@ -20,10 +20,10 @@ public sealed partial class Query {
         if (!Matcher.Match(archetype)) {
             return;
         }
-        archetypes.Add(archetype);
+        archetypes[archetype.Id] = archetype;
     }
 
-    public EntityCollection GetEntities(uint filter) {
+    public EntityCollection GetEntities(uint filter = EntityFlags.ENTITY_ACTIVE_MASK) {
         return new EntityCollection(World, archetypes, filter);
     }
     
