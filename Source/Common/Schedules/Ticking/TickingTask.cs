@@ -107,14 +107,15 @@ public class TickingTask : ITickingContext {
     public void RunLoop(TaskSyncContext sync_context, Dispatcher dispatcher) {
         startTime = GetCurrentTime();
         var last_time = startTime;
-        using var _ = PlatformManager.TimePeriodScope(TimeSpan.FromMilliseconds(1));
+        var platform = PlatformManager.Platform;
+        using var _ = platform.TimePeriodScope(TimeSpan.FromMilliseconds(1));
         var cancellation = sync_context.Cancellation;
         while (!cancellation.IsCancellationRequested) {
             var remaining_time = TickLoop(ref last_time, sync_context, dispatcher);
             if (remaining_time <= TimeSpan.Zero) {
                 continue;
             }
-            PlatformManager.Sleep(remaining_time, SleepOptions.Precision);
+            platform.Sleep(remaining_time, SleepOptions.Precision);
         }
         OnComplete?.Invoke();
     }

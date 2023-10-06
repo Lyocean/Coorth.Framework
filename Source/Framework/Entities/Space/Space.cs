@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
@@ -14,6 +15,8 @@ internal struct SpaceChunk {
 }
 
 public class Space : Disposable {
+
+    #region Common
     
     public readonly World World;
     
@@ -64,6 +67,10 @@ public class Space : Disposable {
         World.spaces.Remove(Id);
     }
     
+    #endregion
+
+    #region Entity
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal int AddEntity(int entity_index) {
         var space_index = count;
@@ -100,6 +107,8 @@ public class Space : Disposable {
         }
         chunk.Entities[value_index] = Move(count, space_index);
     }
+
+    #endregion
 
     private int Move(int space_index, int target_index) {
         var chunk_index = space_index / CHUNK_SIZE;
@@ -148,5 +157,44 @@ public class Space : Disposable {
         }
         count = 0;
     }
+
+    public SpaceEntities GetEntities() {
+        return new SpaceEntities(this);
+    }
+    
+    public readonly struct SpaceEntities {
+
+        public readonly Space Space;
+
+        public SpaceEntities(Space space) {
+            Space = space;
+        }
+        
+        public Enumerator GetEnumerator() => new(Space);
+    }
+    
+    public struct Enumerator : IEnumerator<Entity> {
+        public readonly Space Space;
+        public Entity Current { get; private set; }
+        object IEnumerator.Current => Current;
+
+        public Enumerator(Space space) {
+            Space = space;
+        }
+
+        public bool MoveNext() {
+            return false;
+        }
+
+        public void Reset() {
+            
+        }
+
+
+        public void Dispose() {
+            
+        }
+    }
+    
 }
 

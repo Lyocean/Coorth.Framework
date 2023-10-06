@@ -127,4 +127,11 @@ public static partial class MathUtil {
         Project(in vector, in onVector, out Vector2 result);
         return result;
     }
+
+    public static bool InTriangle(in Vector2 a, in Vector2 b, in Vector2 c, in Vector2 p) {
+        var v1 = Vector2.Dot(b - a, p - a);
+        var v2 = Vector2.Dot(c - b, p - b);
+        var v3 = Vector2.Dot(a - c, p - c);
+        return (v1 >= 0 && v2 >= 0 && v3 >= 0) || (v1 <= 0 && v2 <= 0 && v3 <= 0);
+    }
 }

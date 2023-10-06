@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 
 namespace Coorth.Collections;
@@ -73,9 +74,7 @@ public struct ValueList<T> : IList<T> {
         if (index != tail) {
             span[index] = span[tail];
         }
-        #nullable disable
-        span[tail] = default;
-        #nullable restore
+        span[tail] = default!;
         Count--;
     }
 
@@ -197,6 +196,17 @@ public struct ValueList<T> : IList<T> {
         return ref values.Span[index];
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public Memory<T> AddSlice(int length) {
+        var index = Count;
+        if (Count + length > Capacity) {
+            var capacity = BitOpUtil.RoundUpToPowerOf2(Count + length);
+            Resize(capacity);
+        }
+        Count += length;
+        return values.Slice(index, length);
+    }
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void Resize(int size) {
         var memory = allocator?.Alloc<T>(size) ?? new T[size];

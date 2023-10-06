@@ -159,13 +159,6 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     protected virtual void OnStartup() { }
 
     public virtual void OnTickLoop(TimeSpan delta_time) { }
-
-    public void Open() {
-        Setup();
-        Load();
-        Init();
-        Start();
-    }
     
     public void Run() {
         if (IsDisposed) {
@@ -174,14 +167,17 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         }
         
         try {
-            Open();
+            Setup();
+            Load();
+            Init();
+            Start();
         }
         catch (Exception e) {
             Logger.Exception(LogLevel.Debug, e);
         }
         var setting = new TickSetting();
         
-        var platform = Services.Find<IPlatformManager>() ?? new PlatformManager();
+        var platform = Services.Get<IPlatformManager>();
         var ticking = new TickingTask(platform, setting);
         ticking.OnTicking += OnTickLoop;
         ticking.OnTicking += OnTicking;
@@ -230,7 +226,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
         isRunning = false;
         OnDestroy();
         foreach (var key in modules.Keys.ToArray()) {
-            Logger.Debug($"Remove module: {key}");
+            Logger.Trace($"Remove module: {key}");
             RemoveModule(key);
         }
         SyncContext.Cancel();
@@ -246,7 +242,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
 
     protected virtual void OnDestroy() { }
     
-    public void Quit(int code) {
+    public virtual void Quit(int code) {
         SyncContext.Cancel();
     }
  
@@ -278,6 +274,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     }
 
     public T AddManager<T>(T manager) where T: class {
+        Logger?.Trace($"Create manager: {typeof(T).Name} - {manager.GetType().Name}");
         return Services.AddService<T>(manager);
     }
 
@@ -286,7 +283,7 @@ public abstract class AppBase : Disposable, IApplication, IServiceCollection {
     #region Module
     
     internal void OnAddModule(Type key, ModuleBase module) {
-        Logger.Trace($"AddModule:{key.Name} - {module.GetType().Name}");
+        Logger.Trace($"Create module: {key.Name} - {module.GetType().Name}");
         modules[key] = module;
         var option = new ActorOptions(key.Name, -1, -1);
         Domain.CreateActor(key, module, option);

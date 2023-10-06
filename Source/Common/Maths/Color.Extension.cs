@@ -15,7 +15,6 @@ public partial struct Color {
         };
     }
 
-
     public Color ToGamma() {
         return new Color {
             R = (float)Math.Pow(R, 1/GAMMA),
@@ -31,5 +30,22 @@ public partial struct Color {
         // (Math.Max(R, G, B) + Math.Min(R, G, B)) / 2
         var gray = R * 0.299f + G *  0.587f + B * 0.114f;
         return new Color(gray, gray, gray, A);
+    }
+
+    public static Color Read(ReadOnlySpan<char> span) {
+        if (span.Length == 7) {
+            var r = (byte)(MathUtil.HexToInt(span[1]) * 16 + MathUtil.HexToInt(span[2]));
+            var g = (byte)(MathUtil.HexToInt(span[3]) * 16 + MathUtil.HexToInt(span[4]));
+            var b = (byte)(MathUtil.HexToInt(span[5]) * 16 + MathUtil.HexToInt(span[6]));
+            return new Color(r, g, b);
+        } 
+        if (span.Length == 9) {
+            var r = (byte)(MathUtil.HexToInt(span[1]) * 16 + MathUtil.HexToInt(span[2]));
+            var g = (byte)(MathUtil.HexToInt(span[3]) * 16 + MathUtil.HexToInt(span[4]));
+            var b = (byte)(MathUtil.HexToInt(span[5]) * 16 + MathUtil.HexToInt(span[6]));
+            var a = (byte)(MathUtil.HexToInt(span[7]) * 16 + MathUtil.HexToInt(span[8]));
+            return new Color(r, g, b, a);
+        }
+        return new Color();
     }
 }

@@ -221,14 +221,14 @@ public static partial class MathUtil {
         Transformation(in position, in rotation, Vector3.One, out result);
     }
         
-    public static Matrix4x4 Transformation(in Vector3 position, in Quaternion rotation, in Vector3 scale) {
-        Transformation(in position, in rotation, in scale, out var matrix);
+    public static Matrix4x4 Transformation(in Vector3 position, in Quaternion rotation, in Vector3 scaling) {
+        Transformation(in position, in rotation, in scaling, out var matrix);
         return matrix;
     }
     
     
 
-    public static void Transformation(in Vector3 position, in Quaternion rotation, in Vector3 scale, out Matrix4x4 result) {
+    public static void Transformation(in Vector3 position, in Quaternion rotation, in Vector3 scaling, out Matrix4x4 result) {
         // Position
         result.M41 = position.X;
         result.M42 = position.Y;
@@ -256,17 +256,17 @@ public static partial class MathUtil {
         result.M33 = 1.0f - (2.0f * (yy + xx));
 	        
         // Scale
-        result.M11 *= scale.X;
-        result.M12 *= scale.X;
-        result.M13 *= scale.X;
+        result.M11 *= scaling.X;
+        result.M12 *= scaling.X;
+        result.M13 *= scaling.X;
 	        
-        result.M21 *= scale.Y;
-        result.M22 *= scale.Y;
-        result.M23 *= scale.Y;
+        result.M21 *= scaling.Y;
+        result.M22 *= scaling.Y;
+        result.M23 *= scaling.Y;
 	        
-        result.M31 *= scale.Z;
-        result.M32 *= scale.Z;
-        result.M33 *= scale.Z;
+        result.M31 *= scaling.Z;
+        result.M32 *= scaling.Z;
+        result.M33 *= scaling.Z;
 	        
         // Other
         result.M14 = 0.0f;

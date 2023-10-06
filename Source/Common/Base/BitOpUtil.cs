@@ -44,6 +44,11 @@ public static class BitOpUtil {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int RoundUpToPowerOf2(int value) {
+        return (int)RoundUpToPowerOf2((uint)value);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsPow2(int value) {
 #if NET5_0_OR_GREATER
         return System.Numerics.BitOperations.IsPow2(value);

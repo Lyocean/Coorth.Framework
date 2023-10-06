@@ -29,10 +29,23 @@ public partial record struct Rectangle(float X, float Y, float W, float H) {
     public readonly float YMin => Y;
     
     public readonly float YMax => Y + H;
-        
-    public static readonly Rectangle Empty;
 
+    public readonly Vector2 Center => new(X + W * 0.5f, Y + H *0.5f);
+    
+    public static readonly Rectangle Empty;
+    
+    public Rectangle(Vector2 min, Vector2 size) : this(min.X, min.Y, size.X, size.Y) {
+    }
+    
+    public static implicit operator Rectangle(in (float X, float Y, float W, float H) t) {
+        return new Rectangle(t.X, t.Y, t.W, t.H);
+    }
+    
     public readonly bool Contains(Vector2 position) {
         return (position.X >= X && position.Y >= Y) && (position.X <= X + W && position.Y <= Y + H);
+    }
+
+    public override string ToString() {
+        return $"(X:{X}, Y:{Y}, W:{W}, H:{H})";
     }
 }
